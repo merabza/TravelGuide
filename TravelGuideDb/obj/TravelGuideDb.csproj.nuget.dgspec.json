@@ -1,0 +1,678 @@
+{
+  "format": 1,
+  "restore": {
+    "D:\\1WorkDotnet\\TravelGuide\\TravelGuide\\TravelGuideDb\\TravelGuideDb.csproj": {}
+  },
+  "projects": {
+    "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliMenu\\CliMenu.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliMenu\\CliMenu.csproj",
+        "projectName": "CliMenu",
+        "projectPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliMenu\\CliMenu.csproj",
+        "packagesPath": "C:\\Users\\merab\\.nuget\\packages\\",
+        "outputPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliMenu\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\merab\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibDataInput\\LibDataInput.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibDataInput\\LibDataInput.csproj"
+              },
+              "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliParameters\\CliParameters.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliParameters\\CliParameters.csproj",
+        "projectName": "CliParameters",
+        "projectPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliParameters\\CliParameters.csproj",
+        "packagesPath": "C:\\Users\\merab\\.nuget\\packages\\",
+        "outputPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliParameters\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\merab\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliMenu\\CliMenu.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliMenu\\CliMenu.csproj"
+              },
+              "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibDataInput\\LibDataInput.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibDataInput\\LibDataInput.csproj"
+              },
+              "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibMenuInput\\LibMenuInput.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibMenuInput\\LibMenuInput.csproj"
+              },
+              "D:\\1WorkDotnet\\TravelGuide\\ParametersManagement\\LibParameters\\LibParameters.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\ParametersManagement\\LibParameters\\LibParameters.csproj"
+              },
+              "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj"
+              },
+              "D:\\1WorkDotnet\\TravelGuide\\ToolsManagement\\LibToolActions\\LibToolActions.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\ToolsManagement\\LibToolActions\\LibToolActions.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.Extensions.Logging": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibDataInput\\LibDataInput.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibDataInput\\LibDataInput.csproj",
+        "projectName": "LibDataInput",
+        "projectPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibDataInput\\LibDataInput.csproj",
+        "packagesPath": "C:\\Users\\merab\\.nuget\\packages\\",
+        "outputPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibDataInput\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\merab\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibMenuInput\\LibMenuInput.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibMenuInput\\LibMenuInput.csproj",
+        "projectName": "LibMenuInput",
+        "projectPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibMenuInput\\LibMenuInput.csproj",
+        "packagesPath": "C:\\Users\\merab\\.nuget\\packages\\",
+        "outputPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibMenuInput\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\merab\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliMenu\\CliMenu.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliMenu\\CliMenu.csproj"
+              },
+              "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibDataInput\\LibDataInput.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\LibDataInput\\LibDataInput.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\1WorkDotnet\\TravelGuide\\ParametersManagement\\LibParameters\\LibParameters.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\1WorkDotnet\\TravelGuide\\ParametersManagement\\LibParameters\\LibParameters.csproj",
+        "projectName": "LibParameters",
+        "projectPath": "D:\\1WorkDotnet\\TravelGuide\\ParametersManagement\\LibParameters\\LibParameters.csproj",
+        "packagesPath": "C:\\Users\\merab\\.nuget\\packages\\",
+        "outputPath": "D:\\1WorkDotnet\\TravelGuide\\ParametersManagement\\LibParameters\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\merab\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj",
+        "projectName": "SystemToolsShared",
+        "projectPath": "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj",
+        "packagesPath": "C:\\Users\\merab\\.nuget\\packages\\",
+        "outputPath": "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\merab\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "LanguageExt.Core": {
+              "target": "Package",
+              "version": "[4.4.9, )"
+            },
+            "Microsoft.Extensions.Configuration.Abstractions": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Microsoft.Extensions.Configuration.Binder": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Microsoft.Extensions.Configuration.Json": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Microsoft.Extensions.DependencyInjection": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Microsoft.Extensions.Http": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Microsoft.Extensions.Logging": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            },
+            "OneOf": {
+              "target": "Package",
+              "version": "[3.0.271, )"
+            },
+            "Serilog.Extensions.Logging": {
+              "target": "Package",
+              "version": "[9.0.2, )"
+            },
+            "Serilog.Sinks.Console": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "Serilog.Sinks.File": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            },
+            "System.Private.Uri": {
+              "target": "Package",
+              "version": "[4.3.2, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\1WorkDotnet\\TravelGuide\\ToolsManagement\\LibToolActions\\LibToolActions.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\1WorkDotnet\\TravelGuide\\ToolsManagement\\LibToolActions\\LibToolActions.csproj",
+        "projectName": "LibToolActions",
+        "projectPath": "D:\\1WorkDotnet\\TravelGuide\\ToolsManagement\\LibToolActions\\LibToolActions.csproj",
+        "packagesPath": "C:\\Users\\merab\\.nuget\\packages\\",
+        "outputPath": "D:\\1WorkDotnet\\TravelGuide\\ToolsManagement\\LibToolActions\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\merab\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.Extensions.Hosting.Abstractions": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\1WorkDotnet\\TravelGuide\\TravelGuide\\TravelGuideDb\\TravelGuideDb.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\1WorkDotnet\\TravelGuide\\TravelGuide\\TravelGuideDb\\TravelGuideDb.csproj",
+        "projectName": "TravelGuideDb",
+        "projectPath": "D:\\1WorkDotnet\\TravelGuide\\TravelGuide\\TravelGuideDb\\TravelGuideDb.csproj",
+        "packagesPath": "C:\\Users\\merab\\.nuget\\packages\\",
+        "outputPath": "D:\\1WorkDotnet\\TravelGuide\\TravelGuide\\TravelGuideDb\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\merab\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliParameters\\CliParameters.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\AppCliTools\\CliParameters\\CliParameters.csproj"
+              },
+              "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj": {
+                "projectPath": "D:\\1WorkDotnet\\TravelGuide\\SystemTools\\SystemToolsShared\\SystemToolsShared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Microsoft.EntityFrameworkCore.Relational": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

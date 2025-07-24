@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TravelGuide": {
+      "commandName": "Project",
+      "commandLineArgs": "--use \"D:\\1WorkSecurity\\TravelGuide\\TravelGuide.json\""
+    }
+  }
+}
