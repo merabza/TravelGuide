@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "xeKGDB5wreU=",
+  "dgSpecHash": "IpvC03J88kM=",
   "success": true,
   "projectFilePath": "D:\\1WorkDotnet\\TravelGuide\\TravelGuide\\TravelGuide\\TravelGuide.csproj",
   "expectedPackageFiles": [
@@ -37,6 +37,7 @@
     "C:\\Users\\merab\\.nuget\\packages\\microsoft.entityframeworkcore.analyzers\\9.0.7\\microsoft.entityframeworkcore.analyzers.9.0.7.nupkg.sha512",
     "C:\\Users\\merab\\.nuget\\packages\\microsoft.entityframeworkcore.design\\9.0.7\\microsoft.entityframeworkcore.design.9.0.7.nupkg.sha512",
     "C:\\Users\\merab\\.nuget\\packages\\microsoft.entityframeworkcore.relational\\9.0.7\\microsoft.entityframeworkcore.relational.9.0.7.nupkg.sha512",
+    "C:\\Users\\merab\\.nuget\\packages\\microsoft.entityframeworkcore.sqlserver\\9.0.7\\microsoft.entityframeworkcore.sqlserver.9.0.7.nupkg.sha512",
     "C:\\Users\\merab\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\9.0.7\\microsoft.extensions.caching.abstractions.9.0.7.nupkg.sha512",
     "C:\\Users\\merab\\.nuget\\packages\\microsoft.extensions.caching.memory\\9.0.7\\microsoft.extensions.caching.memory.9.0.7.nupkg.sha512",
     "C:\\Users\\merab\\.nuget\\packages\\microsoft.extensions.configuration\\9.0.7\\microsoft.extensions.configuration.9.0.7.nupkg.sha512",
@@ -101,6 +102,7 @@
     "C:\\Users\\merab\\.nuget\\packages\\system.diagnostics.diagnosticsource\\6.0.1\\system.diagnostics.diagnosticsource.6.0.1.nupkg.sha512",
     "C:\\Users\\merab\\.nuget\\packages\\system.diagnostics.eventlog\\9.0.7\\system.diagnostics.eventlog.9.0.7.nupkg.sha512",
     "C:\\Users\\merab\\.nuget\\packages\\system.diagnostics.performancecounter\\9.0.7\\system.diagnostics.performancecounter.9.0.7.nupkg.sha512",
+    "C:\\Users\\merab\\.nuget\\packages\\system.formats.asn1\\9.0.7\\system.formats.asn1.9.0.7.nupkg.sha512",
     "C:\\Users\\merab\\.nuget\\packages\\system.globalization\\4.3.0\\system.globalization.4.3.0.nupkg.sha512",
     "C:\\Users\\merab\\.nuget\\packages\\system.identitymodel.tokens.jwt\\7.5.0\\system.identitymodel.tokens.jwt.7.5.0.nupkg.sha512",
     "C:\\Users\\merab\\.nuget\\packages\\system.io\\4.3.0\\system.io.4.3.0.nupkg.sha512",
