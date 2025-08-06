@@ -3,10 +3,14 @@
 using System.Net.Http;
 using CliParameters;
 using CliParameters.FieldEditors;
+using CliParametersDataEdit.Cruders;
+using CliParametersDataEdit.FieldEditors;
+using CliParametersEdit.Cruders;
+using DoTravelGuide.Models;
+using LibDatabaseParameters;
+using LibFileParameters.Models;
 using LibParameters;
 using Microsoft.Extensions.Logging;
-using DoTravelGuide.Models;
-using CliParametersDataEdit.FieldEditors;
 
 namespace TravelGuide;
 
@@ -16,7 +20,19 @@ public sealed class TravelGuideParametersEditor : ParametersEditor
         IHttpClientFactory httpClientFactory) : base("TravelGuide Parameters Editor", parameters, parametersManager)
     {
         FieldEditors.Add(new FolderPathFieldEditor(nameof(TravelGuideParameters.LogFolder)));
-        FieldEditors.Add(new DatabaseServerConnectionNameFieldEditor(logger, httpClientFactory,
-            nameof(TravelGuideParameters.DatabaseConnectionName), parametersManager, true));
+
+        //FieldEditors.Add(new DatabaseServerConnectionNameFieldEditor(logger, httpClientFactory,
+        //    nameof(TravelGuideParameters.DatabaseConnectionName), parametersManager, true));
+
+        FieldEditors.Add(new DictionaryFieldEditor<DatabaseServerConnectionCruder, DatabaseServerConnectionData>(
+            nameof(TravelGuideParameters.DatabaseServerConnections), logger, httpClientFactory, parametersManager));
+
+        FieldEditors.Add(new DatabaseParametersFieldEditor(logger, httpClientFactory,
+            nameof(TravelGuideParameters.DatabaseParameters), parametersManager));
+
+        FieldEditors.Add(
+            new DictionaryFieldEditor<SmartSchemaCruder, SmartSchema>(nameof(TravelGuideParameters.SmartSchemas),
+                parametersManager));
+
     }
 }
