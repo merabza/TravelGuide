@@ -2,13 +2,13 @@
 
 using System;
 using CliParametersDataEdit;
-using LibDatabaseParameters;
-using TravelGuideDb;
 using DoTravelGuide.Models;
+using LibDatabaseParameters;
 using LibTravelGuideRepositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SystemToolsShared;
+using TravelGuideDb;
 
 namespace TravelGuide;
 
@@ -28,11 +28,11 @@ public sealed class TravelGuideServicesCreator : ServicesCreator
 
         var databaseServerConnections = new DatabaseServerConnections(_par.DatabaseServerConnections);
 
-        var (dataProvider, connectionString) =
-            DbConnectionFactory.GetDataProviderAndConnectionString(_par.DatabaseParameters, databaseServerConnections);
+        var (dataProvider, connectionString, timeOut) =
+            DbConnectionFactory.GetDataProviderConnectionStringCommandTimeOut(_par.DatabaseParameters,
+                databaseServerConnections);
 
         if (!string.IsNullOrEmpty(connectionString))
-        {
             switch (dataProvider)
             {
                 case EDatabaseProvider.SqlServer:
@@ -45,7 +45,6 @@ public sealed class TravelGuideServicesCreator : ServicesCreator
                 case null: break;
                 default: throw new ArgumentOutOfRangeException(nameof(dataProvider));
             }
-        }
 
         services.AddScoped<ITravelGuideRepository, TravelGuideRepository>();
         services.AddSingleton<ITravelGuideRepositoryCreatorFactory, TravelGuideRepositoryCreatorFactory>();
