@@ -36,7 +36,8 @@ public sealed class TravelGuideServicesCreator : ServicesCreator
             switch (dataProvider)
             {
                 case EDatabaseProvider.SqlServer:
-                    services.AddDbContext<TravelGuideDbContext>(options => options.UseSqlServer(connectionString));
+                    services.AddDbContext<TravelGuideDbContext>(options =>
+                        options.UseSqlServer(connectionString, con => con.CommandTimeout(timeOut)));
                     break;
                 case EDatabaseProvider.None:
                 case EDatabaseProvider.SqLite:

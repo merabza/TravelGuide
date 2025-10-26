@@ -33,6 +33,5 @@ public sealed class TravelGuideParametersEditor : ParametersEditor
         FieldEditors.Add(
             new DictionaryFieldEditor<SmartSchemaCruder, SmartSchema>(nameof(TravelGuideParameters.SmartSchemas),
                 parametersManager));
-
     }
 }
