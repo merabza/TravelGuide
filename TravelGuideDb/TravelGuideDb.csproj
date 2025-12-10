@@ -2,7 +2,7 @@
 
 <Project Sdk="Microsoft.NET.Sdk">
     <ItemGroup>
-        <ProjectReference Include="..\..\AppCliTools\CliParameters\CliParameters.csproj" />
+        <ProjectReference Include="..\..\ParametersManagement\LibParameters\LibParameters.csproj" />
         <ProjectReference Include="..\..\SystemTools\SystemToolsShared\SystemToolsShared.csproj" />
     </ItemGroup>
     <ItemGroup>
