@@ -11,8 +11,8 @@ public sealed class TravelGuideTaskRunner
 {
     private readonly ILogger _logger;
     private readonly TravelGuideParameters _par;
-    private readonly string? _taskName;
     private readonly TaskModel? _task;
+    private readonly string? _taskName;
 
     public TravelGuideTaskRunner(ILogger logger, TravelGuideParameters par, string taskName, TaskModel task)
     {

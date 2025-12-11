@@ -8,12 +8,12 @@ namespace TravelGuideDb.Models;
 
 public sealed class TestModel : ItemData
 {
-    public int TestId { get; set; }
-    public string TestName { get; set; }
-
     // ReSharper disable once ConvertToPrimaryConstructor
     public TestModel(string testName)
     {
         TestName = testName;
     }
+
+    public int TestId { get; set; }
+    public string TestName { get; set; }
 }

@@ -2,9 +2,9 @@
 
 using System;
 using CliMenu;
-using LibParameters;
 using DoTravelGuide.Models;
 using LibDataInput;
+using LibParameters;
 using SystemToolsShared;
 
 namespace TravelGuide.MenuCommands;
@@ -28,10 +28,7 @@ public sealed class NewTaskCommand : CliMenuCommand
         Console.WriteLine("Create new Task started");
 
         var newTaskName = Inputer.InputText("New Task Name", null);
-        if (string.IsNullOrEmpty(newTaskName))
-        {
-            return false;
-        }
+        if (string.IsNullOrEmpty(newTaskName)) return false;
 
         //ახალი ამოცანის შექმნა და ჩამატება ამოცანების სიაში
         if (!parameters.AddTask(newTaskName, new TaskModel()))
