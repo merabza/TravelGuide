@@ -2,16 +2,16 @@
 
 using System;
 using System.Net.Http;
-using SystemToolsShared;
 using CliParameters;
-using LibParameters;
-using TravelGuide;
-using LibTravelGuideRepositories;
 using DoTravelGuide.Models;
+using LibParameters;
+using LibTravelGuideRepositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
+using SystemToolsShared;
+using TravelGuide;
 
 ILogger<Program>? logger = null;
 try
@@ -72,7 +72,7 @@ try
     }
 
     var travelGuide = new TravelGuide.TravelGuide(logger, httpClientFactory,
-        new ParametersManager(parametersFileName, par), travelGuideRepositoryCreatorFactory);
+        new ParametersManager(parametersFileName, par));
 
     return travelGuide.Run() ? 0 : 1;
 }

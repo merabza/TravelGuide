@@ -1,9 +1,9 @@
 //Created by RepositoryClassCreator at 7/24/2025 11:44:10 PM
 
 using System;
-using TravelGuideDb;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using TravelGuideDb;
 
 namespace LibTravelGuideRepositories;
 
@@ -35,10 +35,11 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     {
         try
         {
-            using IDbContextTransaction transaction = GetTransaction();
+            // ReSharper disable once using
+            using var transaction = GetTransaction();
             try
             {
-                int ret = _context.SaveChanges();
+                var ret = _context.SaveChanges();
                 transaction.Commit();
                 return ret;
             }
