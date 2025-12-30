@@ -1,0 +1,55 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/AppCliTools/">
+    <Project Path="../AppCliTools/CliMenu/CliMenu.csproj" />
+    <Project Path="../AppCliTools/CliParameters/CliParameters.csproj" />
+    <Project Path="../AppCliTools/CliParametersApiClientsEdit/CliParametersApiClientsEdit.csproj" />
+    <Project Path="../AppCliTools/CliParametersDataEdit/CliParametersDataEdit.csproj" />
+    <Project Path="../AppCliTools/CliParametersEdit/CliParametersEdit.csproj" />
+    <Project Path="../AppCliTools/CliTools/CliTools.csproj" />
+    <Project Path="../AppCliTools/CliToolsData/CliToolsData.csproj" />
+    <Project Path="../AppCliTools/LibDataInput/LibDataInput.csproj" />
+    <Project Path="../AppCliTools/LibMenuInput/LibMenuInput.csproj" />
+  </Folder>
+  <Folder Name="/ConnectionTools/">
+    <Project Path="../ConnectionTools/ConnectTools/ConnectTools.csproj" />
+    <Project Path="../ConnectionTools/CToolsFactory/CToolsFactory.csproj" />
+    <Project Path="../ConnectionTools/FTPTools/FTPTools.csproj" />
+  </Folder>
+  <Folder Name="/DatabaseTools/">
+    <Project Path="../DatabaseTools/DbTools/DbTools.csproj" />
+    <Project Path="../DatabaseTools/DbToolsFactory/DbToolsFactory.csproj" />
+    <Project Path="../DatabaseTools/OleDbTools/OleDbTools.csproj" />
+    <Project Path="../DatabaseTools/SqLiteDbTools/SqLiteDbTools.csproj" />
+    <Project Path="../DatabaseTools/SqlServerDbTools/SqlServerDbTools.csproj" />
+  </Folder>
+  <Folder Name="/ParametersManagement/">
+    <Project Path="../ParametersManagement/LibApiClientParameters/LibApiClientParameters.csproj" />
+    <Project Path="../ParametersManagement/LibDatabaseParameters/LibDatabaseParameters.csproj" />
+    <Project Path="../ParametersManagement/LibFileParameters/LibFileParameters.csproj" />
+    <Project Path="../ParametersManagement/LibParameters/LibParameters.csproj" />
+  </Folder>
+  <Folder Name="/SystemTools/">
+    <Project Path="../SystemTools/ApiContracts/ApiContracts.csproj" />
+    <Project Path="../SystemTools/StringMessagesApiContracts/StringMessagesApiContracts.csproj" />
+    <Project Path="../SystemTools/SystemToolsShared/SystemToolsShared.csproj" />
+    <Project Path="../SystemTools/TestApiContracts/TestApiContracts.csproj" />
+  </Folder>
+  <Folder Name="/ToolsManagement/">
+    <Project Path="../ToolsManagement/ApiClientsManagement/ApiClientsManagement.csproj" />
+    <Project Path="../ToolsManagement/DatabasesManagement/DatabasesManagement.csproj" />
+    <Project Path="../ToolsManagement/FileManagersMain/FileManagersMain.csproj" />
+    <Project Path="../ToolsManagement/LibToolActions/LibToolActions.csproj" />
+  </Folder>
+  <Folder Name="/WebAgentContracts/">
+    <Project Path="../WebAgentContracts/WebAgentDatabasesApiContracts/WebAgentDatabasesApiContracts.csproj" />
+  </Folder>
+  <Project Path="DoTravelGuide/DoTravelGuide.csproj" />
+  <Project Path="LibTravelGuideRepositories/LibTravelGuideRepositories.csproj" />
+  <Project Path="TravelGuide/TravelGuide.csproj" />
+  <Project Path="TravelGuideDb/TravelGuideDb.csproj" />
+</Solution>
