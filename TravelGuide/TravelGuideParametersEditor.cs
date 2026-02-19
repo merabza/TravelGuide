@@ -1,16 +1,16 @@
 //Created by ProjectParametersEditorClassCreator at 7/24/2025 11:44:10 PM
 
 using System.Net.Http;
-using CliParameters;
-using CliParameters.FieldEditors;
-using CliParametersDataEdit.Cruders;
-using CliParametersDataEdit.FieldEditors;
-using CliParametersEdit.Cruders;
+using AppCliTools.CliParameters;
+using AppCliTools.CliParameters.FieldEditors;
+using AppCliTools.CliParametersDataEdit.Cruders;
+using AppCliTools.CliParametersDataEdit.FieldEditors;
+using AppCliTools.CliParametersEdit.Cruders;
 using DoTravelGuide.Models;
-using LibDatabaseParameters;
-using LibFileParameters.Models;
-using LibParameters;
 using Microsoft.Extensions.Logging;
+using ParametersManagement.LibDatabaseParameters;
+using ParametersManagement.LibFileParameters.Models;
+using ParametersManagement.LibParameters;
 
 namespace TravelGuide;
 

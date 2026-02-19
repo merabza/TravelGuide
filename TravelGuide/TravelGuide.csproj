@@ -2,19 +2,20 @@
 
 <Project Sdk="Microsoft.NET.Sdk">
     <ItemGroup>
-        <ProjectReference Include="..\..\AppCliTools\CliParameters\CliParameters.csproj" />
-        <ProjectReference Include="..\..\AppCliTools\CliTools\CliTools.csproj" />
-        <ProjectReference Include="..\..\AppCliTools\CliParametersDataEdit\CliParametersDataEdit.csproj" />
+        <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliMenu\AppCliTools.CliMenu.csproj" />
+        <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliParametersDataEdit\AppCliTools.CliParametersDataEdit.csproj" />
+        <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliParameters\AppCliTools.CliParameters.csproj" />
+        <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliTools\AppCliTools.CliTools.csproj" />
         <ProjectReference Include="..\TravelGuideDb\TravelGuideDb.csproj" />
         <ProjectReference Include="..\DoTravelGuide\DoTravelGuide.csproj" />
         <ProjectReference Include="..\LibTravelGuideRepositories\LibTravelGuideRepositories.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.2">
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     </ItemGroup>
     <PropertyGroup>
         <OutputType>Exe</OutputType>

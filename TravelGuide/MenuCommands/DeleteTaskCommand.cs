@@ -1,10 +1,12 @@
 //Created by DeleteTaskCommandCreator at 7/24/2025 11:44:10 PM
 
-using CliMenu;
+using System.Threading;
+using System.Threading.Tasks;
+using AppCliTools.CliMenu;
+using AppCliTools.LibDataInput;
 using DoTravelGuide.Models;
-using LibDataInput;
-using LibParameters;
-using SystemToolsShared;
+using ParametersManagement.LibParameters;
+using SystemTools.SystemToolsShared;
 
 namespace TravelGuide.MenuCommands;
 
@@ -21,20 +23,24 @@ public sealed class DeleteTaskCommand : CliMenuCommand
         _taskName = taskName;
     }
 
-    protected override bool RunBody()
+    protected override ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
+
     {
         var parameters = (TravelGuideParameters)_parametersManager.Parameters;
         var task = parameters.GetTask(_taskName);
         if (task == null)
         {
             StShared.WriteErrorLine($"Task {_taskName} does not found", true);
-            return false;
+            return ValueTask.FromResult(false);
         }
 
-        if (!Inputer.InputBool($"This will Delete  Task {_taskName}.are you sure ? ", false, false)) return false;
+        if (!Inputer.InputBool($"This will Delete  Task {_taskName}.are you sure ? ", false, false))
+        {
+            return ValueTask.FromResult(false);
+        }
 
         parameters.RemoveTask(_taskName);
         _parametersManager.Save(parameters, $"Task {_taskName} deleted.");
-        return true;
+        return ValueTask.FromResult(true);
     }
 }

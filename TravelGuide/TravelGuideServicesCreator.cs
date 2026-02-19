@@ -1,13 +1,13 @@
 //Created by ProjectServicesCreatorClassCreator at 7/24/2025 11:44:10 PM
 
-using System;
-using CliParametersDataEdit;
+using System.Runtime.CompilerServices;
+using AppCliTools.CliParametersDataEdit;
 using DoTravelGuide.Models;
-using LibDatabaseParameters;
 using LibTravelGuideRepositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using SystemToolsShared;
+using ParametersManagement.LibDatabaseParameters;
+using SystemTools.SystemToolsShared;
 using TravelGuideDb;
 
 namespace TravelGuide;
@@ -28,11 +28,12 @@ public sealed class TravelGuideServicesCreator : ServicesCreator
 
         var databaseServerConnections = new DatabaseServerConnections(_par.DatabaseServerConnections);
 
-        var (dataProvider, connectionString, timeOut) =
+        (EDatabaseProvider? dataProvider, string? connectionString, int timeOut) =
             DbConnectionFactory.GetDataProviderConnectionStringCommandTimeOut(_par.DatabaseParameters,
                 databaseServerConnections);
 
         if (!string.IsNullOrEmpty(connectionString))
+        {
             switch (dataProvider)
             {
                 case EDatabaseProvider.SqlServer:
@@ -44,8 +45,9 @@ public sealed class TravelGuideServicesCreator : ServicesCreator
                 case EDatabaseProvider.OleDb:
                 case EDatabaseProvider.WebAgent:
                 case null: break;
-                default: throw new ArgumentOutOfRangeException(nameof(dataProvider));
+                default: throw new SwitchExpressionException();
             }
+        }
 
         services.AddScoped<ITravelGuideRepository, TravelGuideRepository>();
         services.AddSingleton<ITravelGuideRepositoryCreatorFactory, TravelGuideRepositoryCreatorFactory>();

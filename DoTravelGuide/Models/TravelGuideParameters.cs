@@ -1,10 +1,10 @@
 //Created by ProjectParametersClassCreator at 7/24/2025 11:44:10 PM
 
 using System.Collections.Generic;
-using LibApiClientParameters;
-using LibDatabaseParameters;
-using LibFileParameters.Interfaces;
-using LibFileParameters.Models;
+using ParametersManagement.LibApiClientParameters;
+using ParametersManagement.LibDatabaseParameters;
+using ParametersManagement.LibFileParameters.Interfaces;
+using ParametersManagement.LibFileParameters.Models;
 
 namespace DoTravelGuide.Models;
 
@@ -35,9 +35,15 @@ public sealed class TravelGuideParameters : IParametersWithApiClients, IParamete
 
     public bool CheckNewTaskNameValid(string oldTaskName, string newTaskName)
     {
-        if (oldTaskName == newTaskName) return true;
+        if (oldTaskName == newTaskName)
+        {
+            return true;
+        }
 
-        if (!Tasks.ContainsKey(oldTaskName)) return false;
+        if (!Tasks.ContainsKey(oldTaskName))
+        {
+            return false;
+        }
 
         return !Tasks.ContainsKey(newTaskName);
     }

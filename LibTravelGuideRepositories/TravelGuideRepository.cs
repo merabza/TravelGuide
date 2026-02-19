@@ -27,7 +27,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         catch (Exception e)
         {
             _logger.LogError(e, $"Error occurred executing {nameof(SaveChanges)}.");
-            throw;
+            throw new InvalidOperationException("Failed to save changes to the database.", e);
         }
     }
 
@@ -36,23 +36,24 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         try
         {
             // ReSharper disable once using
-            using var transaction = GetTransaction();
+            using IDbContextTransaction transaction = GetTransaction();
             try
             {
-                var ret = _context.SaveChanges();
+                int ret = _context.SaveChanges();
                 transaction.Commit();
                 return ret;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 transaction.Rollback();
-                throw;
+                throw new InvalidOperationException(
+                    "Failed to save changes within transaction. Transaction rolled back.", ex);
             }
         }
         catch (Exception e)
         {
             _logger.LogError(e, $"Error occurred executing {nameof(SaveChangesWithTransaction)}.");
-            throw;
+            throw new InvalidOperationException($"Failed to execute {nameof(SaveChangesWithTransaction)}.", e);
         }
     }
 

@@ -1,16 +1,17 @@
 //Created by ProjectMainClassCreatorForCliAppWithMenu at 7/24/2025 11:44:10 PM
 
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
-using CliMenu;
-using CliParameters.CliMenuCommands;
-using CliTools;
-using CliTools.CliMenuCommands;
+using AppCliTools.CliMenu;
+using AppCliTools.CliParameters.CliMenuCommands;
+using AppCliTools.CliTools;
+using AppCliTools.CliTools.CliMenuCommands;
+using AppCliTools.LibDataInput;
 using DoTravelGuide.Models;
-using LibDataInput;
-using LibParameters;
 using Microsoft.Extensions.Logging;
+using ParametersManagement.LibParameters;
 using TravelGuide.MenuCommands;
 
 namespace TravelGuide;
@@ -50,10 +51,12 @@ public sealed class TravelGuide : CliAppLoop
         var newAppTaskCommand = new NewTaskCommand(_parametersManager);
         mainMenuSet.AddMenuItem(newAppTaskCommand);
         foreach (var kvp in parameters.Tasks.OrderBy(o => o.Key))
+        {
             mainMenuSet.AddMenuItem(new TaskSubMenuCommand(_logger, _parametersManager, kvp.Key));
+        }
 
         //პროგრამიდან გასასვლელი
-        var key = ConsoleKey.Escape.Value().ToLower();
+        var key = ConsoleKey.Escape.Value().ToLower(CultureInfo.CurrentCulture);
         mainMenuSet.AddMenuItem(key, new ExitCliMenuCommand(), key.Length);
 
         return mainMenuSet;

@@ -1,11 +1,13 @@
 //Created by NewTaskCommandCreator at 7/24/2025 11:44:10 PM
 
 using System;
-using CliMenu;
+using System.Threading;
+using System.Threading.Tasks;
+using AppCliTools.CliMenu;
+using AppCliTools.LibDataInput;
 using DoTravelGuide.Models;
-using LibDataInput;
-using LibParameters;
-using SystemToolsShared;
+using ParametersManagement.LibParameters;
+using SystemTools.SystemToolsShared;
 
 namespace TravelGuide.MenuCommands;
 
@@ -19,7 +21,7 @@ public sealed class NewTaskCommand : CliMenuCommand
         _parametersManager = parametersManager;
     }
 
-    protected override bool RunBody()
+    protected override ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
     {
         MenuAction = EMenuAction.Reload;
         var parameters = (TravelGuideParameters)_parametersManager.Parameters;
@@ -27,18 +29,21 @@ public sealed class NewTaskCommand : CliMenuCommand
         //ამოცანის შექმნის პროცესი დაიწყო
         Console.WriteLine("Create new Task started");
 
-        var newTaskName = Inputer.InputText("New Task Name", null);
-        if (string.IsNullOrEmpty(newTaskName)) return false;
+        string? newTaskName = Inputer.InputText("New Task Name", null);
+        if (string.IsNullOrEmpty(newTaskName))
+        {
+            return ValueTask.FromResult(false);
+        }
 
         //ახალი ამოცანის შექმნა და ჩამატება ამოცანების სიაში
         if (!parameters.AddTask(newTaskName, new TaskModel()))
         {
             StShared.WriteErrorLine($"Task with Name {newTaskName} does not created", true);
-            return false;
+            return ValueTask.FromResult(false);
         }
 
         //პარამეტრების შენახვა (ცვლილებების გათვალისწინებით)
         _parametersManager.Save(parameters, "Create New Task Finished");
-        return true;
+        return ValueTask.FromResult(true);
     }
 }

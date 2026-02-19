@@ -3,37 +3,38 @@
 using System;
 using DoTravelGuide.Models;
 using Microsoft.Extensions.Logging;
-using SystemToolsShared;
+using SystemTools.SystemToolsShared;
 
 namespace TravelGuide;
 
 public sealed class TravelGuideTaskRunner
 {
-    private readonly ILogger _logger;
-    private readonly TravelGuideParameters _par;
-    private readonly TaskModel? _task;
-    private readonly string? _taskName;
+    //private readonly ILogger _logger;
+    //private readonly TravelGuideParameters _par;
+    //private readonly TaskModel? _task;
+    //private readonly string? _taskName;
 
     public TravelGuideTaskRunner(ILogger logger, TravelGuideParameters par, string taskName, TaskModel task)
     {
-        _logger = logger;
-        _par = par;
-        _taskName = taskName;
-        _task = task;
+        //_logger = logger;
+        //_par = par;
+        //_taskName = taskName;
+        //_task = task;
     }
 
     public TravelGuideTaskRunner(ILogger logger, TravelGuideParameters par)
     {
-        _logger = logger;
-        _par = par;
-        _taskName = null;
-        _task = null;
+        //_logger = logger;
+        //_par = par;
+        //_taskName = null;
+        //_task = null;
     }
 
     public void Run()
     {
         try
         {
+            throw new NotImplementedException("Implement the task runner logic here.");
         }
         catch (Exception e)
         {

@@ -1,10 +1,12 @@
 //Created by EditTaskNameCommandCreator at 7/24/2025 11:44:10 PM
 
-using CliMenu;
+using System.Threading;
+using System.Threading.Tasks;
+using AppCliTools.CliMenu;
+using AppCliTools.LibDataInput;
 using DoTravelGuide.Models;
-using LibDataInput;
-using LibParameters;
-using SystemToolsShared;
+using ParametersManagement.LibParameters;
+using SystemTools.SystemToolsShared;
 
 namespace TravelGuide.MenuCommands;
 
@@ -21,39 +23,40 @@ public sealed class EditTaskNameCommand : CliMenuCommand
         _taskName = taskName;
     }
 
-    protected override bool RunBody()
+    protected override ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
     {
         var parameters = (TravelGuideParameters)_parametersManager.Parameters;
-        var task = parameters.GetTask(_taskName);
+        TaskModel? task = parameters.GetTask(_taskName);
         if (task == null)
         {
             StShared.WriteErrorLine($"Task {_taskName} does not found", true);
-            return false;
+            return ValueTask.FromResult(false);
         }
 
         //ამოცანის სახელის რედაქტირება
-        var newTaskName = Inputer.InputText("change  Task Name ", _taskName);
-        if (string.IsNullOrWhiteSpace(newTaskName)) return false;
-
-        if (_taskName == newTaskName) return false;
+        string? newTaskName = Inputer.InputText("change  Task Name ", _taskName);
+        if (string.IsNullOrWhiteSpace(newTaskName) || _taskName == newTaskName)
+        {
+            return ValueTask.FromResult(false);
+        }
 
         if (!parameters.RemoveTask(_taskName))
         {
             StShared.WriteErrorLine(
                 $"Cannot change  Task with name {_taskName} to {newTaskName}, because cannot remove this  task", true);
-            return false;
+            return ValueTask.FromResult(false);
         }
 
         if (!parameters.AddTask(newTaskName, task))
         {
             StShared.WriteErrorLine(
                 $"Cannot change  Task with name {_taskName} to {newTaskName}, because cannot add this  task", true);
-            return false;
+            return ValueTask.FromResult(false);
         }
 
         _parametersManager.Save(parameters, $" Task Renamed from {_taskName} To {newTaskName}");
 
-        return true;
+        return ValueTask.FromResult(true);
     }
 
     protected override string GetStatus()

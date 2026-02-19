@@ -2,11 +2,13 @@
 
 using System;
 using System.Diagnostics;
-using CliMenu;
+using System.Threading;
+using System.Threading.Tasks;
+using AppCliTools.CliMenu;
 using DoTravelGuide.Models;
-using LibParameters;
 using Microsoft.Extensions.Logging;
-using SystemToolsShared;
+using ParametersManagement.LibParameters;
+using SystemTools.SystemToolsShared;
 
 namespace TravelGuide.MenuCommands;
 
@@ -24,15 +26,15 @@ public sealed class TaskCommand : CliMenuCommand
         _taskName = taskName;
     }
 
-    protected override bool RunBody()
+    protected override ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
     {
         MenuAction = EMenuAction.Reload;
         var parameters = (TravelGuideParameters)_parametersManager.Parameters;
-        var task = parameters.GetTask(_taskName);
+        TaskModel? task = parameters.GetTask(_taskName);
         if (task == null)
         {
             StShared.WriteErrorLine($"Task {_taskName} does not found", true);
-            return false;
+            return ValueTask.FromResult(false);
         }
 
         var crawlerRunner = new TravelGuideTaskRunner(_logger, parameters, _taskName, task);
@@ -46,6 +48,6 @@ public sealed class TaskCommand : CliMenuCommand
         Console.WriteLine("-- - ");
         Console.WriteLine($"Crawler Finished.Time taken: {watch.Elapsed.Seconds} second(s)");
         StShared.Pause();
-        return true;
+        return ValueTask.FromResult(true);
     }
 }

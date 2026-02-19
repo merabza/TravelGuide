@@ -1,7 +1,7 @@
 //Created by DbContextClassCreator at 7/24/2025 11:44:10 PM
 
 using Microsoft.EntityFrameworkCore;
-using SystemToolsShared;
+using SystemTools.SystemToolsShared;
 using TravelGuideDb.Models;
 
 namespace TravelGuideDb;

@@ -2,15 +2,16 @@
 
 using System;
 using System.Net.Http;
-using CliParameters;
+using System.Runtime.CompilerServices;
+using AppCliTools.CliParameters;
 using DoTravelGuide.Models;
-using LibParameters;
 using LibTravelGuideRepositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ParametersManagement.LibParameters;
 using Serilog;
 using Serilog.Events;
-using SystemToolsShared;
+using SystemTools.SystemToolsShared;
 using TravelGuide;
 
 ILogger<Program>? logger = null;
@@ -29,7 +30,7 @@ try
         case EParseResult.Ok: break;
         case EParseResult.Usage: return 1;
         case EParseResult.Error: return 2;
-        default: throw new ArgumentOutOfRangeException();
+        default: throw new SwitchExpressionException();
     }
 
     var par = (TravelGuideParameters?)argParser.Par;
@@ -39,10 +40,10 @@ try
         return 3;
     }
 
-    var parametersFileName = argParser.ParametersFileName;
+    string? parametersFileName = argParser.ParametersFileName;
     var servicesCreator = new TravelGuideServicesCreator(par);
     // ReSharper disable once using
-    var serviceProvider = servicesCreator.CreateServiceProvider(LogEventLevel.Information);
+    ServiceProvider? serviceProvider = servicesCreator.CreateServiceProvider(LogEventLevel.Information);
 
     if (serviceProvider == null)
     {
@@ -74,7 +75,7 @@ try
     var travelGuide = new TravelGuide.TravelGuide(logger, httpClientFactory,
         new ParametersManager(parametersFileName, par));
 
-    return travelGuide.Run() ? 0 : 1;
+    return await travelGuide.Run() ? 0 : 1;
 }
 catch (Exception e)
 {
@@ -83,5 +84,5 @@ catch (Exception e)
 }
 finally
 {
-    Log.CloseAndFlush();
+    await Log.CloseAndFlushAsync();
 }
