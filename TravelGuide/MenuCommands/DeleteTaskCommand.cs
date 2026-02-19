@@ -27,7 +27,7 @@ public sealed class DeleteTaskCommand : CliMenuCommand
 
     {
         var parameters = (TravelGuideParameters)_parametersManager.Parameters;
-        var task = parameters.GetTask(_taskName);
+        TaskModel? task = parameters.GetTask(_taskName);
         if (task == null)
         {
             StShared.WriteErrorLine($"Task {_taskName} does not found", true);

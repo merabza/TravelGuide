@@ -1,6 +1,7 @@
 //Created by ProjectMainClassCreatorForCliAppWithMenu at 7/24/2025 11:44:10 PM
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
@@ -50,13 +51,13 @@ public sealed class TravelGuide : CliAppLoop
 
         var newAppTaskCommand = new NewTaskCommand(_parametersManager);
         mainMenuSet.AddMenuItem(newAppTaskCommand);
-        foreach (var kvp in parameters.Tasks.OrderBy(o => o.Key))
+        foreach (KeyValuePair<string, TaskModel> kvp in parameters.Tasks.OrderBy(o => o.Key))
         {
             mainMenuSet.AddMenuItem(new TaskSubMenuCommand(_logger, _parametersManager, kvp.Key));
         }
 
         //პროგრამიდან გასასვლელი
-        var key = ConsoleKey.Escape.Value().ToLower(CultureInfo.CurrentCulture);
+        string key = ConsoleKey.Escape.Value().ToLower(CultureInfo.CurrentCulture);
         mainMenuSet.AddMenuItem(key, new ExitCliMenuCommand(), key.Length);
 
         return mainMenuSet;

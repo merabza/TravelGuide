@@ -17,7 +17,7 @@ public sealed class TravelGuideRepositoryCreatorFactory : ITravelGuideRepository
     public ITravelGuideRepository GetTravelGuideRepository()
     {
         // ReSharper disable once using
-        using var scope = _services.CreateScope();
+        using IServiceScope scope = _services.CreateScope();
         return scope.ServiceProvider.GetRequiredService<ITravelGuideRepository>();
     }
 }

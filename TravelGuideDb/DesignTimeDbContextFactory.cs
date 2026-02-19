@@ -38,18 +38,18 @@ public /*open*/ class DesignTimeDbContextFactory<T> : IDesignTimeDbContextFactor
     public T CreateDbContext(string[] args)
     {
         //თუ პარამეტრების json ფაილის სახელი პირდაპირ არ არის გადმოცემული, ვიყენებთ სტანდარტულ სახელს appsettings.json
-        var configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
+        IConfigurationRoot configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile(_parametersJsonFileName ?? "appsettings.json", false, true).Build();
         //.AddEncryptedJsonFile(Path.Combine(pathToContentRoot, "appsettingsEncoded.json"), optional: false, reloadOnChange: true, Key,
         //  Path.Combine(pathToContentRoot, "appsetenkeys.json"))
         //.AddUserSecrets<TSt>()
         //.AddEnvironmentVariables()
-        var connectionString = configuration[_connectionParamName];
+        string? connectionString = configuration[_connectionParamName];
         Console.WriteLine($"DesignTimeDbContextFactory CreateDbContext connectionString = {connectionString}");
 
         var builder = new DbContextOptionsBuilder<T>();
         builder.UseSqlServer(connectionString, b => b.MigrationsAssembly(_assemblyName));
-        var dbContext = Activator.CreateInstance(typeof(T), builder.Options, true);
+        object? dbContext = Activator.CreateInstance(typeof(T), builder.Options, true);
         return dbContext is null ? throw new Exception("dbContext does not created") : (T)dbContext;
     }
 }

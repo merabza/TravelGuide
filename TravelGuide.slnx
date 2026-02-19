@@ -11,7 +11,6 @@
     <Project Path="../AppCliTools/AppCliTools.CliParametersDataEdit/AppCliTools.CliParametersDataEdit.csproj" />
     <Project Path="../AppCliTools/AppCliTools.CliParametersEdit/AppCliTools.CliParametersEdit.csproj" />
     <Project Path="../AppCliTools/AppCliTools.CliTools/AppCliTools.CliTools.csproj" />
-    <Project Path="../AppCliTools/AppCliTools.CliToolsData/AppCliTools.CliToolsData.csproj" />
     <Project Path="../AppCliTools/AppCliTools.LibDataInput/AppCliTools.LibDataInput.csproj" />
     <Project Path="../AppCliTools/AppCliTools.LibMenuInput/AppCliTools.LibMenuInput.csproj" />
   </Folder>
