@@ -23,40 +23,41 @@ public sealed class EditTaskNameCommand : CliMenuCommand
         _taskName = taskName;
     }
 
-    protected override ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
+    protected override async ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
     {
         var parameters = (TravelGuideParameters)_parametersManager.Parameters;
         TaskModel? task = parameters.GetTask(_taskName);
         if (task == null)
         {
             StShared.WriteErrorLine($"Task {_taskName} does not found", true);
-            return ValueTask.FromResult(false);
+            return false;
         }
 
         //ამოცანის სახელის რედაქტირება
         string? newTaskName = Inputer.InputText("change  Task Name ", _taskName);
         if (string.IsNullOrWhiteSpace(newTaskName) || _taskName == newTaskName)
         {
-            return ValueTask.FromResult(false);
+            return false;
         }
 
         if (!parameters.RemoveTask(_taskName))
         {
             StShared.WriteErrorLine(
                 $"Cannot change  Task with name {_taskName} to {newTaskName}, because cannot remove this  task", true);
-            return ValueTask.FromResult(false);
+            return false;
         }
 
         if (!parameters.AddTask(newTaskName, task))
         {
             StShared.WriteErrorLine(
                 $"Cannot change  Task with name {_taskName} to {newTaskName}, because cannot add this  task", true);
-            return ValueTask.FromResult(false);
+            return false;
         }
 
-        _parametersManager.Save(parameters, $" Task Renamed from {_taskName} To {newTaskName}");
+        await _parametersManager.Save(parameters, $" Task Renamed from {_taskName} To {newTaskName}", null,
+            cancellationToken);
 
-        return ValueTask.FromResult(true);
+        return true;
     }
 
     protected override string GetStatus()

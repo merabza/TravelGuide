@@ -23,7 +23,7 @@ public sealed class DeleteTaskCommand : CliMenuCommand
         _taskName = taskName;
     }
 
-    protected override ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
+    protected override async ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
 
     {
         var parameters = (TravelGuideParameters)_parametersManager.Parameters;
@@ -31,16 +31,16 @@ public sealed class DeleteTaskCommand : CliMenuCommand
         if (task == null)
         {
             StShared.WriteErrorLine($"Task {_taskName} does not found", true);
-            return ValueTask.FromResult(false);
+            return false;
         }
 
         if (!Inputer.InputBool($"This will Delete  Task {_taskName}.are you sure ? ", false, false))
         {
-            return ValueTask.FromResult(false);
+            return false;
         }
 
         parameters.RemoveTask(_taskName);
-        _parametersManager.Save(parameters, $"Task {_taskName} deleted.");
-        return ValueTask.FromResult(true);
+        await _parametersManager.Save(parameters, $"Task {_taskName} deleted.", null, cancellationToken);
+        return true;
     }
 }

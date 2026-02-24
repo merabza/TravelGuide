@@ -21,7 +21,7 @@ public sealed class NewTaskCommand : CliMenuCommand
         _parametersManager = parametersManager;
     }
 
-    protected override ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
+    protected override async ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
     {
         MenuAction = EMenuAction.Reload;
         var parameters = (TravelGuideParameters)_parametersManager.Parameters;
@@ -32,18 +32,18 @@ public sealed class NewTaskCommand : CliMenuCommand
         string? newTaskName = Inputer.InputText("New Task Name", null);
         if (string.IsNullOrEmpty(newTaskName))
         {
-            return ValueTask.FromResult(false);
+            return false;
         }
 
         //ახალი ამოცანის შექმნა და ჩამატება ამოცანების სიაში
         if (!parameters.AddTask(newTaskName, new TaskModel()))
         {
             StShared.WriteErrorLine($"Task with Name {newTaskName} does not created", true);
-            return ValueTask.FromResult(false);
+            return false;
         }
 
         //პარამეტრების შენახვა (ცვლილებების გათვალისწინებით)
-        _parametersManager.Save(parameters, "Create New Task Finished");
-        return ValueTask.FromResult(true);
+        await _parametersManager.Save(parameters, "Create New Task Finished", null, cancellationToken);
+        return true;
     }
 }
