@@ -6,13 +6,11 @@ using System.Runtime.CompilerServices;
 using AppCliTools.CliParameters;
 using AppCliTools.CliTools;
 using AppCliTools.CliTools.DependencyInjection;
-using AppCliTools.CliTools.Services.MenuBuilder;
 using DoTravelGuide.Models;
 using LibTravelGuideRepositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ParametersManagement.LibDatabaseParameters;
-using ParametersManagement.LibParameters;
 using Serilog;
 using Serilog.Events;
 using SystemTools.SystemToolsShared;
@@ -80,8 +78,13 @@ try
         return 6;
     }
 
-    var travelGuide = new CliAppLoop(app, menuBuilder, logger, httpClientFactory,
-        new ParametersManager(parametersFileName, par));
+    var cliLoopPar = CliAppLoopParameters.Create(serviceProvider);
+    if (cliLoopPar is null)
+    {
+        return 6;
+    }
+
+    var travelGuide = new CliAppLoop(cliLoopPar);
 
     return await travelGuide.Run() ? 0 : 1;
 }
