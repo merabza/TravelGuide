@@ -1,13 +1,11 @@
 //Created by ConsoleProgramClassCreator at 7/24/2025 11:44:10 PM
 
 using System;
-using System.Net.Http;
 using System.Runtime.CompilerServices;
 using AppCliTools.CliParameters;
 using AppCliTools.CliTools;
 using AppCliTools.CliTools.DependencyInjection;
 using DoTravelGuide.Models;
-using LibTravelGuideRepositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ParametersManagement.LibDatabaseParameters;
@@ -52,7 +50,15 @@ try
     var databaseServerConnections = new DatabaseServerConnections(par.DatabaseServerConnections);
 
     serviceCollection.AddSerilogLoggerService(LogEventLevel.Information, appName, par.LogFolder)
-        .AddServices(databaseServerConnections, par.DatabaseParameters);
+        .AddMenuCommandsFactoryStrategies().AddDatabase(databaseServerConnections, par.DatabaseParameters).AddServices()
+        .AddApplication(x =>
+        {
+            x.AppName = appName;
+        }).AddMainParametersManager(x =>
+        {
+            x.ParametersFileName = parametersFileName;
+            x.Par = par;
+        });
 
     // ReSharper disable once using
     await using ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
@@ -62,20 +68,6 @@ try
     {
         StShared.WriteErrorLine("logger is null", true);
         return 5;
-    }
-
-    var travelGuideRepositoryCreatorFactory = serviceProvider.GetService<ITravelGuideRepositoryCreatorFactory>();
-    if (travelGuideRepositoryCreatorFactory is null)
-    {
-        StShared.WriteErrorLine("travelGuideRepositoryCreatorFactory is null", true);
-        return 6;
-    }
-
-    var httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
-    if (httpClientFactory is null)
-    {
-        StShared.WriteErrorLine("httpClientFactory is null", true);
-        return 6;
     }
 
     var cliLoopPar = CliAppLoopParameters.Create(serviceProvider);
