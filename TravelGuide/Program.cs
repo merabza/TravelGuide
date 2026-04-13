@@ -4,10 +4,14 @@ using System;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using AppCliTools.CliParameters;
+using AppCliTools.CliTools;
+using AppCliTools.CliTools.DependencyInjection;
+using AppCliTools.CliTools.Services.MenuBuilder;
 using DoTravelGuide.Models;
 using LibTravelGuideRepositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ParametersManagement.LibDatabaseParameters;
 using ParametersManagement.LibParameters;
 using Serilog;
 using Serilog.Events;
@@ -19,12 +23,10 @@ try
 {
     Console.WriteLine("Loading...");
 
-    const string appName = "TravelGuide";
+    const string appName = "Travel Guide";
 
-    //პროგრამის ატრიბუტების დაყენება 
-    ProgramAttributes.Instance.AppName = appName;
+    var argParser = new ArgumentsParser<TravelGuideParameters>(args, appName);
 
-    var argParser = new ArgumentsParser<TravelGuideParameters>(args, appName, null);
     switch (argParser.Analysis())
     {
         case EParseResult.Ok: break;
@@ -36,20 +38,26 @@ try
     var par = (TravelGuideParameters?)argParser.Par;
     if (par is null)
     {
-        StShared.WriteErrorLine("ConsoleTestParameters is null", true);
+        StShared.WriteErrorLine("TravelGuideParameters is null", true);
         return 3;
     }
 
     string? parametersFileName = argParser.ParametersFileName;
-    var servicesCreator = new TravelGuideServicesCreator(par);
-    // ReSharper disable once using
-    ServiceProvider? serviceProvider = servicesCreator.CreateServiceProvider(LogEventLevel.Information);
-
-    if (serviceProvider == null)
+    if (string.IsNullOrWhiteSpace(parametersFileName))
     {
-        StShared.WriteErrorLine("Logger not created", true);
-        return 4;
+        StShared.WriteErrorLine("parametersFileName is null or empty", true);
+        return 3;
     }
+
+    var serviceCollection = new ServiceCollection();
+
+    var databaseServerConnections = new DatabaseServerConnections(par.DatabaseServerConnections);
+
+    serviceCollection.AddSerilogLoggerService(LogEventLevel.Information, appName, par.LogFolder)
+        .AddServices(databaseServerConnections, par.DatabaseParameters);
+
+    // ReSharper disable once using
+    await using ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 
     logger = serviceProvider.GetService<ILogger<Program>>();
     if (logger is null)
@@ -72,7 +80,7 @@ try
         return 6;
     }
 
-    var travelGuide = new TravelGuide.TravelGuide(logger, httpClientFactory,
+    var travelGuide = new CliAppLoop(app, menuBuilder, logger, httpClientFactory,
         new ParametersManager(parametersFileName, par));
 
     return await travelGuide.Run() ? 0 : 1;

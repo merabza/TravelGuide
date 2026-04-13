@@ -2,7 +2,6 @@
 
 using System.Runtime.CompilerServices;
 using AppCliTools.CliParametersDataEdit;
-using DoTravelGuide.Models;
 using LibTravelGuideRepositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,24 +11,13 @@ using TravelGuideDb;
 
 namespace TravelGuide;
 
-public sealed class TravelGuideServicesCreator : ServicesCreator
+public static class TravelGuideServices
 {
-    private readonly TravelGuideParameters _par;
-
-    // ReSharper disable once ConvertToPrimaryConstructor
-    public TravelGuideServicesCreator(TravelGuideParameters par) : base(par.LogFolder, null, "TravelGuide")
+    public static IServiceCollection AddServices(this IServiceCollection services,
+        DatabaseServerConnections databaseServerConnections, DatabaseParameters? databaseParameters)
     {
-        _par = par;
-    }
-
-    protected override void ConfigureServices(IServiceCollection services)
-    {
-        base.ConfigureServices(services);
-
-        var databaseServerConnections = new DatabaseServerConnections(_par.DatabaseServerConnections);
-
         (EDatabaseProvider? dataProvider, string? connectionString, int timeOut) =
-            DbConnectionFactory.GetDataProviderConnectionStringCommandTimeOut(_par.DatabaseParameters,
+            DbConnectionFactory.GetDataProviderConnectionStringCommandTimeOut(databaseParameters,
                 databaseServerConnections);
 
         if (!string.IsNullOrEmpty(connectionString))
@@ -52,5 +40,7 @@ public sealed class TravelGuideServicesCreator : ServicesCreator
         services.AddScoped<ITravelGuideRepository, TravelGuideRepository>();
         services.AddSingleton<ITravelGuideRepositoryCreatorFactory, TravelGuideRepositoryCreatorFactory>();
         services.AddHttpClient();
+
+        return services;
     }
 }

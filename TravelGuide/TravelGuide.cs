@@ -1,65 +1,67 @@
-//Created by ProjectMainClassCreatorForCliAppWithMenu at 7/24/2025 11:44:10 PM
+////Created by ProjectMainClassCreatorForCliAppWithMenu at 7/24/2025 11:44:10 PM
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net.Http;
-using AppCliTools.CliMenu;
-using AppCliTools.CliParameters.CliMenuCommands;
-using AppCliTools.CliTools;
-using AppCliTools.CliTools.CliMenuCommands;
-using AppCliTools.LibDataInput;
-using DoTravelGuide.Models;
-using Microsoft.Extensions.Logging;
-using ParametersManagement.LibParameters;
-using TravelGuide.MenuCommands;
+//using System;
+//using System.Collections.Generic;
+//using System.Globalization;
+//using System.Linq;
+//using System.Net.Http;
+//using AppCliTools.CliMenu;
+//using AppCliTools.CliParameters.CliMenuCommands;
+//using AppCliTools.CliTools;
+//using AppCliTools.CliTools.CliMenuCommands;
+//using AppCliTools.LibDataInput;
+//using DoTravelGuide.Models;
+//using Microsoft.Extensions.Logging;
+//using ParametersManagement.LibParameters;
+//using TravelGuide.Menu.TravelGuideParametersEdit;
+//using TravelGuide.MenuCommands;
 
-namespace TravelGuide;
+//namespace TravelGuide;
 
-// ReSharper disable once ConvertToPrimaryConstructor
-public sealed class TravelGuide : CliAppLoop
-{
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILogger _logger;
+//// ReSharper disable once ConvertToPrimaryConstructor
+//public sealed class TravelGuide : CliAppLoop
+//{
+//    private readonly IHttpClientFactory _httpClientFactory;
+//    private readonly ILogger _logger;
 
-    private readonly ParametersManager _parametersManager;
+//    private readonly ParametersManager _parametersManager;
 
-    //ეს საჭიროა იმ შემთხვევაში, თუ ბაზაში რედაქტორები გვინდა გავაკეთოთ და საჭიროა, რომ ამ მენიუდან მოხდეს გამოძახება
-    //private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;
+//    //ეს საჭიროა იმ შემთხვევაში, თუ ბაზაში რედაქტორები გვინდა გავაკეთოთ და საჭიროა, რომ ამ მენიუდან მოხდეს გამოძახება
+//    //private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;
 
-    public TravelGuide(ILogger logger, IHttpClientFactory httpClientFactory, ParametersManager parametersManager)
-    {
-        _logger = logger;
-        _httpClientFactory = httpClientFactory;
-        _parametersManager = parametersManager;
-        ////_travelGuideRepositoryCreatorFactory = travelGuideRepositoryCreatorFactory;
-    }
+//    public TravelGuide(ILogger logger, IHttpClientFactory httpClientFactory, ParametersManager parametersManager)
+//    {
+//        _logger = logger;
+//        _httpClientFactory = httpClientFactory;
+//        _parametersManager = parametersManager;
+//        ////_travelGuideRepositoryCreatorFactory = travelGuideRepositoryCreatorFactory;
+//    }
 
-    public override CliMenuSet BuildMainMenu()
-    {
-        var parameters = (TravelGuideParameters)_parametersManager.Parameters;
+//    public override CliMenuSet BuildMainMenu()
+//    {
+//        var parameters = (TravelGuideParameters)_parametersManager.Parameters;
 
-        var mainMenuSet = new CliMenuSet("Main Menu");
+//        var mainMenuSet = new CliMenuSet("Main Menu");
 
-        //ძირითადი პარამეტრების რედაქტირება
-        var travelGuideParametersEditor =
-            new TravelGuideParametersEditor(parameters, _parametersManager, _logger, _httpClientFactory);
-        mainMenuSet.AddMenuItem(new ParametersEditorListCliMenuCommand(travelGuideParametersEditor));
+//        //ძირითადი პარამეტრების რედაქტირება
+//        var travelGuideParametersEditor =
+//            new TravelGuideParametersEditor(parameters, _parametersManager, _logger, _httpClientFactory);
+//        mainMenuSet.AddMenuItem(new ParametersEditorListCliMenuCommand(travelGuideParametersEditor));
 
-        //საჭირო მენიუს ელემენტები
+//        //საჭირო მენიუს ელემენტები
 
-        var newAppTaskCommand = new NewTaskCommand(_parametersManager);
-        mainMenuSet.AddMenuItem(newAppTaskCommand);
-        foreach (KeyValuePair<string, TaskModel> kvp in parameters.Tasks.OrderBy(o => o.Key))
-        {
-            mainMenuSet.AddMenuItem(new TaskSubMenuCommand(_logger, _parametersManager, kvp.Key));
-        }
+//        var newAppTaskCommand = new NewTaskCommand(_parametersManager);
+//        mainMenuSet.AddMenuItem(newAppTaskCommand);
 
-        //პროგრამიდან გასასვლელი
-        string key = ConsoleKey.Escape.Value().ToLower(CultureInfo.CurrentCulture);
-        mainMenuSet.AddMenuItem(key, new ExitCliMenuCommand(), key.Length);
+//        foreach (KeyValuePair<string, TaskModel> kvp in parameters.Tasks.OrderBy(o => o.Key))
+//        {
+//            mainMenuSet.AddMenuItem(new TaskSubMenuCommand(_logger, _parametersManager, kvp.Key));
+//        }
 
-        return mainMenuSet;
-    }
-}
+//        //პროგრამიდან გასასვლელი
+//        string key = ConsoleKey.Escape.Value().ToLower(CultureInfo.CurrentCulture);
+//        mainMenuSet.AddMenuItem(key, new ExitCliMenuCommand(), key.Length);
+
+//        return mainMenuSet;
+//    }
+//}

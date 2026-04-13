@@ -11,13 +11,15 @@ using Microsoft.Extensions.Logging;
 using ParametersManagement.LibDatabaseParameters;
 using ParametersManagement.LibFileParameters.Models;
 using ParametersManagement.LibParameters;
+using SystemTools.SystemToolsShared;
 
-namespace TravelGuide;
+namespace TravelGuide.Menu.TravelGuideParametersEdit;
 
 public sealed class TravelGuideParametersEditor : ParametersEditor
 {
-    public TravelGuideParametersEditor(IParameters parameters, ParametersManager parametersManager, ILogger logger,
-        IHttpClientFactory httpClientFactory) : base("TravelGuide Parameters Editor", parameters, parametersManager)
+    public TravelGuideParametersEditor(IApplication app, ILogger logger, IHttpClientFactory httpClientFactory,
+        IParameters parameters, IParametersManager parametersManager) : base(MenuCommandName, parameters,
+        parametersManager)
     {
         FieldEditors.Add(new FolderPathFieldEditor(nameof(TravelGuideParameters.LogFolder)));
 
@@ -27,11 +29,13 @@ public sealed class TravelGuideParametersEditor : ParametersEditor
         FieldEditors.Add(new DictionaryFieldEditor<DatabaseServerConnectionCruder, DatabaseServerConnectionData>(
             nameof(TravelGuideParameters.DatabaseServerConnections), logger, httpClientFactory, parametersManager));
 
-        FieldEditors.Add(new DatabaseParametersFieldEditor(logger, httpClientFactory,
+        FieldEditors.Add(new DatabaseParametersFieldEditor(app.Name, logger, httpClientFactory,
             nameof(TravelGuideParameters.DatabaseParameters), parametersManager));
 
         FieldEditors.Add(
             new DictionaryFieldEditor<SmartSchemaCruder, SmartSchema>(nameof(TravelGuideParameters.SmartSchemas),
                 parametersManager));
     }
+
+    public static string MenuCommandName => "Travel Guide Parameters Editor";
 }
