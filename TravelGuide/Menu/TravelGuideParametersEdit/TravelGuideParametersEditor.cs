@@ -29,7 +29,7 @@ public sealed class TravelGuideParametersEditor : ParametersEditor
         FieldEditors.Add(new DictionaryFieldEditor<DatabaseServerConnectionCruder, DatabaseServerConnectionData>(
             nameof(TravelGuideParameters.DatabaseServerConnections), logger, httpClientFactory, parametersManager));
 
-        FieldEditors.Add(new DatabaseParametersFieldEditor(app.Name, logger, httpClientFactory,
+        FieldEditors.Add(new DatabaseParametersFieldEditor(app.AppName, logger, httpClientFactory,
             nameof(TravelGuideParameters.DatabaseParameters), parametersManager));
 
         FieldEditors.Add(

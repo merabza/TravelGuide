@@ -19,15 +19,10 @@ public sealed class TravelGuideMenuBuilder : IMenuBuilder
         _parametersManager = parametersManager;
     }
 
-    public CliMenuSet BuildMainMenu()
+    public CliMenuSet? BuildMainMenu()
     {
         //მთავარი მენიუს ჩატვირთვა
-        CliMenuSet mainMenuSet = CliMenuSetFactory.CreateMenuSet("Main Menu", MenuData.MenuCommandNames,
-            _serviceProvider, _parametersManager);
-
-        //პროგრამიდან გასასვლელი
-        mainMenuSet.AddEscapeCommand(new ExitCliMenuCommand());
-
-        return mainMenuSet;
+        return CliMenuSetFactory.CreateMenuSet("Main Menu", MenuData.MenuCommandNames,
+            _serviceProvider, _parametersManager, true);
     }
 }

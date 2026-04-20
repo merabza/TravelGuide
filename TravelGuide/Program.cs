@@ -4,13 +4,10 @@ using System;
 using System.Runtime.CompilerServices;
 using AppCliTools.CliParameters;
 using AppCliTools.CliTools;
-using AppCliTools.CliTools.DependencyInjection;
 using DoTravelGuide.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ParametersManagement.LibDatabaseParameters;
 using Serilog;
-using Serilog.Events;
 using SystemTools.SystemToolsShared;
 using TravelGuide;
 
@@ -31,46 +28,36 @@ try
         default: throw new SwitchExpressionException();
     }
 
-    var par = (TravelGuideParameters?)argParser.Par;
-    if (par is null)
-    {
-        StShared.WriteErrorLine("TravelGuideParameters is null", true);
-        return 3;
-    }
-
-    string? parametersFileName = argParser.ParametersFileName;
-    if (string.IsNullOrWhiteSpace(parametersFileName))
-    {
-        StShared.WriteErrorLine("parametersFileName is null or empty", true);
-        return 3;
-    }
-
     var serviceCollection = new ServiceCollection();
 
-    var databaseServerConnections = new DatabaseServerConnections(par.DatabaseServerConnections);
-
-    serviceCollection.AddSerilogLoggerService(LogEventLevel.Information, appName, par.LogFolder)
-        .AddMenuCommandsFactoryStrategies().AddDatabase(databaseServerConnections, par.DatabaseParameters).AddServices()
-        .AddApplication(x =>
-        {
-            x.AppName = appName;
-        }).AddMainParametersManager(x =>
-        {
-            x.ParametersFileName = parametersFileName;
-            x.Par = par;
-        });
-
     // ReSharper disable once using
-    await using ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+    await using var serviceProvider = serviceCollection
+        .AddServices(appName, argParser.Par!, argParser.ParametersFileName!).BuildServiceProvider();
 
-    logger = serviceProvider.GetService<ILogger<Program>>();
-    if (logger is null)
-    {
-        StShared.WriteErrorLine("logger is null", true);
-        return 5;
-    }
+    //var databaseServerConnections = new DatabaseServerConnections(par.DatabaseServerConnections);
 
-    var cliLoopPar = CliAppLoopParameters.Create(serviceProvider);
+    //serviceCollection.AddSerilogLoggerService(LogEventLevel.Information, appName, par.LogFolder)
+    //    .AddMenuCommandsFactoryStrategies().AddDatabase(databaseServerConnections, par.DatabaseParameters).AddServices()
+    //    .AddApplication(x =>
+    //    {
+    //        x.AppName = appName;
+    //    }).AddMainParametersManager(x =>
+    //    {
+    //        x.ParametersFileName = parametersFileName;
+    //        x.Par = par;
+    //    });
+
+    //// ReSharper disable once using
+    //await using ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+
+    //logger = serviceProvider.GetService<ILogger<Program>>();
+    //if (logger is null)
+    //{
+    //    StShared.WriteErrorLine("logger is null", true);
+    //    return 5;
+    //}
+
+    var cliLoopPar = CliAppLoopParameters.Create<Program>(serviceProvider);
     if (cliLoopPar is null)
     {
         return 6;
@@ -78,7 +65,7 @@ try
 
     var travelGuide = new CliAppLoop(cliLoopPar);
 
-    return await travelGuide.Run() ? 0 : 1;
+    return await travelGuide.Run() ? 0 : 100;
 }
 catch (Exception e)
 {

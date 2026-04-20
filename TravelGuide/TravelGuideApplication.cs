@@ -1,8 +1,15 @@
-﻿using SystemTools.SystemToolsShared;
+﻿using AppCliTools.CliTools.Models;
+using Microsoft.Extensions.Options;
+using SystemTools.SystemToolsShared;
 
 namespace TravelGuide;
 
 public class TravelGuideApplication : IApplication
 {
-    public string Name => "Travel Guide";
+    public TravelGuideApplication(IOptions<ApplicationOptions> options)
+    {
+        AppName = options.Value.AppName;
+    }
+
+    public string AppName { get; }
 }

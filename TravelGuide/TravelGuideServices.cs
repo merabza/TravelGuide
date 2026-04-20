@@ -1,16 +1,18 @@
-//Created by ProjectServicesCreatorClassCreator at 7/24/2025 11:44:10 PM
-
 using System;
 using System.Runtime.CompilerServices;
 using AppCliTools.CliMenu;
+using AppCliTools.CliMenu.DependencyInjection;
 using AppCliTools.CliParametersDataEdit;
+using AppCliTools.CliTools.DependencyInjection;
 using AppCliTools.CliTools.Models;
 using AppCliTools.CliTools.Services.MenuBuilder;
+using DoTravelGuide.Models;
 using LibTravelGuideRepositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ParametersManagement.LibDatabaseParameters;
 using ParametersManagement.LibParameters;
+using Serilog.Events;
 using SystemTools.SystemToolsShared;
 using TravelGuide.Menu.TravelGuideParametersEdit;
 using TravelGuideDb;
@@ -19,20 +21,35 @@ namespace TravelGuide;
 
 public static class TravelGuideServices
 {
-    public static IServiceCollection AddServices(this IServiceCollection services)
+    public static IServiceCollection AddServices(this IServiceCollection services, string appName,
+        TravelGuideParameters par, string parametersFileName)
     {
-        services.AddScoped<ITravelGuideRepository, TravelGuideRepository>();
-        services.AddSingleton<ITravelGuideRepositoryCreatorFactory, TravelGuideRepositoryCreatorFactory>();
-        services.AddHttpClient();
-        services.AddSingleton<IMenuBuilder, TravelGuideMenuBuilder>();
+        var databaseServerConnections = new DatabaseServerConnections(par.DatabaseServerConnections);
+
+        // @formatter:off
+        services
+            .AddSerilogLoggerService(LogEventLevel.Information, appName, par.LogFolder)
+            .AddScoped<ITravelGuideRepository, TravelGuideRepository>()
+            .AddSingleton<ITravelGuideRepositoryCreatorFactory, TravelGuideRepositoryCreatorFactory>()
+            .AddHttpClient()
+            .AddSingleton<IMenuBuilder, TravelGuideMenuBuilder>()
+            .AddMenuCommandsFactoryStrategies()
+            .AddDatabase(databaseServerConnections, par.DatabaseParameters)
+            .AddApplication(x => { x.AppName = appName; })
+            .AddMainParametersManager(x =>
+            {
+                x.ParametersFileName = parametersFileName;
+                x.Par = par;
+            });
+        // @formatter:on
 
         return services;
     }
 
-    public static IServiceCollection AddDatabase(this IServiceCollection services,
+    private static IServiceCollection AddDatabase(this IServiceCollection services,
         DatabaseServerConnections databaseServerConnections, DatabaseParameters? databaseParameters)
     {
-        (EDatabaseProvider? dataProvider, string? connectionString, int timeOut) =
+        var (dataProvider, connectionString, timeOut) =
             DbConnectionFactory.GetDataProviderConnectionStringCommandTimeOut(databaseParameters,
                 databaseServerConnections);
 
@@ -60,14 +77,14 @@ public static class TravelGuideServices
         return services;
     }
 
-    public static IServiceCollection AddMenuCommandsFactoryStrategies(this IServiceCollection services)
+    private static IServiceCollection AddMenuCommandsFactoryStrategies(this IServiceCollection services)
     {
-        services.AddTransientAllMenuCommandFactoryStrategies(
+        services.AddTransientAllStrategies<IMenuCommandFactoryStrategy>(
             typeof(TravelGuideParametersEditorListCliMenuCommandFactoryStrategy).Assembly);
         return services;
     }
 
-    public static IServiceCollection AddMainParametersManager(this IServiceCollection services,
+    private static IServiceCollection AddMainParametersManager(this IServiceCollection services,
         Action<MainParametersManagerOptions> setupAction)
     {
         services.AddSingleton<IParametersManager, ParametersManager>();
@@ -75,7 +92,7 @@ public static class TravelGuideServices
         return services;
     }
 
-    public static IServiceCollection AddApplication(this IServiceCollection services,
+    private static IServiceCollection AddApplication(this IServiceCollection services,
         Action<ApplicationOptions> setupAction)
     {
         services.AddSingleton<IApplication, TravelGuideApplication>();
