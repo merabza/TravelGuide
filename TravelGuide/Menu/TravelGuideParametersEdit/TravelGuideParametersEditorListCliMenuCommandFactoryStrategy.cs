@@ -11,28 +11,30 @@ namespace TravelGuide.Menu.TravelGuideParametersEdit;
 // ReSharper disable once UnusedType.Global
 public class TravelGuideParametersEditorListCliMenuCommandFactoryStrategy : IMenuCommandFactoryStrategy
 {
-    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IApplication _app;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<TravelGuideParametersEditorListCliMenuCommandFactoryStrategy> _logger;
+    private readonly IParametersManager _parametersManager;
 
     // ReSharper disable once ConvertToPrimaryConstructor
     public TravelGuideParametersEditorListCliMenuCommandFactoryStrategy(IApplication app,
         ILogger<TravelGuideParametersEditorListCliMenuCommandFactoryStrategy> logger,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory, IParametersManager parametersManager)
     {
         _app = app;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
+        _parametersManager = parametersManager;
     }
 
-    public string MenuCommandName => TravelGuideParametersEditor.MenuCommandName;
+    //public string StrategyName => nameof(TravelGuideParametersEditorListCliMenuCommandFactoryStrategy);
 
-    public CliMenuCommand CreateMenuCommand(IParametersManager parametersManager)
+    public CliMenuCommand CreateMenuCommand()
     {
-        var parameters = (TravelGuideParameters)parametersManager.Parameters;
+        var parameters = (TravelGuideParameters)_parametersManager.Parameters;
 
         var travelGuideParametersEditor =
-            new TravelGuideParametersEditor(_app, _logger, _httpClientFactory, parameters, parametersManager);
+            new TravelGuideParametersEditor(_app, _logger, _httpClientFactory, parameters, _parametersManager);
         return new ParametersEditorListCliMenuCommand(travelGuideParametersEditor);
     }
 }

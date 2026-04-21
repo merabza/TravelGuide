@@ -1,5 +1,3 @@
-//Created by ProjectParametersEditorClassCreator at 7/24/2025 11:44:10 PM
-
 using System.Net.Http;
 using AppCliTools.CliParameters;
 using AppCliTools.CliParameters.FieldEditors;
@@ -18,8 +16,8 @@ namespace TravelGuide.Menu.TravelGuideParametersEdit;
 public sealed class TravelGuideParametersEditor : ParametersEditor
 {
     public TravelGuideParametersEditor(IApplication app, ILogger logger, IHttpClientFactory httpClientFactory,
-        IParameters parameters, IParametersManager parametersManager) : base(MenuCommandName, parameters,
-        parametersManager)
+        IParameters parameters, IParametersManager parametersManager) : base("Travel Guide Parameters Editor",
+        parameters, parametersManager)
     {
         FieldEditors.Add(new FolderPathFieldEditor(nameof(TravelGuideParameters.LogFolder)));
 
@@ -36,6 +34,4 @@ public sealed class TravelGuideParametersEditor : ParametersEditor
             new DictionaryFieldEditor<SmartSchemaCruder, SmartSchema>(nameof(TravelGuideParameters.SmartSchemas),
                 parametersManager));
     }
-
-    public static string MenuCommandName => "Travel Guide Parameters Editor";
 }

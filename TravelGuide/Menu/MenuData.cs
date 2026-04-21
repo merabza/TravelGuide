@@ -8,7 +8,7 @@ public static class MenuData
     public static List<string> MenuCommandNames { get; } =
     [
         //ძირითადი პარამეტრების რედაქტირება
-        TravelGuideParametersEditor.MenuCommandName,
+        nameof(TravelGuideParametersEditorListCliMenuCommandFactoryStrategy)
         ////სერვერის პარამეტრების რედაქტირება
         //SupportToolsServerEditorCliMenuCommand.MenuCommandName,
         ////ახალი პროექტების შემქმნელი სუბმენიუ

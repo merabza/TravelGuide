@@ -1,5 +1,3 @@
-//Created by ConsoleProgramClassCreator at 7/24/2025 11:44:10 PM
-
 using System;
 using System.Runtime.CompilerServices;
 using AppCliTools.CliParameters;
@@ -34,30 +32,7 @@ try
     await using var serviceProvider = serviceCollection
         .AddServices(appName, argParser.Par!, argParser.ParametersFileName!).BuildServiceProvider();
 
-    //var databaseServerConnections = new DatabaseServerConnections(par.DatabaseServerConnections);
-
-    //serviceCollection.AddSerilogLoggerService(LogEventLevel.Information, appName, par.LogFolder)
-    //    .AddMenuCommandsFactoryStrategies().AddDatabase(databaseServerConnections, par.DatabaseParameters).AddServices()
-    //    .AddApplication(x =>
-    //    {
-    //        x.AppName = appName;
-    //    }).AddMainParametersManager(x =>
-    //    {
-    //        x.ParametersFileName = parametersFileName;
-    //        x.Par = par;
-    //    });
-
-    //// ReSharper disable once using
-    //await using ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
-
-    //logger = serviceProvider.GetService<ILogger<Program>>();
-    //if (logger is null)
-    //{
-    //    StShared.WriteErrorLine("logger is null", true);
-    //    return 5;
-    //}
-
-    var cliLoopPar = CliAppLoopParameters.Create<Program>(serviceProvider);
+    (var cliLoopPar, logger) = CliAppLoopParameters.Create<Program>(serviceProvider);
     if (cliLoopPar is null)
     {
         return 6;
