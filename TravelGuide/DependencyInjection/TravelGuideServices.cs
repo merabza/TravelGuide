@@ -1,9 +1,7 @@
-using System;
 using System.Runtime.CompilerServices;
 using AppCliTools.CliMenu;
 using AppCliTools.CliMenu.DependencyInjection;
 using AppCliTools.CliParametersDataEdit;
-using AppCliTools.CliTools.App;
 using AppCliTools.CliTools.DependencyInjection;
 using AppCliTools.CliTools.Services.MenuBuilder;
 using DoTravelGuide.Models;
@@ -11,13 +9,13 @@ using LibTravelGuideRepositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ParametersManagement.LibDatabaseParameters;
-using ParametersManagement.LibParameters;
+using ParametersManagement.LibParameters.DependencyInjection;
 using Serilog.Events;
 using SystemTools.SystemToolsShared;
 using TravelGuide.Menu.TravelGuideParametersEdit;
 using TravelGuideDb;
 
-namespace TravelGuide;
+namespace TravelGuide.DependencyInjection;
 
 public static class TravelGuideServices
 {
@@ -33,7 +31,8 @@ public static class TravelGuideServices
             .AddSingleton<ITravelGuideRepositoryCreatorFactory, TravelGuideRepositoryCreatorFactory>()
             .AddHttpClient()
             .AddSingleton<IMenuBuilder, TravelGuideMenuBuilder>()
-            .AddMenuCommandsFactoryStrategies()
+            .AddTransientAllStrategies<IMenuCommandFactoryStrategy>(
+                typeof(TravelGuideParametersEditorListCliMenuCommandFactoryStrategy).Assembly)
             .AddDatabase(databaseServerConnections, par.DatabaseParameters)
             .AddApplication(x => { x.AppName = appName; })
             .AddMainParametersManager(x =>
@@ -74,29 +73,6 @@ public static class TravelGuideServices
                 throw new SwitchExpressionException();
         }
 
-        return services;
-    }
-
-    private static IServiceCollection AddMenuCommandsFactoryStrategies(this IServiceCollection services)
-    {
-        services.AddTransientAllStrategies<IMenuCommandFactoryStrategy>(
-            typeof(TravelGuideParametersEditorListCliMenuCommandFactoryStrategy).Assembly);
-        return services;
-    }
-
-    private static IServiceCollection AddMainParametersManager(this IServiceCollection services,
-        Action<MainParametersManagerOptions> setupAction)
-    {
-        services.AddSingleton<IParametersManager, ParametersManager>();
-        services.Configure(setupAction);
-        return services;
-    }
-
-    private static IServiceCollection AddApplication(this IServiceCollection services,
-        Action<ApplicationOptions> setupAction)
-    {
-        services.AddSingleton<IApplication, Application>();
-        services.Configure(setupAction);
         return services;
     }
 }
