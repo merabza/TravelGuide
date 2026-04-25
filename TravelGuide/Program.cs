@@ -20,10 +20,14 @@ try
 
     switch (argParser.Analysis())
     {
-        case EParseResult.Ok: break;
-        case EParseResult.Usage: return 1;
-        case EParseResult.Error: return 2;
-        default: throw new SwitchExpressionException();
+        case EParseResult.Ok:
+            break;
+        case EParseResult.Usage:
+            return 1;
+        case EParseResult.Error:
+            return 2;
+        default:
+            throw new SwitchExpressionException();
     }
 
     var serviceCollection = new ServiceCollection();

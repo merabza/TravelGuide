@@ -3,8 +3,8 @@ using System.Runtime.CompilerServices;
 using AppCliTools.CliMenu;
 using AppCliTools.CliMenu.DependencyInjection;
 using AppCliTools.CliParametersDataEdit;
+using AppCliTools.CliTools.App;
 using AppCliTools.CliTools.DependencyInjection;
-using AppCliTools.CliTools.Models;
 using AppCliTools.CliTools.Services.MenuBuilder;
 using DoTravelGuide.Models;
 using LibTravelGuideRepositories;
@@ -95,7 +95,7 @@ public static class TravelGuideServices
     private static IServiceCollection AddApplication(this IServiceCollection services,
         Action<ApplicationOptions> setupAction)
     {
-        services.AddSingleton<IApplication, TravelGuideApplication>();
+        services.AddSingleton<IApplication, Application>();
         services.Configure(setupAction);
         return services;
     }
