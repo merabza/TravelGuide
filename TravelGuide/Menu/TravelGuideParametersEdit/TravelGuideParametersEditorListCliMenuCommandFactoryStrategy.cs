@@ -8,7 +8,6 @@ using SystemTools.SystemToolsShared;
 
 namespace TravelGuide.Menu.TravelGuideParametersEdit;
 
-// ReSharper disable once UnusedType.Global
 public class TravelGuideParametersEditorListCliMenuCommandFactoryStrategy : IMenuCommandFactoryStrategy
 {
     private readonly IApplication _app;
@@ -16,7 +15,6 @@ public class TravelGuideParametersEditorListCliMenuCommandFactoryStrategy : IMen
     private readonly ILogger<TravelGuideParametersEditorListCliMenuCommandFactoryStrategy> _logger;
     private readonly IParametersManager _parametersManager;
 
-    // ReSharper disable once ConvertToPrimaryConstructor
     public TravelGuideParametersEditorListCliMenuCommandFactoryStrategy(IApplication app,
         ILogger<TravelGuideParametersEditorListCliMenuCommandFactoryStrategy> logger,
         IHttpClientFactory httpClientFactory, IParametersManager parametersManager)
