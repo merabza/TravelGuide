@@ -1,16 +1,16 @@
 using System.Runtime.CompilerServices;
 using AppCliTools.CliMenu;
-using AppCliTools.CliMenu.DependencyInjection;
 using AppCliTools.CliParametersDataEdit;
-using AppCliTools.CliTools.DependencyInjection;
 using AppCliTools.CliTools.Services.MenuBuilder;
 using DoTravelGuide.Models;
 using LibTravelGuideRepositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ParametersManagement.LibDatabaseParameters;
+using ParametersManagement.LibParameters;
 using ParametersManagement.LibParameters.DependencyInjection;
 using Serilog.Events;
+using SystemTools.SerilogStuff.DependencyInjection;
 using SystemTools.SystemToolsShared;
 using SystemTools.SystemToolsShared.DependencyInjection;
 using TravelGuide.Menu.TravelGuideParametersEdit;
@@ -36,7 +36,7 @@ public static class TravelGuideServices
                 typeof(TravelGuideParametersEditorListCliMenuCommandFactoryStrategy).Assembly)
             .AddDatabase(databaseServerConnections, par.DatabaseParameters)
             .AddApplication(x => { x.AppName = appName; })
-            .AddMainParametersManager(x =>
+            .AddMainParametersManager<ParametersManager>(x =>
             {
                 x.ParametersFileName = parametersFileName;
                 x.Par = par;

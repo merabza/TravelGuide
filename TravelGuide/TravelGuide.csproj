@@ -6,6 +6,7 @@
         <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliParametersDataEdit\AppCliTools.CliParametersDataEdit.csproj" />
         <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliParameters\AppCliTools.CliParameters.csproj" />
         <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliTools\AppCliTools.CliTools.csproj" />
+        <ProjectReference Include="..\..\SystemTools\SystemTools.SerilogStuff\SystemTools.SerilogStuff.csproj" />
         <ProjectReference Include="..\TravelGuideDb\TravelGuideDb.csproj" />
         <ProjectReference Include="..\DoTravelGuide\DoTravelGuide.csproj" />
         <ProjectReference Include="..\LibTravelGuideRepositories\LibTravelGuideRepositories.csproj" />
