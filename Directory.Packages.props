@@ -1,14 +1,14 @@
 <Project>
-  <PropertyGroup>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.27.0.140913" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
-  </ItemGroup>
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.27.0.140913" />
+        <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9" />
+        <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+        <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.9" />
+        <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
+        <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
+        <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
+    </ItemGroup>
 </Project>
