@@ -21,17 +21,16 @@ public sealed class TravelGuideParametersEditor : ParametersEditor
     {
         FieldEditors.Add(new FolderPathFieldEditor(nameof(TravelGuideParameters.LogFolder)));
 
-        //FieldEditors.Add(new DatabaseServerConnectionNameFieldEditor(logger, httpClientFactory,
-        //    nameof(TravelGuideParameters.DatabaseConnectionName), parametersManager, true));
-
         FieldEditors.Add(new DictionaryFieldEditor<DatabaseServerConnectionCruder, DatabaseServerConnectionData>(
-            nameof(TravelGuideParameters.DatabaseServerConnections), logger, httpClientFactory, parametersManager));
+            nameof(TravelGuideParameters.DatabaseServerConnections),
+            x => new DatabaseServerConnectionCruder(app, logger, httpClientFactory, parametersManager, x)));
 
         FieldEditors.Add(new DatabaseParametersFieldEditor(app, logger, httpClientFactory,
             nameof(TravelGuideParameters.DatabaseParameters), parametersManager));
 
-        FieldEditors.Add(
-            new DictionaryFieldEditor<SmartSchemaCruder, SmartSchema>(nameof(TravelGuideParameters.SmartSchemas),
-                parametersManager));
+        FieldEditors.Add(new DictionaryFieldEditor<SmartSchemaCruder, SmartSchema>(
+            nameof(TravelGuideParameters.SmartSchemas), x => new SmartSchemaCruder(parametersManager, x)));
+
+
     }
 }
