@@ -1,8 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="AppCliTools.CliMenu" Version="1.0.9686.36108" />
+    <PackageVersion Include="AppCliTools.CliParameters" Version="1.0.9686.36108" />
+    <PackageVersion Include="AppCliTools.CliParametersDataEdit" Version="1.0.9686.36108" />
+    <PackageVersion Include="AppCliTools.CliTools" Version="1.0.9686.36108" />
+    <PackageVersion Include="ParametersManagement.LibApiClientParameters" Version="1.0.9686.34062" />
+    <PackageVersion Include="ParametersManagement.LibDatabaseParameters" Version="1.0.9686.34062" />
+    <PackageVersion Include="ParametersManagement.LibFileParameters" Version="1.0.9686.34062" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.27.0.140913" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
@@ -10,7 +18,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
-    <PackageVersion Include="SystemTools.SerilogStuff" Version="1.0.9686.26889" />
-    <PackageVersion Include="SystemTools.SystemToolsShared" Version="1.0.9686.26889" />
+    <PackageVersion Include="SystemTools.SerilogStuff" Version="1.0.9686.33588" />
+    <PackageVersion Include="SystemTools.SystemToolsShared" Version="1.0.9686.33588" />
   </ItemGroup>
 </Project>
