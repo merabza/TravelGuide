@@ -18,7 +18,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
-    <PackageVersion Include="SystemTools.SerilogStuff" Version="1.0.9689.2043" />
-    <PackageVersion Include="SystemTools.SystemToolsShared" Version="1.0.9689.2043" />
+    <PackageVersion Include="SystemTools.SerilogStuff" Version="1.0.9691.25951" />
+    <PackageVersion Include="SystemTools.SystemToolsShared" Version="1.0.9691.25951" />
   </ItemGroup>
 </Project>
