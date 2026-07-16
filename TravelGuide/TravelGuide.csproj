@@ -5,18 +5,18 @@
         <ProjectReference Include="..\TravelGuideDb\TravelGuideDb.csproj" />
         <ProjectReference Include="..\DoTravelGuide\DoTravelGuide.csproj" />
         <ProjectReference Include="..\LibTravelGuideRepositories\LibTravelGuideRepositories.csproj" />
+        <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliMenu\AppCliTools.CliMenu.csproj" />
+        <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliParameters\AppCliTools.CliParameters.csproj" />
+        <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliParametersDataEdit\AppCliTools.CliParametersDataEdit.csproj" />
+        <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliTools\AppCliTools.CliTools.csproj" />
+        <ProjectReference Include="..\..\SystemTools\SystemTools.SerilogStuff\SystemTools.SerilogStuff.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="AppCliTools.CliMenu" />
-        <PackageReference Include="AppCliTools.CliParameters" />
-        <PackageReference Include="AppCliTools.CliParametersDataEdit" />
-        <PackageReference Include="AppCliTools.CliTools" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-        <PackageReference Include="SystemTools.SerilogStuff" />
     </ItemGroup>
     <PropertyGroup>
         <OutputType>Exe</OutputType>
