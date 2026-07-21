@@ -16,7 +16,6 @@ public sealed class TravelGuideParameters : IParametersWithApiClients, IParamete
 
     public DatabaseParameters? DatabaseParameters { get; init; }
 
-    public Dictionary<string, TaskModel> Tasks { get; set; } = [];
     public Dictionary<string, ApiClientSettings> ApiClients { get; } = [];
 
     public bool CheckBeforeSave()
@@ -28,33 +27,4 @@ public sealed class TravelGuideParameters : IParametersWithApiClients, IParamete
 
     public Dictionary<string, SmartSchema> SmartSchemas { get; } = [];
 
-    public TaskModel? GetTask(string taskName)
-    {
-        return Tasks.GetValueOrDefault(taskName);
-    }
-
-    public bool CheckNewTaskNameValid(string oldTaskName, string newTaskName)
-    {
-        if (oldTaskName == newTaskName)
-        {
-            return true;
-        }
-
-        if (!Tasks.ContainsKey(oldTaskName))
-        {
-            return false;
-        }
-
-        return !Tasks.ContainsKey(newTaskName);
-    }
-
-    public bool RemoveTask(string taskName)
-    {
-        return Tasks.Remove(taskName);
-    }
-
-    public bool AddTask(string newTaskName, TaskModel task)
-    {
-        return Tasks.TryAdd(newTaskName, task);
-    }
 }

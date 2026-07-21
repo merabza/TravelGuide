@@ -19,6 +19,9 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="MenuCommands\" />
+    </ItemGroup>
     <PropertyGroup>
         <OutputType>Exe</OutputType>
     </PropertyGroup>
