@@ -33,10 +33,10 @@ try
     var serviceCollection = new ServiceCollection();
 
     // ReSharper disable once using
-    await using var serviceProvider = serviceCollection
+    await using ServiceProvider serviceProvider = serviceCollection
         .AddServices(appName, argParser.Par!, argParser.ParametersFileName!).BuildServiceProvider();
 
-    (var cliLoopPar, logger) = CliAppLoopParameters.Create<Program>(serviceProvider);
+    (CliAppLoopParameters? cliLoopPar, logger) = CliAppLoopParameters.Create<Program>(serviceProvider);
     if (cliLoopPar is null)
     {
         return 6;

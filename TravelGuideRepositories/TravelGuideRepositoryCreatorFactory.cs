@@ -1,9 +1,9 @@
 //Created by RepositoryCreatorFactoryCreator at 7/24/2025 11:44:10 PM
 
-using System;
 using Microsoft.Extensions.DependencyInjection;
+using TravelGuideRepoInterfaces;
 
-namespace LibTravelGuideRepositories;
+namespace TravelGuideRepositories;
 
 public sealed class TravelGuideRepositoryCreatorFactory : ITravelGuideRepositoryCreatorFactory
 {

@@ -2,7 +2,7 @@
 
 using SystemTools.SystemToolsShared;
 
-namespace TravelGuideDb.Models;
+namespace TravelGuideDbModels;
 
 //ეს არის სატესტო მოდელი, რომელიც არის უბრალოდ ნიმუშისათვის და შესაძლებელია წაიშალოს საჭირების შემთხვევაში
 

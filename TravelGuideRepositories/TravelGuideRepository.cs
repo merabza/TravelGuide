@@ -1,11 +1,11 @@
 //Created by RepositoryClassCreator at 7/24/2025 11:44:10 PM
 
-using System;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
-using TravelGuideDb;
+using TravelGuideDbPersistence;
+using TravelGuideRepoInterfaces;
 
-namespace LibTravelGuideRepositories;
+namespace TravelGuideRepositories;
 
 public sealed class TravelGuideRepository : ITravelGuideRepository
 {

@@ -2,9 +2,9 @@
 
 using Microsoft.EntityFrameworkCore;
 using SystemTools.SystemToolsShared;
-using TravelGuideDb.Models;
+using TravelGuideDbModels;
 
-namespace TravelGuideDb;
+namespace TravelGuideDbPersistence;
 
 public sealed class TravelGuideDbContext : DbContext
 {

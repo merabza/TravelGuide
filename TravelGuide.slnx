@@ -40,6 +40,7 @@
   <Folder Name="/SystemTools/">
     <Project Path="../SystemTools/SystemTools.ApiContracts/SystemTools.ApiContracts.csproj" />
     <Project Path="../SystemTools/SystemTools.BackgroundTasks/SystemTools.BackgroundTasks.csproj" />
+    <Project Path="../SystemTools/SystemTools.DatabaseToolsShared/SystemTools.DatabaseToolsShared.csproj" />
     <Project Path="../SystemTools/SystemTools.SerilogStuff/SystemTools.SerilogStuff.csproj" />
     <Project Path="../SystemTools/SystemTools.StringMessagesApiContracts/SystemTools.StringMessagesApiContracts.csproj" />
     <Project Path="../SystemTools/SystemTools.SystemToolsShared/SystemTools.SystemToolsShared.csproj" />
@@ -54,7 +55,11 @@
     <Project Path="../WebAgentContracts/WebAgentContracts.WebAgentDatabasesApiContracts/WebAgentContracts.WebAgentDatabasesApiContracts.csproj" />
   </Folder>
   <Project Path="DoTravelGuide/DoTravelGuide.csproj" />
-  <Project Path="LibTravelGuideRepositories/LibTravelGuideRepositories.csproj" />
   <Project Path="TravelGuide/TravelGuide.csproj" />
-  <Project Path="TravelGuideDb/TravelGuideDb.csproj" />
+  <Project Path="TravelGuideDbMigration/TravelGuideDbMigration.csproj" Id="64b4c7d7-aac7-4ac3-be73-a4638fa15cce" />
+  <Project Path="TravelGuideDbModels/TravelGuideDbModels.csproj" Id="3bbf0ebe-ab97-41dd-86f5-e47fbc9cb0e5" />
+  <Project Path="TravelGuideDbPersistence/TravelGuideDbPersistence.csproj" Id="30601fa8-be74-44f4-89c6-3bdd3c575423" />
+  <Project Path="TravelGuideFakeHost/TravelGuideFakeHost.csproj" Id="e6862746-b85e-4c81-bdef-5c966c0f4af8" />
+  <Project Path="TravelGuideRepoInterfaces/TravelGuideRepoInterfaces.csproj" Id="a4b6cc18-4deb-49d3-8190-c5bcec1c816f" />
+  <Project Path="TravelGuideRepositories/TravelGuideRepositories.csproj" Id="152db2b9-79b0-41b0-a3f5-f09c484a1d0d" />
 </Solution>

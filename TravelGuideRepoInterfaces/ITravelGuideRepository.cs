@@ -2,7 +2,7 @@
 
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace LibTravelGuideRepositories;
+namespace TravelGuideRepoInterfaces;
 
 public interface ITravelGuideRepository
 {

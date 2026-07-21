@@ -3,7 +3,6 @@ using AppCliTools.CliMenu;
 using AppCliTools.CliParametersDataEdit;
 using AppCliTools.CliTools.Services.MenuBuilder;
 using DoTravelGuide.Models;
-using LibTravelGuideRepositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ParametersManagement.LibDatabaseParameters;
@@ -14,7 +13,9 @@ using SystemTools.SerilogStuff.DependencyInjection;
 using SystemTools.SystemToolsShared;
 using SystemTools.SystemToolsShared.DependencyInjection;
 using TravelGuide.Menu.TravelGuideParametersEdit;
-using TravelGuideDb;
+using TravelGuideDbPersistence;
+using TravelGuideRepoInterfaces;
+using TravelGuideRepositories;
 
 namespace TravelGuide.DependencyInjection;
 
@@ -49,7 +50,7 @@ public static class TravelGuideServices
     private static IServiceCollection AddDatabase(this IServiceCollection services,
         DatabaseServerConnections databaseServerConnections, DatabaseParameters? databaseParameters)
     {
-        var (dataProvider, connectionString, timeOut) =
+        (EDatabaseProvider? dataProvider, string? connectionString, int timeOut) =
             DbConnectionFactory.GetDataProviderConnectionStringCommandTimeOut(databaseParameters,
                 databaseServerConnections);
 
