@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using TravelGuide.Menu.TravelGuideParametersEdit;
+using TravelGuide.MenuCommands;
 
 namespace TravelGuide.Menu;
 
@@ -8,7 +9,9 @@ public static class MenuData
     public static List<string> MenuCommandNames { get; } =
     [
         //ძირითადი პარამეტრების რედაქტირება
-        nameof(TravelGuideParametersEditorListCliMenuCommandFactoryStrategy)
+        nameof(TravelGuideParametersEditorListCliMenuCommandFactoryStrategy),
+        //ახალი ამოცანის შექმნა
+        nameof(NewTaskCommandFactoryStrategy)
         ////სერვერის პარამეტრების რედაქტირება
         //SupportToolsServerEditorCliMenuCommand.MenuCommandName,
         ////ახალი პროექტების შემქმნელი სუბმენიუ

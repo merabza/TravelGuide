@@ -17,7 +17,7 @@ public sealed class TravelGuideDbDesignTimeDbContextFactory : SqlServerDesignTim
     //კონსტრუქტორი აუცილებლად უპარამეტრო უნდა იყოს, რადგან dotnet ef ამ კლასს თვითონ ქმნის რეფლექსიით
     // ReSharper disable once ConvertToPrimaryConstructor
     public TravelGuideDbDesignTimeDbContextFactory() : base(AssemblyReference.Assembly.GetName().Name!,
-        "ConnectionStringSeed", true)
+        "ConnectionString", true)
     {
     }
 

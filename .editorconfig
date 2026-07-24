@@ -72,6 +72,12 @@ csharp_style_expression_bodied_local_functions = true:error
 # IDE0008: Use explicit type
 dotnet_diagnostic.IDE0008.severity = none
 
+
+# IDE0161: Convert to file-scoped namespace
+dotnet_diagnostic.IDE0161.severity = none
+
+
+
 [*.{cs,vb}]
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 dotnet_style_prefer_simplified_interpolation = true:suggestion
