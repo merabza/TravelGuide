@@ -69,7 +69,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
 
     public List<TaskModel> GetTasksList()
     {
-        return _context.Tasks.Include(i => i.StartPoints).ToList();
+        return [.. _context.Tasks.Include(i => i.StartPoints)];
     }
 
     public TaskModel? GetTaskByName(string taskName)
@@ -113,5 +113,4 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     }
 
     #endregion
-
 }

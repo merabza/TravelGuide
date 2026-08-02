@@ -35,6 +35,8 @@ public static class TravelGuideServices
             .AddSingleton<IMenuBuilder, TravelGuideMenuBuilder>()
             .AddTransientAllStrategies<IMenuCommandFactoryStrategy>(
                 typeof(TravelGuideParametersEditorListCliMenuCommandFactoryStrategy).Assembly)
+            .AddTransientAllStrategies<IMenuCommandListFactoryStrategy>(
+                typeof(TravelGuideParametersEditorListCliMenuCommandFactoryStrategy).Assembly)
             .AddDatabase(databaseServerConnections, par.DatabaseParameters)
             .AddApplication(x => { x.AppName = appName; })
             .AddMainParametersManager<ParametersManager>(x =>

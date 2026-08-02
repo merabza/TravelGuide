@@ -11,7 +11,9 @@ public static class MenuData
         //ძირითადი პარამეტრების რედაქტირება
         nameof(TravelGuideParametersEditorListCliMenuCommandFactoryStrategy),
         //ახალი ამოცანის შექმნა
-        nameof(NewTaskCommandFactoryStrategy)
+        nameof(NewTaskCommandFactoryStrategy),
+        //ამოცანების ჩამონათვალი
+        nameof(TasksListFactoryStrategy)
         ////სერვერის პარამეტრების რედაქტირება
         //SupportToolsServerEditorCliMenuCommand.MenuCommandName,
         ////ახალი პროექტების შემქმნელი სუბმენიუ
