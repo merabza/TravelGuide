@@ -22,6 +22,7 @@ public sealed class TaskSubMenuCommand : CliMenuCommand
     {
         //ამოცანის ქვემენიუს აგება
         var taskSubMenuSet = new CliMenuSet($" Task => {Name}");
+        taskSubMenuSet.AddMenuItem(new RunTaskCommand(_travelGuideRepositoryCreatorFactory, Name));
         taskSubMenuSet.AddMenuItem(new DeleteTaskCommand(_travelGuideRepositoryCreatorFactory, Name));
         taskSubMenuSet.AddMenuItem(new EditTaskNameCommand(_travelGuideRepositoryCreatorFactory, Name));
         taskSubMenuSet.AddMenuItem(new NewStartPointCommand(_travelGuideRepositoryCreatorFactory, Name));
