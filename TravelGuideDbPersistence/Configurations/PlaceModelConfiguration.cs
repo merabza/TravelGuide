@@ -11,7 +11,6 @@ public sealed class PlaceModelConfiguration : IEntityTypeConfiguration<PlaceMode
     public const int NameLength = 200;
     public const int RegionLength = 100;
     public const int MunicipalityLength = 100;
-    public const int BestSeasonLength = 200;
 
     public void Configure(EntityTypeBuilder<PlaceModel> builder)
     {
@@ -25,11 +24,8 @@ public sealed class PlaceModelConfiguration : IEntityTypeConfiguration<PlaceMode
         builder.Property(e => e.Name).HasMaxLength(NameLength);
         builder.Property(e => e.Region).HasMaxLength(RegionLength);
         builder.Property(e => e.Municipality).HasMaxLength(MunicipalityLength);
-        builder.Property(e => e.BestSeason).HasMaxLength(BestSeasonLength);
 
-        //პრიმიტიული კოლექციები JSON ტექსტად ინახება; ტიპი ცხადად ეთითება, რომ EF-მა SQL Server-ის json ტიპი არ აირჩიოს
-        builder.Property(e => e.Categories).HasColumnType("nvarchar(max)");
-        builder.Property(e => e.Tags).HasColumnType("nvarchar(max)");
+        //Distances პრიმიტიული კოლექცია JSON ტექსტად ინახება; ტიპი ცხადად ეთითება, რომ EF-მა SQL Server-ის json ტიპი არ აირჩიოს
         builder.Property(e => e.Distances).HasColumnType("nvarchar(max)");
     }
 }

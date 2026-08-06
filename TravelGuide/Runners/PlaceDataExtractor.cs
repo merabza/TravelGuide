@@ -101,9 +101,6 @@ public static partial class PlaceDataExtractor
         place.Longitude = extract.Longitude;
         place.Region = Truncate(extract.Region, PlaceModelConfiguration.RegionLength);
         place.Municipality = Truncate(extract.Municipality, PlaceModelConfiguration.MunicipalityLength);
-        place.Categories = extract.Categories;
-        place.Tags = extract.Tags;
-        place.BestSeason = Truncate(extract.BestSeason, PlaceModelConfiguration.BestSeasonLength);
         place.Distances = extract.Distances;
         place.DistanceFromTbilisiKm = ParseDistanceFromTbilisiKm(extract.Distances);
         place.Description = extract.Description;

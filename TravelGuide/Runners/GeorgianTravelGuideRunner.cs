@@ -15,6 +15,7 @@ namespace TravelGuide.Runners;
 public sealed class GeorgianTravelGuideRunner
 {
     private readonly IWebDriver _driver;
+    private readonly PlaceLinksSynchronizer _placeLinksSynchronizer;
     private readonly ITravelGuideRepository _repository;
     private readonly bool _reProcessAnalysed;
     private readonly string _startPoint;
@@ -26,6 +27,7 @@ public sealed class GeorgianTravelGuideRunner
         _startPoint = startPoint;
         _repository = repository;
         _reProcessAnalysed = reProcessAnalysed;
+        _placeLinksSynchronizer = new PlaceLinksSynchronizer(repository);
     }
 
     public bool Run()
@@ -151,6 +153,8 @@ public sealed class GeorgianTravelGuideRunner
 
     private void AnalysePlaces()
     {
+        _placeLinksSynchronizer.EnsureMonths();
+
         List<PlaceModel> places = _repository.GetPlacesForAnalysis(_reProcessAnalysed);
         var counter = 0;
         foreach (PlaceModel place in places)
@@ -177,7 +181,9 @@ public sealed class GeorgianTravelGuideRunner
                 return false;
             }
 
-            //ენთითი მხოლოდ სრული წარმატების შემდეგ იცვლება, რომ ნახევრად შევსებული ველები ბაზაში არ მოხვდეს
+            //ენთითი მხოლოდ სრული წარმატების შემდეგ იცვლება, რომ ნახევრად შევსებული ველები ბაზაში არ მოხვდეს;
+            //SyncPlaceLinks-იც ჯერ საჭირო ჩანაწერებს ეძებს/ქმნის და place-ს მხოლოდ ბოლოს ცვლის
+            _placeLinksSynchronizer.SyncPlaceLinks(extract, place);
             PlaceDataExtractor.Apply(extract, place);
             place.State = EState.Analysed;
             _repository.SaveChanges();

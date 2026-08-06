@@ -128,12 +128,48 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
 
     public List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed)
     {
-        return [.. _context.Places.Where(w => includeAnalysed || w.State != EState.Analysed).OrderBy(o => o.PlaceId)];
+        //ThenInclude აუცილებელია: ბმულების სინქრონიზაცია lookup-ობიექტების იგივეობით ადარებს და დაუტვირთავი ნავიგაცია გამონაკლისს ისვრის
+        return
+        [
+            .. _context.Places.Include(i => i.BestSeasons)
+                .Include(i => i.Categories).ThenInclude(t => t.CategoryNavigation)
+                .Include(i => i.Tags).ThenInclude(t => t.TagNavigation)
+                .Where(w => includeAnalysed || w.State != EState.Analysed).OrderBy(o => o.PlaceId)
+        ];
     }
 
     public bool HasAnalysedPlaces()
     {
         return _context.Places.Any(a => a.State == EState.Analysed);
+    }
+
+    #endregion
+
+    #region Lookup cruder
+
+    public List<MonthModel> GetMonths()
+    {
+        return [.. _context.Months.OrderBy(o => o.MonthId)];
+    }
+
+    public MonthModel AddMonth(MonthModel newMonth)
+    {
+        return _context.Months.Add(newMonth).Entity;
+    }
+
+    public CategoryModel GetOrCreateCategory(string categoryName)
+    {
+        //ჯერ Local მოწმდება, რომ ერთი გაშვების ფარგლებში ჯერ შეუნახავი სახელი მეორედ არ დაემატოს
+        CategoryModel? category = _context.Categories.Local.FirstOrDefault(f => f.Name == categoryName) ??
+                                  _context.Categories.FirstOrDefault(f => f.Name == categoryName);
+        return category ?? _context.Categories.Add(new CategoryModel { Name = categoryName }).Entity;
+    }
+
+    public TagModel GetOrCreateTag(string tagName)
+    {
+        TagModel? tag = _context.Tags.Local.FirstOrDefault(f => f.Name == tagName) ??
+                        _context.Tags.FirstOrDefault(f => f.Name == tagName);
+        return tag ?? _context.Tags.Add(new TagModel { Name = tagName }).Entity;
     }
 
     #endregion

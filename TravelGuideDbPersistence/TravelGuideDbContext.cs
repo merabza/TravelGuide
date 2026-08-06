@@ -15,6 +15,12 @@ public sealed class TravelGuideDbContext : DbContext
     public DbSet<TaskModel> Tasks => Set<TaskModel>();
     public DbSet<TaskStartPoint> TaskStartPoints => Set<TaskStartPoint>();
     public DbSet<PlaceModel> Places => Set<PlaceModel>();
+    public DbSet<MonthModel> Months => Set<MonthModel>();
+    public DbSet<CategoryModel> Categories => Set<CategoryModel>();
+    public DbSet<TagModel> Tags => Set<TagModel>();
+    public DbSet<PlaceByBestSeason> PlacesByBestSeasons => Set<PlaceByBestSeason>();
+    public DbSet<PlaceByCategory> PlacesByCategories => Set<PlaceByCategory>();
+    public DbSet<PlaceByTag> PlacesByTags => Set<PlaceByTag>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -27,4 +27,9 @@ public interface ITravelGuideRepository
     List<string> GetAllPlaceUrls();
     List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed);
     bool HasAnalysedPlaces();
+
+    List<MonthModel> GetMonths();
+    MonthModel AddMonth(MonthModel newMonth);
+    CategoryModel GetOrCreateCategory(string categoryName);
+    TagModel GetOrCreateTag(string tagName);
 }
