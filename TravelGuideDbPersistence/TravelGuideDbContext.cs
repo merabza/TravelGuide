@@ -14,6 +14,7 @@ public sealed class TravelGuideDbContext : DbContext
 
     public DbSet<TaskModel> Tasks => Set<TaskModel>();
     public DbSet<TaskStartPoint> TaskStartPoints => Set<TaskStartPoint>();
+    public DbSet<PlaceModel> Places => Set<PlaceModel>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

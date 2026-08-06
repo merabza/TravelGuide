@@ -113,4 +113,28 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     }
 
     #endregion
+
+    #region Place cruder
+
+    public PlaceModel AddPlace(PlaceModel newPlace)
+    {
+        return _context.Places.Add(newPlace).Entity;
+    }
+
+    public List<string> GetAllPlaceUrls()
+    {
+        return [.. _context.Places.Select(s => s.Url)];
+    }
+
+    public List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed)
+    {
+        return [.. _context.Places.Where(w => includeAnalysed || w.State != EState.Analysed).OrderBy(o => o.PlaceId)];
+    }
+
+    public bool HasAnalysedPlaces()
+    {
+        return _context.Places.Any(a => a.State == EState.Analysed);
+    }
+
+    #endregion
 }

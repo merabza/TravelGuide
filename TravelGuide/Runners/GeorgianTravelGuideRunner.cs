@@ -4,7 +4,10 @@ using System.Linq;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
-using TravelGuide.Models;
+using SystemTools.SystemToolsShared;
+using TravelGuideDbModels;
+using TravelGuideDbPersistence.Configurations;
+using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Runners;
 
@@ -12,13 +15,17 @@ namespace TravelGuide.Runners;
 public sealed class GeorgianTravelGuideRunner
 {
     private readonly IWebDriver _driver;
-    private readonly List<PlaceModel> _places = [];
+    private readonly ITravelGuideRepository _repository;
+    private readonly bool _reProcessAnalysed;
     private readonly string _startPoint;
 
-    public GeorgianTravelGuideRunner(IWebDriver driver, string startPoint)
+    public GeorgianTravelGuideRunner(IWebDriver driver, string startPoint, ITravelGuideRepository repository,
+        bool reProcessAnalysed)
     {
         _driver = driver;
         _startPoint = startPoint;
+        _repository = repository;
+        _reProcessAnalysed = reProcessAnalysed;
     }
 
     public bool Run()
@@ -62,13 +69,27 @@ public sealed class GeorgianTravelGuideRunner
 
         FindElementAndWaitUntilDisappear("იტვირთება...", "span");
 
+        //ფაზა 1: სიის გვერდიდან ყველა ღირსშესანიშნაობის ბმულის შეგროვება და ბაზაში შენახვა
+        List<string> urlList = ScrollAndCollectUrls();
+        PersistHarvestedUrls(urlList);
+
+        //ფაზა 2: თითოეული დასამუშავებელი გვერდის გახსნა და მონაცემების ამოღება
+        AnalysePlaces();
+
+        Console.WriteLine("Success");
+        return true;
+    }
+
+    private List<string> ScrollAndCollectUrls()
+    {
         var lastCount = 0;
         var sameCount = 0;
         const int maxSameCount = 100;
 
         List<string> urlList = FindAllLinksByClassName();
 
-        while (lastCount < urlList.Count || sameCount < maxSameCount)
+        //ციკლი ჩერდება, როცა ბმულების რაოდენობა ზედიზედ maxSameCount იტერაციის განმავლობაში აღარ გაიზრდება
+        while (sameCount < maxSameCount)
         {
             if (lastCount == urlList.Count)
             {
@@ -100,37 +121,74 @@ public sealed class GeorgianTravelGuideRunner
             urlList = FindAllLinksByClassName();
         }
 
-        urlList.Except(_places.Select(s => s.Url)).ToList().ForEach(url =>
-        {
-            var place = new PlaceModel { Url = url };
-            _places.Add(place);
-        });
-
-        //_driver.SwitchTo().NewWindow(WindowType.Tab);
-
-        //foreach (var place in _places) WorkWithPlace(place);
-
-        Console.WriteLine("Success");
-        return true;
+        return urlList;
     }
 
-    //private void WorkWithPlace(PlaceModel place)
-    //{
-    //    _driver.Navigate().GoToUrl(place.Url);
+    private void PersistHarvestedUrls(List<string> urlList)
+    {
+        //ბაზაში უკვე არსებული მისამართები აღარ ემატება; HashSet ერთი შეგროვების შიგნით გამეორებებსაც ფილტრავს
+        var known = new HashSet<string>(_repository.GetAllPlaceUrls(), StringComparer.Ordinal);
+        var newCount = 0;
+        foreach (var url in urlList.Where(known.Add))
+        {
+            if (url.Length > PlaceModelConfiguration.UrlLength)
+            {
+                StShared.WriteErrorLine($"Url is too long and will be skipped: {url}", true, null, false);
+                continue;
+            }
 
-    //    _driver.SwitchTo().Window(_driver.WindowHandles.Last());
+            _repository.AddPlace(new PlaceModel { Url = url, State = EState.New });
+            newCount++;
+        }
 
-    //    WaitForPageLoad();
+        if (newCount > 0)
+        {
+            _repository.SaveChanges();
+        }
 
-    //    var header = _driver.FindElement(By.TagName("h1"));
-    //    place.HeaderText = header.Text;
+        Console.WriteLine($"Collected {urlList.Count} urls, new: {newCount}");
+    }
 
-    //    var contentDiv =
-    //        _driver.FindElement(By.XPath("//span[@class='icon-location']/following-sibling::div[@class='content']"));
-    //    place.Location = contentDiv.Text;
+    private void AnalysePlaces()
+    {
+        List<PlaceModel> places = _repository.GetPlacesForAnalysis(_reProcessAnalysed);
+        var counter = 0;
+        foreach (PlaceModel place in places)
+        {
+            counter++;
+            Console.WriteLine($"({counter}/{places.Count}) {place.Url}");
+            if (!TryAnalysePlace(place))
+            {
+                StShared.WriteErrorLine($"Failed to analyse {place.Url}", true, null, false);
+            }
+        }
+    }
 
-    //    Console.WriteLine($"{place.HeaderText} - {place.Location}");
-    //}
+    private bool TryAnalysePlace(PlaceModel place)
+    {
+        try
+        {
+            _driver.Navigate().GoToUrl(place.Url);
+            WaitForPageLoad();
+
+            PlaceExtractResult? extract = PlaceDataExtractor.TryExtract(_driver);
+            if (extract is null || string.IsNullOrWhiteSpace(extract.Name))
+            {
+                return false;
+            }
+
+            //ენთითი მხოლოდ სრული წარმატების შემდეგ იცვლება, რომ ნახევრად შევსებული ველები ბაზაში არ მოხვდეს
+            PlaceDataExtractor.Apply(extract, place);
+            place.State = EState.Analysed;
+            _repository.SaveChanges();
+            return true;
+        }
+        catch (Exception e)
+        {
+            StShared.WriteException(e, true, null, false);
+            return false;
+        }
+    }
 
     private List<string> FindAllLinksByClassName()
     {

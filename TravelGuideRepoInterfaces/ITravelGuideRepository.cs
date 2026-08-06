@@ -23,4 +23,8 @@ public interface ITravelGuideRepository
     TaskStartPoint UpdateStartPoint(TaskStartPoint startPointForUpdate);
     TaskStartPoint DeleteStartPoint(TaskStartPoint startPointForDelete);
 
+    PlaceModel AddPlace(PlaceModel newPlace);
+    List<string> GetAllPlaceUrls();
+    List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed);
+    bool HasAnalysedPlaces();
 }

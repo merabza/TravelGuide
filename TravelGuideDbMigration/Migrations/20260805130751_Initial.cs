@@ -11,6 +11,31 @@ namespace TravelGuideDbMigration.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Places",
+                columns: table => new
+                {
+                    PlaceId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Latitude = table.Column<double>(type: "float", nullable: true),
+                    Longitude = table.Column<double>(type: "float", nullable: true),
+                    Region = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Municipality = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Categories = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Tags = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BestSeason = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Distances = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DistanceFromTbilisiKm = table.Column<int>(type: "int", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    State = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Places", x => x.PlaceId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Tasks",
                 columns: table => new
                 {
@@ -44,6 +69,12 @@ namespace TravelGuideDbMigration.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Places_Url",
+                table: "Places",
+                column: "Url",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Tasks_TaskName",
                 table: "Tasks",
                 column: "TaskName",
@@ -58,6 +89,9 @@ namespace TravelGuideDbMigration.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Places");
+
             migrationBuilder.DropTable(
                 name: "TaskStartPoints");
 

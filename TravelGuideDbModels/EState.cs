@@ -1,4 +1,4 @@
-namespace TravelGuide.Models;
+namespace TravelGuideDbModels;
 
 public enum EState
 {
