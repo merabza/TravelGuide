@@ -4,30 +4,24 @@ using System.Linq;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
-using SystemTools.SystemToolsShared;
-using TravelGuideDbModels;
-using TravelGuideDbPersistence.Configurations;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Runners;
 
+//სიის გვერდის Selenium-ით გავლა: ღირსშესანიშნაობების ბმულების შეგროვება infinite-scroll-იანი გვერდიდან.
+//გვერდების გაანალიზება ბრაუზერს აღარ საჭიროებს — ის PlaceAnalyser-ში, HTTP-ით სრულდება.
 // ReSharper disable once ConvertToPrimaryConstructor
 public sealed class GeorgianTravelGuideRunner
 {
     private readonly IWebDriver _driver;
-    private readonly PlaceLinksSynchronizer _placeLinksSynchronizer;
     private readonly ITravelGuideRepository _repository;
-    private readonly bool _reProcessAnalysed;
     private readonly string _startPoint;
 
-    public GeorgianTravelGuideRunner(IWebDriver driver, string startPoint, ITravelGuideRepository repository,
-        bool reProcessAnalysed)
+    public GeorgianTravelGuideRunner(IWebDriver driver, string startPoint, ITravelGuideRepository repository)
     {
         _driver = driver;
         _startPoint = startPoint;
         _repository = repository;
-        _reProcessAnalysed = reProcessAnalysed;
-        _placeLinksSynchronizer = new PlaceLinksSynchronizer(repository);
     }
 
     public bool Run()
@@ -71,12 +65,9 @@ public sealed class GeorgianTravelGuideRunner
 
         FindElementAndWaitUntilDisappear("იტვირთება...", "span");
 
-        //ფაზა 1: სიის გვერდიდან ყველა ღირსშესანიშნაობის ბმულის შეგროვება და ბაზაში შენახვა
+        //სიის გვერდიდან ყველა ღირსშესანიშნაობის ბმულის შეგროვება და ბაზაში შენახვა
         List<string> urlList = ScrollAndCollectUrls();
-        PersistHarvestedUrls(urlList);
-
-        //ფაზა 2: თითოეული დასამუშავებელი გვერდის გახსნა და მონაცემების ამოღება
-        AnalysePlaces();
+        HarvestedUrlPersister.PersistNewUrls(_repository, urlList);
 
         Console.WriteLine("Success");
         return true;
@@ -124,76 +115,6 @@ public sealed class GeorgianTravelGuideRunner
         }
 
         return urlList;
-    }
-
-    private void PersistHarvestedUrls(List<string> urlList)
-    {
-        //ბაზაში უკვე არსებული მისამართები აღარ ემატება; HashSet ერთი შეგროვების შიგნით გამეორებებსაც ფილტრავს
-        var known = new HashSet<string>(_repository.GetAllPlaceUrls(), StringComparer.Ordinal);
-        var newCount = 0;
-        foreach (var url in urlList.Where(known.Add))
-        {
-            if (url.Length > PlaceModelConfiguration.UrlLength)
-            {
-                StShared.WriteErrorLine($"Url is too long and will be skipped: {url}", true, null, false);
-                continue;
-            }
-
-            _repository.AddPlace(new PlaceModel { Url = url, State = EState.New });
-            newCount++;
-        }
-
-        if (newCount > 0)
-        {
-            _repository.SaveChanges();
-        }
-
-        Console.WriteLine($"Collected {urlList.Count} urls, new: {newCount}");
-    }
-
-    private void AnalysePlaces()
-    {
-        _placeLinksSynchronizer.EnsureMonths();
-
-        List<PlaceModel> places = _repository.GetPlacesForAnalysis(_reProcessAnalysed);
-        var counter = 0;
-        foreach (PlaceModel place in places)
-        {
-            counter++;
-            Console.WriteLine($"({counter}/{places.Count}) {place.Url}");
-            if (!TryAnalysePlace(place))
-            {
-                StShared.WriteErrorLine($"Failed to analyse {place.Url}", true, null, false);
-            }
-        }
-    }
-
-    private bool TryAnalysePlace(PlaceModel place)
-    {
-        try
-        {
-            _driver.Navigate().GoToUrl(place.Url);
-            WaitForPageLoad();
-
-            PlaceExtractResult? extract = PlaceDataExtractor.TryExtract(_driver);
-            if (extract is null || string.IsNullOrWhiteSpace(extract.Name))
-            {
-                return false;
-            }
-
-            //ენთითი მხოლოდ სრული წარმატების შემდეგ იცვლება, რომ ნახევრად შევსებული ველები ბაზაში არ მოხვდეს;
-            //SyncPlaceLinks-იც ჯერ საჭირო ჩანაწერებს ეძებს/ქმნის და place-ს მხოლოდ ბოლოს ცვლის
-            _placeLinksSynchronizer.SyncPlaceLinks(extract, place);
-            PlaceDataExtractor.Apply(extract, place);
-            place.State = EState.Analysed;
-            _repository.SaveChanges();
-            return true;
-        }
-        catch (Exception e)
-        {
-            StShared.WriteException(e, true, null, false);
-            return false;
-        }
     }
 
     private List<string> FindAllLinksByClassName()

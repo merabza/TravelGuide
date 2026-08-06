@@ -6,5 +6,8 @@ public enum EState
     Opening,
     Opened,
     Analysing,
-    Analysed
+    Analysed,
+
+    //გვერდი მოქაჩვისას ღირსშესანიშნაობის გვერდი არ აღმოჩნდა (sitemap-ში ქალაქების/რეგიონების გვერდებიც ხვდება)
+    NotAttraction
 }

@@ -129,12 +129,14 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     public List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed)
     {
         //ThenInclude აუცილებელია: ბმულების სინქრონიზაცია lookup-ობიექტების იგივეობით ადარებს და დაუტვირთავი ნავიგაცია გამონაკლისს ისვრის
+        //NotAttraction გვერდები ხელახლა დამუშავებისასაც გამოტოვებულია — ისინი ღირსშესანიშნაობის გვერდები არ არის
         return
         [
             .. _context.Places.Include(i => i.BestSeasons)
                 .Include(i => i.Categories).ThenInclude(t => t.CategoryNavigation)
                 .Include(i => i.Tags).ThenInclude(t => t.TagNavigation)
-                .Where(w => includeAnalysed || w.State != EState.Analysed).OrderBy(o => o.PlaceId)
+                .Where(w => w.State != EState.NotAttraction && (includeAnalysed || w.State != EState.Analysed))
+                .OrderBy(o => o.PlaceId)
         ];
     }
 

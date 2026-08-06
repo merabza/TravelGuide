@@ -4,6 +4,10 @@ namespace TravelGuide.Runners;
 
 public sealed class PlaceExtractResult
 {
+    //true, თუ გვერდის JSON-LD-ში TouristAttraction ტიპის კვანძი მოიძებნა — sitemap-იდან მოსული
+    //ქალაქების/რეგიონების გვერდების გასაფილტრად
+    public bool IsTouristAttraction { get; init; }
+
     public string? Name { get; init; }
     public double? Latitude { get; init; }
     public double? Longitude { get; init; }

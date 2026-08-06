@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using OpenQA.Selenium;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
 using TravelGuideDbModels;
 using TravelGuideDbPersistence.Configurations;
 
@@ -12,86 +15,54 @@ namespace TravelGuide.Runners;
 
 public static partial class PlaceDataExtractor
 {
-    //მთელი ინფორმაცია ერთი ExecuteScript გამოძახებით გროვდება, რომ ImplicitWait-მა ელემენტების ძებნა არ დააყოვნოს.
-    //JSON-LD პირველადი წყაროა (კოორდინატები სრული სიზუსტით), ხილული DOM — დანარჩენი ველებისთვის და fallback-ად.
-    //JS აბრუნებს JSON string-ს PascalCase გასაღებებით, რომ PlaceExtractResult-ზე ოფშენების გარეშე დესერიალიზდეს.
-    private const string ExtractionScript = """
-        const result = { Name: null, Latitude: null, Longitude: null, Region: null, Municipality: null,
-          Categories: [], Tags: [], BestSeason: null, Distances: [], Description: null };
-
-        for (const s of document.querySelectorAll('script[type="application/ld+json"]')) {
-          let data;
-          try { data = JSON.parse(s.textContent); } catch (e) { continue; }
-          const graph = Array.isArray(data) ? data : (data['@graph'] || [data]);
-          for (const node of graph) {
-            const types = Array.isArray(node['@type']) ? node['@type'] : [node['@type']];
-            if (types.includes('TouristAttraction')) {
-              if (node.name) { result.Name = node.name; }
-              if (node.geo) {
-                if (typeof node.geo.latitude === 'number') { result.Latitude = node.geo.latitude; }
-                if (typeof node.geo.longitude === 'number') { result.Longitude = node.geo.longitude; }
-              }
-            }
-            if (types.includes('BreadcrumbList') && Array.isArray(node.itemListElement)) {
-              const mids = node.itemListElement.slice(2, -1).map(i => i.name).filter(n => n);
-              if (mids.length > 0) { result.Region = mids[0]; }
-              if (mids.length > 1) { result.Municipality = mids[1]; }
-            }
-          }
-        }
-
-        if (!result.Name) {
-          const h1 = document.querySelector('h1');
-          if (h1) { result.Name = h1.innerText.trim(); }
-        }
-
-        result.Categories = Array.from(document.querySelectorAll('.destination-header .categories a'))
-          .map(a => a.innerText.trim()).filter(t => t);
-        result.Tags = Array.from(document.querySelectorAll('section.tags a'))
-          .map(a => a.innerText.trim()).filter(t => t);
-
-        const season = document.querySelector('.best-time-to-visit strong');
-        if (season) { result.BestSeason = season.innerText.trim(); }
-
-        if (!result.Region) {
-          const loc = document.querySelector('.destination-header .location a');
-          if (loc) {
-            const clone = loc.cloneNode(true);
-            clone.querySelectorAll('span').forEach(x => x.remove());
-            const parts = clone.textContent.split(',').map(p => p.trim()).filter(p => p);
-            if (parts.length > 0) { result.Region = parts[0]; }
-            if (parts.length > 1) { result.Municipality = parts[1]; }
-          }
-        }
-
-        const items = Array.from(document.querySelectorAll('.technical-details .item'));
-        if (result.Latitude === null || result.Longitude === null) {
-          const coordItem = items.find(i => i.querySelector('span.icon-location'));
-          const content = coordItem ? coordItem.querySelector('div.content') : null;
-          if (content) {
-            const nums = content.textContent.split(',').map(p => parseFloat(p.trim())).filter(n => !isNaN(n));
-            if (nums.length === 2) { result.Latitude = nums[0]; result.Longitude = nums[1]; }
-          }
-        }
-
-        const distItem = items.find(i => i.querySelector('span.icon-map-signs'));
-        if (distItem) {
-          result.Distances = Array.from(distItem.querySelectorAll('ul.sub-content li'))
-            .map(li => li.textContent.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim()).filter(t => t);
-        }
-
-        const wrap = document.querySelector('.collapsed-text');
-        if (wrap) { wrap.style.maxHeight = 'none'; wrap.style.height = 'auto'; wrap.style.overflow = 'visible'; }
-        const ed = document.querySelector('.collapsed-text .editor-text') || document.querySelector('.editor-text');
-        if (ed) { result.Description = ed.innerText.trim(); }
-
-        return JSON.stringify(result);
-        """;
-
-    public static PlaceExtractResult? TryExtract(IWebDriver driver)
+    //აღწერის ტექსტში ამ ელემენტების დახურვისას ახალი ხაზი ჩაისმის, რომ აბზაცები ერთმანეთს არ შეეწებოს
+    private static readonly HashSet<string> BlockTagNames = new(StringComparer.OrdinalIgnoreCase)
     {
-        var json = ((IJavaScriptExecutor)driver).ExecuteScript(ExtractionScript) as string;
-        return string.IsNullOrEmpty(json) ? null : JsonSerializer.Deserialize<PlaceExtractResult>(json);
+        "p", "div", "li", "ul", "ol", "h1", "h2", "h3", "h4", "h5", "h6", "table", "tr", "blockquote"
+    };
+
+    //სერვერი სრულად დარენდერებულ HTML-ს აბრუნებს, ამიტომ ბრაუზერი საჭირო არ არის — საკმარისია მოქაჩული ტექსტის გაპარსვა.
+    //JSON-LD პირველადი წყაროა (კოორდინატები სრული სიზუსტით), ხილული DOM — დანარჩენი ველებისთვის და fallback-ად.
+    public static PlaceExtractResult Extract(string html)
+    {
+        using IHtmlDocument document = new HtmlParser().ParseDocument(html);
+
+        JsonLdData jsonLd = JsonLdData.Parse(document);
+
+        string? name = jsonLd.Name ?? TrimmedTextOrNull(document.QuerySelector("h1"));
+
+        string? region = jsonLd.Region;
+        string? municipality = jsonLd.Municipality;
+        if (region is null)
+        {
+            (region, municipality) = ParseLocationFallback(document);
+        }
+
+        double? latitude = jsonLd.Latitude;
+        double? longitude = jsonLd.Longitude;
+        if (latitude is null || longitude is null)
+        {
+            (double, double)? coordinates = ParseCoordinatesFallback(document);
+            if (coordinates is not null)
+            {
+                (latitude, longitude) = coordinates.Value;
+            }
+        }
+
+        return new PlaceExtractResult
+        {
+            IsTouristAttraction = jsonLd.IsTouristAttraction,
+            Name = name,
+            Latitude = latitude,
+            Longitude = longitude,
+            Region = region,
+            Municipality = municipality,
+            Categories = SelectTexts(document, ".destination-header .categories a"),
+            Tags = SelectTexts(document, "section.tags a"),
+            BestSeason = TrimmedTextOrNull(document.QuerySelector(".best-time-to-visit strong")),
+            Distances = ParseDistances(document),
+            Description = ParseDescription(document)
+        };
     }
 
     public static void Apply(PlaceExtractResult extract, PlaceModel place)
@@ -104,6 +75,131 @@ public static partial class PlaceDataExtractor
         place.Distances = extract.Distances;
         place.DistanceFromTbilisiKm = ParseDistanceFromTbilisiKm(extract.Distances);
         place.Description = extract.Description;
+    }
+
+    private static string? TrimmedTextOrNull(IElement? element)
+    {
+        string? text = element?.TextContent.Trim();
+        return string.IsNullOrEmpty(text) ? null : text;
+    }
+
+    private static List<string> SelectTexts(IHtmlDocument document, string selector)
+    {
+        return [.. document.QuerySelectorAll(selector).Select(s => s.TextContent.Trim()).Where(w => w.Length > 0)];
+    }
+
+    private static (string? Region, string? Municipality) ParseLocationFallback(IHtmlDocument document)
+    {
+        IElement? location = document.QuerySelector(".destination-header .location a");
+        if (location is null)
+        {
+            return (null, null);
+        }
+
+        //ბმულს შიგნით დამხმარე წარწერიანი span-ები აქვს („(იხილეთ რუკაზე)"), ტექსტიდან ისინი იშლება
+        foreach (IElement span in location.QuerySelectorAll("span").ToList())
+        {
+            span.Remove();
+        }
+
+        string[] parts = location.TextContent.Split(',',
+            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        return (parts.Length > 0 ? parts[0] : null, parts.Length > 1 ? parts[1] : null);
+    }
+
+    private static (double, double)? ParseCoordinatesFallback(IHtmlDocument document)
+    {
+        IElement? content = document.QuerySelectorAll(".technical-details .item")
+            .FirstOrDefault(f => f.QuerySelector("span.icon-location") is not null)?.QuerySelector("div.content");
+        if (content is null)
+        {
+            return null;
+        }
+
+        List<double> numbers = [];
+        foreach (string part in content.TextContent.Split(','))
+        {
+            if (double.TryParse(part.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double number))
+            {
+                numbers.Add(number);
+            }
+        }
+
+        return numbers.Count == 2 ? (numbers[0], numbers[1]) : null;
+    }
+
+    private static List<string> ParseDistances(IHtmlDocument document)
+    {
+        IElement? distancesItem = document.QuerySelectorAll(".technical-details .item")
+            .FirstOrDefault(f => f.QuerySelector("span.icon-map-signs") is not null);
+        if (distancesItem is null)
+        {
+            return [];
+        }
+
+        //.NET-ის \s არასამტეხლო ჰარსაც (&nbsp;, U+00A0) ფარავს, ამიტომ მისი ცალკე ჩანაცვლება საჭირო არ არის
+        return
+        [
+            .. distancesItem.QuerySelectorAll("ul.sub-content li")
+                .Select(s => WhitespaceRegex().Replace(s.TextContent, " ").Trim()).Where(w => w.Length > 0)
+        ];
+    }
+
+    private static string? ParseDescription(IHtmlDocument document)
+    {
+        IElement? editor = document.QuerySelector(".collapsed-text .editor-text") ??
+                           document.QuerySelector(".editor-text");
+        if (editor is null)
+        {
+            return null;
+        }
+
+        //TextContent ბლოკებს შორის საზღვრებს კარგავს, ამიტომ ტექსტი ბლოკური ელემენტების მიხედვით ხაზ-ხაზ იკრიბება
+        var builder = new StringBuilder();
+        AppendNodeText(editor, builder);
+
+        List<string> lines = [];
+        foreach (string line in builder.ToString().Split('\n'))
+        {
+            string cleanLine = WhitespaceRegex().Replace(line, " ").Trim();
+            if (cleanLine.Length > 0)
+            {
+                lines.Add(cleanLine);
+            }
+        }
+
+        return lines.Count == 0 ? null : string.Join('\n', lines);
+    }
+
+    private static void AppendNodeText(INode node, StringBuilder builder)
+    {
+        foreach (INode child in node.ChildNodes)
+        {
+            if (child is IText text)
+            {
+                //წყაროს ტექსტში ხაზგადატანები ფორმატირების ნაწილია და ჰარებად ჩამოიშლება —
+                //ახალი ხაზი მხოლოდ ბლოკური ელემენტების საზღვრებზე ჩაისმის
+                builder.Append(WhitespaceRegex().Replace(text.Data, " "));
+                continue;
+            }
+
+            if (child is not IElement element)
+            {
+                continue;
+            }
+
+            if (string.Equals(element.LocalName, "br", StringComparison.OrdinalIgnoreCase))
+            {
+                builder.Append('\n');
+                continue;
+            }
+
+            AppendNodeText(element, builder);
+            if (BlockTagNames.Contains(element.LocalName))
+            {
+                builder.Append('\n');
+            }
+        }
     }
 
     private static string? Truncate(string? value, int maxLength)
@@ -126,4 +222,166 @@ public static partial class PlaceDataExtractor
 
     [GeneratedRegex(@"^\d+")]
     private static partial Regex LeadingNumberRegex();
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex WhitespaceRegex();
+
+    //JSON-LD ბლოკებიდან ამოკრებილი მონაცემები; გვიანდელი კვანძები ადრინდელებს გადაფარავს, როგორც ძველ JS-სკრიპტში
+    private sealed class JsonLdData
+    {
+        public bool IsTouristAttraction { get; private set; }
+        public string? Name { get; private set; }
+        public double? Latitude { get; private set; }
+        public double? Longitude { get; private set; }
+        public string? Region { get; private set; }
+        public string? Municipality { get; private set; }
+
+        public static JsonLdData Parse(IHtmlDocument document)
+        {
+            var data = new JsonLdData();
+            foreach (IElement script in document.QuerySelectorAll("script[type='application/ld+json']"))
+            {
+                data.ParseScript(script.TextContent);
+            }
+
+            return data;
+        }
+
+        private void ParseScript(string scriptText)
+        {
+            JsonDocument jsonDocument;
+            try
+            {
+                jsonDocument = JsonDocument.Parse(scriptText);
+            }
+            catch (JsonException)
+            {
+                //არავალიდური JSON-LD ბლოკი უბრალოდ გამოიტოვება
+                return;
+            }
+
+            using (jsonDocument)
+            {
+                foreach (JsonElement node in EnumerateGraphNodes(jsonDocument.RootElement))
+                {
+                    ApplyNode(node);
+                }
+            }
+        }
+
+        private static List<JsonElement> EnumerateGraphNodes(JsonElement root)
+        {
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                return [.. root.EnumerateArray()];
+            }
+
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("@graph", out JsonElement graph) &&
+                graph.ValueKind == JsonValueKind.Array)
+            {
+                return [.. graph.EnumerateArray()];
+            }
+
+            return [root];
+        }
+
+        private void ApplyNode(JsonElement node)
+        {
+            if (node.ValueKind != JsonValueKind.Object || !node.TryGetProperty("@type", out JsonElement typeElement))
+            {
+                return;
+            }
+
+            if (HasType(typeElement, "TouristAttraction"))
+            {
+                ApplyTouristAttraction(node);
+            }
+
+            if (HasType(typeElement, "BreadcrumbList"))
+            {
+                ApplyBreadcrumbs(node);
+            }
+        }
+
+        private static bool HasType(JsonElement typeElement, string typeName)
+        {
+            return typeElement.ValueKind switch
+            {
+                JsonValueKind.String => typeElement.ValueEquals(typeName),
+                JsonValueKind.Array => typeElement.EnumerateArray()
+                    .Any(a => a.ValueKind == JsonValueKind.String && a.ValueEquals(typeName)),
+                _ => false
+            };
+        }
+
+        private void ApplyTouristAttraction(JsonElement node)
+        {
+            IsTouristAttraction = true;
+
+            if (node.TryGetProperty("name", out JsonElement nameElement) &&
+                nameElement.ValueKind == JsonValueKind.String)
+            {
+                string? attractionName = nameElement.GetString();
+                if (!string.IsNullOrEmpty(attractionName))
+                {
+                    Name = attractionName;
+                }
+            }
+
+            if (!node.TryGetProperty("geo", out JsonElement geo) || geo.ValueKind != JsonValueKind.Object)
+            {
+                return;
+            }
+
+            if (geo.TryGetProperty("latitude", out JsonElement latitude) &&
+                latitude.ValueKind == JsonValueKind.Number)
+            {
+                Latitude = latitude.GetDouble();
+            }
+
+            if (geo.TryGetProperty("longitude", out JsonElement longitude) &&
+                longitude.ValueKind == JsonValueKind.Number)
+            {
+                Longitude = longitude.GetDouble();
+            }
+        }
+
+        private void ApplyBreadcrumbs(JsonElement node)
+        {
+            if (!node.TryGetProperty("itemListElement", out JsonElement items) ||
+                items.ValueKind != JsonValueKind.Array)
+            {
+                return;
+            }
+
+            //პირველი ორი ელემენტი (მთავარი გვერდი და კატეგორია) და ბოლო (თვითონ ადგილი) გამოიტოვება —
+            //შუაში რეგიონი და მუნიციპალიტეტია
+            List<string> middleNames = [];
+            int count = items.GetArrayLength();
+            for (var i = 2; i < count - 1; i++)
+            {
+                JsonElement item = items[i];
+                if (item.ValueKind == JsonValueKind.Object &&
+                    item.TryGetProperty("name", out JsonElement nameElement) &&
+                    nameElement.ValueKind == JsonValueKind.String)
+                {
+                    string? itemName = nameElement.GetString();
+                    if (!string.IsNullOrEmpty(itemName))
+                    {
+                        middleNames.Add(itemName);
+                    }
+                }
+            }
+
+            if (middleNames.Count > 0)
+            {
+                Region = middleNames[0];
+            }
+
+            if (middleNames.Count > 1)
+            {
+                Municipality = middleNames[1];
+            }
+        }
+    }
 }

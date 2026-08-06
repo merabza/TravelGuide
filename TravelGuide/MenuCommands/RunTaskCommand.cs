@@ -1,5 +1,8 @@
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using AppCliTools.CliMenu;
@@ -25,7 +28,7 @@ public sealed class RunTaskCommand : CliMenuCommand
         _taskName = taskName;
     }
 
-    protected override ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
+    protected override async ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
     {
         MenuAction = EMenuAction.Reload;
 
@@ -39,15 +42,20 @@ public sealed class RunTaskCommand : CliMenuCommand
         if (task is null)
         {
             StShared.WriteErrorLine($"Task with Name {_taskName} not found", true);
-            return ValueTask.FromResult(false);
+            return false;
         }
 
         //ამოცანას საწყისი წერტილების გარეშე გაშვება არ შეუძლია
         if (task.StartPoints.Count == 0)
         {
             StShared.WriteErrorLine($"Task {_taskName} does not have Start Points", true);
-            return ValueTask.FromResult(false);
+            return false;
         }
+
+        //ბმულების შეგროვების გზას მომხმარებელი ირჩევს: sitemap-ის მოქაჩვა (სწრაფია და ბრაუზერს არ საჭიროებს)
+        //თუ Selenium-ით სიის გვერდის ჩამოსქროლვა
+        bool useSitemap = Inputer.InputBool("Use sitemap for URL harvesting (No = Selenium listing walk)?", true,
+            false);
 
         //თუ ბაზაში უკვე გაანალიზებული ადგილებია, ვკითხოთ მომხმარებელს, ხელახლა დამუშავდეს თუ არა
         var reProcessAnalysed = false;
@@ -56,35 +64,60 @@ public sealed class RunTaskCommand : CliMenuCommand
             reProcessAnalysed = Inputer.InputBool("Re-process already analysed places?", false, false);
         }
 
-        //თითოეული საწყისი წერტილისთვის გაეშვას პროცესი ცალკე ბრაუზერით
-        foreach (TaskStartPoint startPoint in task.StartPoints.OrderBy(o => o.StartPoint, StringComparer.Ordinal))
+        //გვერდები ბრაუზერის გარეშე, პირდაპირ HTTP-ით მოიქაჩება — Chrome მხოლოდ Selenium-რეჟიმის სიის გვერდს სჭირდება
+        using var httpClientHandler = new HttpClientHandler
         {
-            Console.WriteLine($"Run process for Start Point {startPoint.StartPoint}");
+            AutomaticDecompression = DecompressionMethods.All,
+            CheckCertificateRevocationList = true
+        };
+        using var httpClient = new HttpClient(httpClientHandler, disposeHandler: false);
+        httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("TravelGuideBot", "1.0"));
 
-            //Chrome-ის შიდა ლოგები (GCM და მსგავსი ხმაური) კონსოლში რომ არ გამოვიდეს
-            var chromeOptions = new ChromeOptions();
-            chromeOptions.AddExcludedArgument("enable-logging");
-            // ReSharper disable once using
-            // ReSharper disable once DisposableConstructor
-            using var driver = new ChromeDriver(chromeOptions);
-            var runner = new GeorgianTravelGuideRunner(driver, startPoint.StartPoint, repository, reProcessAnalysed);
-
-            //ხელახლა დამუშავება მხოლოდ პირველი საწყისი წერტილის ფარგლებში სრულდება
-            reProcessAnalysed = false;
-            bool success = runner.Run();
-            driver.Quit();
-
-            if (success)
+        if (useSitemap)
+        {
+            //sitemap მთელ საიტს ფარავს, ამიტომ საწყისი წერტილებიდან მხოლოდ პირველის ჰოსტი გამოიყენება და ერთხელ ეშვება
+            string firstStartPoint = task.StartPoints.OrderBy(o => o.StartPoint, StringComparer.Ordinal).First()
+                .StartPoint;
+            var harvester = new SitemapUrlHarvester(httpClient, firstStartPoint, repository);
+            if (!await harvester.RunAsync(cancellationToken).ConfigureAwait(false))
             {
-                continue;
+                StShared.WriteErrorLine("Sitemap harvesting failed", true);
+                return false;
             }
-
-            StShared.WriteErrorLine($"Process failed for Start Point {startPoint.StartPoint}", true);
-            return ValueTask.FromResult(false);
         }
+        else
+        {
+            //თითოეული საწყისი წერტილისთვის ბმულების შეგროვება ცალკე ბრაუზერით ეშვება
+            foreach (TaskStartPoint startPoint in task.StartPoints.OrderBy(o => o.StartPoint, StringComparer.Ordinal))
+            {
+                Console.WriteLine($"Run process for Start Point {startPoint.StartPoint}");
+
+                //Chrome-ის შიდა ლოგები (GCM და მსგავსი ხმაური) კონსოლში რომ არ გამოვიდეს
+                var chromeOptions = new ChromeOptions();
+                chromeOptions.AddExcludedArgument("enable-logging");
+                // ReSharper disable once using
+                // ReSharper disable once DisposableConstructor
+                using var driver = new ChromeDriver(chromeOptions);
+                var runner = new GeorgianTravelGuideRunner(driver, startPoint.StartPoint, repository);
+                bool success = runner.Run();
+                driver.Quit();
+
+                if (success)
+                {
+                    continue;
+                }
+
+                StShared.WriteErrorLine($"Process failed for Start Point {startPoint.StartPoint}", true);
+                return false;
+            }
+        }
+
+        //შეგროვებული გვერდების გაანალიზება HTTP-ით, შეგროვების რეჟიმის მიუხედავად ერთხელ სრულდება
+        var analyser = new PlaceAnalyser(httpClient, repository, reProcessAnalysed);
+        await analyser.RunAsync(cancellationToken).ConfigureAwait(false);
 
         //ამოცანის გაშვების პროცესი დასრულდა
         Console.WriteLine($"Run Task {_taskName} Finished");
-        return ValueTask.FromResult(true);
+        return true;
     }
 }
