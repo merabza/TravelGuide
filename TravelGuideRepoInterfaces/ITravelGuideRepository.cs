@@ -32,4 +32,5 @@ public interface ITravelGuideRepository
     MonthModel AddMonth(MonthModel newMonth);
     CategoryModel GetOrCreateCategory(string categoryName);
     TagModel GetOrCreateTag(string tagName);
+    FromPointModel GetOrCreateFromPoint(string fromPointName);
 }

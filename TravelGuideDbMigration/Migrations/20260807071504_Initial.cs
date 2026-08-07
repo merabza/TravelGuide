@@ -24,6 +24,19 @@ namespace TravelGuideDbMigration.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "FromPoints",
+                columns: table => new
+                {
+                    FromPointId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FromPoints", x => x.FromPointId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Months",
                 columns: table => new
                 {
@@ -47,8 +60,6 @@ namespace TravelGuideDbMigration.Migrations
                     Longitude = table.Column<double>(type: "float", nullable: true),
                     Region = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Municipality = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Distances = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DistanceFromTbilisiKm = table.Column<int>(type: "int", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     State = table.Column<int>(type: "int", nullable: false)
                 },
@@ -81,6 +92,33 @@ namespace TravelGuideDbMigration.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tasks", x => x.TaskId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DistanceByPlaces",
+                columns: table => new
+                {
+                    DistanceByPlaceId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PlaceId = table.Column<int>(type: "int", nullable: false),
+                    FromPointId = table.Column<int>(type: "int", nullable: false),
+                    Distance = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DistanceByPlaces", x => x.DistanceByPlaceId);
+                    table.ForeignKey(
+                        name: "FK_DistanceByPlaces_FromPoints_FromPointId",
+                        column: x => x.FromPointId,
+                        principalTable: "FromPoints",
+                        principalColumn: "FromPointId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DistanceByPlaces_Places_PlaceId",
+                        column: x => x.PlaceId,
+                        principalTable: "Places",
+                        principalColumn: "PlaceId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -182,6 +220,23 @@ namespace TravelGuideDbMigration.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_DistanceByPlaces_FromPointId",
+                table: "DistanceByPlaces",
+                column: "FromPointId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DistanceByPlaces_PlaceId_FromPointId",
+                table: "DistanceByPlaces",
+                columns: new[] { "PlaceId", "FromPointId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FromPoints_Name",
+                table: "FromPoints",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Months_Name",
                 table: "Months",
                 column: "Name",
@@ -230,6 +285,9 @@ namespace TravelGuideDbMigration.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "DistanceByPlaces");
+
+            migrationBuilder.DropTable(
                 name: "PlacesByBestSeasons");
 
             migrationBuilder.DropTable(
@@ -240,6 +298,9 @@ namespace TravelGuideDbMigration.Migrations
 
             migrationBuilder.DropTable(
                 name: "TaskStartPoints");
+
+            migrationBuilder.DropTable(
+                name: "FromPoints");
 
             migrationBuilder.DropTable(
                 name: "Months");

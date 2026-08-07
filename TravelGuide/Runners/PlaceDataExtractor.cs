@@ -70,8 +70,6 @@ public static partial class PlaceDataExtractor
         place.Longitude = extract.Longitude;
         place.Region = Truncate(extract.Region, PlaceModelConfiguration.RegionLength);
         place.Municipality = Truncate(extract.Municipality, PlaceModelConfiguration.MunicipalityLength);
-        place.Distances = extract.Distances;
-        place.DistanceFromTbilisiKm = ParseDistanceFromTbilisiKm(extract.Distances);
         place.Description = extract.Description;
     }
 
@@ -126,7 +124,7 @@ public static partial class PlaceDataExtractor
         return numbers.Count == 2 ? (numbers[0], numbers[1]) : null;
     }
 
-    private static List<string> ParseDistances(IHtmlDocument document)
+    private static List<PlaceDistanceItem> ParseDistances(IHtmlDocument document)
     {
         IElement? distancesItem = document.QuerySelectorAll(".technical-details .item")
             .FirstOrDefault(f => f.QuerySelector("span.icon-map-signs") is not null);
@@ -136,11 +134,21 @@ public static partial class PlaceDataExtractor
         }
 
         //.NET-ის \s არასამტეხლო ჰარსაც (&nbsp;, U+00A0) ფარავს, ამიტომ მისი ცალკე ჩანაცვლება საჭირო არ არის
-        return
-        [
-            .. distancesItem.QuerySelectorAll("ul.sub-content li")
-                .Select(s => WhitespaceRegex().Replace(s.TextContent, " ").Trim()).Where(w => w.Length > 0)
-        ];
+        List<PlaceDistanceItem> distances = [];
+        foreach (IElement item in distancesItem.QuerySelectorAll("ul.sub-content li"))
+        {
+            //ჩანაწერის ფორმაა „93კმ თბილისიდან" — რიცხვს „კმ" მიწებებული მოსდევს, შემდეგ საწყისი წერტილის სახელი;
+            //ამ ფორმას აცდენილი ჩანაწერები გამოიტოვება
+            string text = WhitespaceRegex().Replace(item.TextContent, " ").Trim();
+            Match match = DistanceItemRegex().Match(text);
+            if (match.Success)
+            {
+                distances.Add(new PlaceDistanceItem(match.Groups["name"].Value,
+                    int.Parse(match.Groups["km"].Value, CultureInfo.InvariantCulture)));
+            }
+        }
+
+        return distances;
     }
 
     private static string? ParseDescription(IHtmlDocument document)
@@ -205,21 +213,8 @@ public static partial class PlaceDataExtractor
         return value is null || value.Length <= maxLength ? value : value[..maxLength];
     }
 
-    private static int? ParseDistanceFromTbilisiKm(IEnumerable<string> distances)
-    {
-        //აეროპორტების ჩანაწერები „აეროპორტიდან"-ზე მთავრდება, ამიტომ „თბილისიდან"-ზე დამთავრება მათ ვერ დაემთხვევა
-        string? tbilisiItem = distances.FirstOrDefault(d => d.EndsWith("თბილისიდან", StringComparison.Ordinal));
-        if (tbilisiItem is null)
-        {
-            return null;
-        }
-
-        Match match = LeadingNumberRegex().Match(tbilisiItem);
-        return match.Success ? int.Parse(match.Value, CultureInfo.InvariantCulture) : null;
-    }
-
-    [GeneratedRegex(@"^\d+")]
-    private static partial Regex LeadingNumberRegex();
+    [GeneratedRegex(@"^(?<km>\d+)\s*კმ\.?\s*(?<name>.+)$")]
+    private static partial Regex DistanceItemRegex();
 
     [GeneratedRegex(@"\s+")]
     private static partial Regex WhitespaceRegex();

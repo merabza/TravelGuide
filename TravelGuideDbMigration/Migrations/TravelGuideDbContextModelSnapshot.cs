@@ -42,6 +42,54 @@ namespace TravelGuideDbMigration.Migrations
                     b.ToTable("Categories", (string)null);
                 });
 
+            modelBuilder.Entity("TravelGuideDbModels.DistanceByPlace", b =>
+                {
+                    b.Property<int>("DistanceByPlaceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DistanceByPlaceId"));
+
+                    b.Property<int>("Distance")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FromPointId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PlaceId")
+                        .HasColumnType("int");
+
+                    b.HasKey("DistanceByPlaceId");
+
+                    b.HasIndex("FromPointId");
+
+                    b.HasIndex("PlaceId", "FromPointId")
+                        .IsUnique();
+
+                    b.ToTable("DistanceByPlaces", (string)null);
+                });
+
+            modelBuilder.Entity("TravelGuideDbModels.FromPointModel", b =>
+                {
+                    b.Property<int>("FromPointId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FromPointId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("FromPointId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("FromPoints", (string)null);
+                });
+
             modelBuilder.Entity("TravelGuideDbModels.MonthModel", b =>
                 {
                     b.Property<int>("MonthId")
@@ -114,13 +162,6 @@ namespace TravelGuideDbMigration.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PlaceId"));
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("DistanceFromTbilisiKm")
-                        .HasColumnType("int");
-
-                    b.PrimitiveCollection<string>("Distances")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<double?>("Latitude")
@@ -222,6 +263,25 @@ namespace TravelGuideDbMigration.Migrations
                     b.ToTable("TaskStartPoints", (string)null);
                 });
 
+            modelBuilder.Entity("TravelGuideDbModels.DistanceByPlace", b =>
+                {
+                    b.HasOne("TravelGuideDbModels.FromPointModel", "FromPointNavigation")
+                        .WithMany()
+                        .HasForeignKey("FromPointId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TravelGuideDbModels.PlaceModel", "PlaceNavigation")
+                        .WithMany("Distances")
+                        .HasForeignKey("PlaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FromPointNavigation");
+
+                    b.Navigation("PlaceNavigation");
+                });
+
             modelBuilder.Entity("TravelGuideDbModels.PlaceByBestSeason", b =>
                 {
                     b.HasOne("TravelGuideDbModels.MonthModel", "MonthNavigation")
@@ -295,6 +355,8 @@ namespace TravelGuideDbMigration.Migrations
                     b.Navigation("BestSeasons");
 
                     b.Navigation("Categories");
+
+                    b.Navigation("Distances");
 
                     b.Navigation("Tags");
                 });

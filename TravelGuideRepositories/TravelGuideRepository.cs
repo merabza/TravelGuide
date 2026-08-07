@@ -135,6 +135,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
             .. _context.Places.Include(i => i.BestSeasons)
                 .Include(i => i.Categories).ThenInclude(t => t.CategoryNavigation)
                 .Include(i => i.Tags).ThenInclude(t => t.TagNavigation)
+                .Include(i => i.Distances).ThenInclude(t => t.FromPointNavigation)
                 .Where(w => w.State != EState.NotAttraction && (includeAnalysed || w.State != EState.Analysed))
                 .OrderBy(o => o.PlaceId)
         ];
@@ -172,6 +173,13 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         TagModel? tag = _context.Tags.Local.FirstOrDefault(f => f.Name == tagName) ??
                         _context.Tags.FirstOrDefault(f => f.Name == tagName);
         return tag ?? _context.Tags.Add(new TagModel { Name = tagName }).Entity;
+    }
+
+    public FromPointModel GetOrCreateFromPoint(string fromPointName)
+    {
+        FromPointModel? fromPoint = _context.FromPoints.Local.FirstOrDefault(f => f.Name == fromPointName) ??
+                                    _context.FromPoints.FirstOrDefault(f => f.Name == fromPointName);
+        return fromPoint ?? _context.FromPoints.Add(new FromPointModel { Name = fromPointName }).Entity;
     }
 
     #endregion

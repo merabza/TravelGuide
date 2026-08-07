@@ -21,6 +21,8 @@ public sealed class TravelGuideDbContext : DbContext
     public DbSet<PlaceByBestSeason> PlacesByBestSeasons => Set<PlaceByBestSeason>();
     public DbSet<PlaceByCategory> PlacesByCategories => Set<PlaceByCategory>();
     public DbSet<PlaceByTag> PlacesByTags => Set<PlaceByTag>();
+    public DbSet<FromPointModel> FromPoints => Set<FromPointModel>();
+    public DbSet<DistanceByPlace> DistanceByPlaces => Set<DistanceByPlace>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

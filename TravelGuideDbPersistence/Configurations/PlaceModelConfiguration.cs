@@ -24,8 +24,5 @@ public sealed class PlaceModelConfiguration : IEntityTypeConfiguration<PlaceMode
         builder.Property(e => e.Name).HasMaxLength(NameLength);
         builder.Property(e => e.Region).HasMaxLength(RegionLength);
         builder.Property(e => e.Municipality).HasMaxLength(MunicipalityLength);
-
-        //Distances პრიმიტიული კოლექცია JSON ტექსტად ინახება; ტიპი ცხადად ეთითება, რომ EF-მა SQL Server-ის json ტიპი არ აირჩიოს
-        builder.Property(e => e.Distances).HasColumnType("nvarchar(max)");
     }
 }

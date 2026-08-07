@@ -16,6 +16,6 @@ public sealed class PlaceExtractResult
     public List<string> Categories { get; init; } = [];
     public List<string> Tags { get; init; } = [];
     public string? BestSeason { get; init; }
-    public List<string> Distances { get; init; } = [];
+    public List<PlaceDistanceItem> Distances { get; init; } = [];
     public string? Description { get; init; }
 }
