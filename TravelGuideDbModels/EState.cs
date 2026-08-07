@@ -2,6 +2,7 @@ namespace TravelGuideDbModels;
 
 public enum EState
 {
+    //ჩამოსატვირთი: მისამართი შეგროვებულია და გვერდის ჩამოტვირთვა-გაანალიზება ელოდება
     New,
     Opening,
     Opened,

@@ -73,12 +73,19 @@ public sealed class RunTaskCommand : CliMenuCommand
         using var httpClient = new HttpClient(httpClientHandler, disposeHandler: false);
         httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("TravelGuideBot", "1.0"));
 
+        //ფაზა 1: მისამართები ბაზაში ჩამოსატვირთი (New) სტატუსით ინახება — მხოლოდ საწყისი წერტილების მსგავსი.
+        //საზიარო persister ბაზაში არსებულ მისამართებს ერთხელ ტვირთავს და ორივე ფაზას ემსახურება
+        var urlPersister = new HarvestedUrlPersister(repository, task.StartPoints.Select(s => s.StartPoint));
+
+        //საწყისი წერტილებიც ჩამოსატვირთების რიგში დგება — მათი გვერდებიდან ბმულების ამოკრება ანალიზის ფაზაში მოხდება
+        urlPersister.PersistNewUrls([.. task.StartPoints.Select(s => s.StartPoint)]);
+
         if (useSitemap)
         {
             //sitemap მთელ საიტს ფარავს, ამიტომ საწყისი წერტილებიდან მხოლოდ პირველის ჰოსტი გამოიყენება და ერთხელ ეშვება
             string firstStartPoint = task.StartPoints.OrderBy(o => o.StartPoint, StringComparer.Ordinal).First()
                 .StartPoint;
-            var harvester = new SitemapUrlHarvester(httpClient, firstStartPoint, repository);
+            var harvester = new SitemapUrlHarvester(httpClient, firstStartPoint, urlPersister);
             if (!await harvester.RunAsync(cancellationToken).ConfigureAwait(false))
             {
                 StShared.WriteErrorLine("Sitemap harvesting failed", true);
@@ -98,7 +105,7 @@ public sealed class RunTaskCommand : CliMenuCommand
                 // ReSharper disable once using
                 // ReSharper disable once DisposableConstructor
                 using var driver = new ChromeDriver(chromeOptions);
-                var runner = new GeorgianTravelGuideRunner(driver, startPoint.StartPoint, repository);
+                var runner = new GeorgianTravelGuideRunner(driver, startPoint.StartPoint, urlPersister);
                 bool success = runner.Run();
                 driver.Quit();
 
@@ -112,8 +119,9 @@ public sealed class RunTaskCommand : CliMenuCommand
             }
         }
 
-        //შეგროვებული გვერდების გაანალიზება HTTP-ით, შეგროვების რეჟიმის მიუხედავად ერთხელ სრულდება
-        var analyser = new PlaceAnalyser(httpClient, repository, reProcessAnalysed);
+        //ფაზა 2: ჩამოსატვირთი გვერდების ჩატვირთვა ბაზიდან და სათითაოდ ჩამოტვირთვა-გაანალიზება;
+        //გვერდებზე ნაპოვნი ახალი მისამართებიც რიგში ემატება, სანამ დასამუშავებელი აღარაფერი დარჩება
+        var analyser = new PlaceAnalyser(httpClient, repository, urlPersister, reProcessAnalysed);
         await analyser.RunAsync(cancellationToken).ConfigureAwait(false);
 
         //ამოცანის გაშვების პროცესი დასრულდა

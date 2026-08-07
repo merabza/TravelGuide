@@ -6,11 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using SystemTools.SystemToolsShared;
-using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Runners;
 
-//საიტის sitemap-იდან ყველა გვერდის მისამართის შეგროვება — Selenium-ით სიის გვერდის ჩამოსქროლვის ალტერნატივა.
+//საიტის sitemap-იდან გვერდის მისამართების შეგროვება — Selenium-ით სიის გვერდის ჩამოსქროლვის ალტერნატივა.
 //sitemap-ში ღირსშესანიშნაობებთან ერთად ქალაქების/რეგიონების გვერდებიც ხვდება — მათ ანალიზის ფაზა
 //JSON-LD-ის ტიპით არჩევს და NotAttraction-ად ნიშნავს.
 // ReSharper disable once ConvertToPrimaryConstructor
@@ -20,14 +19,14 @@ public sealed class SitemapUrlHarvester
     private const string GeorgianSitemapMarker = "_ka";
 
     private readonly HttpClient _httpClient;
-    private readonly ITravelGuideRepository _repository;
     private readonly string _startPoint;
+    private readonly HarvestedUrlPersister _urlPersister;
 
-    public SitemapUrlHarvester(HttpClient httpClient, string startPoint, ITravelGuideRepository repository)
+    public SitemapUrlHarvester(HttpClient httpClient, string startPoint, HarvestedUrlPersister urlPersister)
     {
         _httpClient = httpClient;
         _startPoint = startPoint;
-        _repository = repository;
+        _urlPersister = urlPersister;
     }
 
     public async Task<bool> RunAsync(CancellationToken cancellationToken = default)
@@ -56,7 +55,8 @@ public sealed class SitemapUrlHarvester
             }
 
             List<string> urlList = ExtractLocValues(urlSet);
-            HarvestedUrlPersister.PersistNewUrls(_repository, urlList);
+            Console.WriteLine($"Sitemap contains {urlList.Count} urls");
+            _urlPersister.PersistNewUrls(urlList);
             return true;
         }
         catch (Exception e)

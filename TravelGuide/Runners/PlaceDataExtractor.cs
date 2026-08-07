@@ -7,7 +7,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
-using AngleSharp.Html.Parser;
 using TravelGuideDbModels;
 using TravelGuideDbPersistence.Configurations;
 
@@ -22,11 +21,10 @@ public static partial class PlaceDataExtractor
     };
 
     //სერვერი სრულად დარენდერებულ HTML-ს აბრუნებს, ამიტომ ბრაუზერი საჭირო არ არის — საკმარისია მოქაჩული ტექსტის გაპარსვა.
+    //დოკუმენტს გამომძახებელი პარსავს, რომ იგივე დოკუმენტი ბმულების ამოკრებასაც მოხმარდეს.
     //JSON-LD პირველადი წყაროა (კოორდინატები სრული სიზუსტით), ხილული DOM — დანარჩენი ველებისთვის და fallback-ად.
-    public static PlaceExtractResult Extract(string html)
+    public static PlaceExtractResult Extract(IHtmlDocument document)
     {
-        using IHtmlDocument document = new HtmlParser().ParseDocument(html);
-
         JsonLdData jsonLd = JsonLdData.Parse(document);
 
         string? name = jsonLd.Name ?? TrimmedTextOrNull(document.QuerySelector("h1"));

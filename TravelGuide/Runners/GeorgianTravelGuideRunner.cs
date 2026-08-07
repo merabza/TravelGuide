@@ -4,7 +4,6 @@ using System.Linq;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
-using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Runners;
 
@@ -14,14 +13,14 @@ namespace TravelGuide.Runners;
 public sealed class GeorgianTravelGuideRunner
 {
     private readonly IWebDriver _driver;
-    private readonly ITravelGuideRepository _repository;
     private readonly string _startPoint;
+    private readonly HarvestedUrlPersister _urlPersister;
 
-    public GeorgianTravelGuideRunner(IWebDriver driver, string startPoint, ITravelGuideRepository repository)
+    public GeorgianTravelGuideRunner(IWebDriver driver, string startPoint, HarvestedUrlPersister urlPersister)
     {
         _driver = driver;
         _startPoint = startPoint;
-        _repository = repository;
+        _urlPersister = urlPersister;
     }
 
     public bool Run()
@@ -67,7 +66,7 @@ public sealed class GeorgianTravelGuideRunner
 
         //სიის გვერდიდან ყველა ღირსშესანიშნაობის ბმულის შეგროვება და ბაზაში შენახვა
         List<string> urlList = ScrollAndCollectUrls();
-        HarvestedUrlPersister.PersistNewUrls(_repository, urlList);
+        _urlPersister.PersistNewUrls(urlList);
 
         Console.WriteLine("Success");
         return true;
@@ -92,6 +91,9 @@ public sealed class GeorgianTravelGuideRunner
             else
             {
                 sameCount = 0;
+
+                //ახლად ჩატვირთული ბმულები მაშინვე ინახება, რომ სქროლვის შეწყვეტისას შეგროვებული არ დაიკარგოს
+                _urlPersister.PersistNewUrls(urlList);
             }
 
             lastCount = urlList.Count;
