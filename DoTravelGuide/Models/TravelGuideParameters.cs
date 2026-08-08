@@ -27,4 +27,8 @@ public sealed class TravelGuideParameters : IParametersWithApiClients, IParamete
 
     public Dictionary<string, SmartSchema> SmartSchemas { get; } = [];
 
+    public Dictionary<string, MyPlace> MyPlaces { get; init; } = [];
+
+    public string? MyCurrentPlaceName { get; set; }
+
 }

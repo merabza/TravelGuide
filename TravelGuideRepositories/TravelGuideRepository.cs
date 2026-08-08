@@ -183,4 +183,33 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     }
 
     #endregion
+
+    #region Motorcycle cruder
+
+    public List<MotorcycleModel> GetMotorcyclesList()
+    {
+        return [.. _context.Motorcycles];
+    }
+
+    public MotorcycleModel? GetMotorcycleByKey(string key)
+    {
+        return _context.Motorcycles.SingleOrDefault(w => w.Key == key);
+    }
+
+    public MotorcycleModel CreateMotorcycle(MotorcycleModel newMotorcycle)
+    {
+        return _context.Motorcycles.Add(newMotorcycle).Entity;
+    }
+
+    public MotorcycleModel UpdateMotorcycle(MotorcycleModel motorcycle)
+    {
+        return _context.Update(motorcycle).Entity;
+    }
+
+    public MotorcycleModel DeleteMotorcycle(MotorcycleModel motorcycleForDelete)
+    {
+        return _context.Motorcycles.Remove(motorcycleForDelete).Entity;
+    }
+
+    #endregion
 }

@@ -33,4 +33,10 @@ public interface ITravelGuideRepository
     CategoryModel GetOrCreateCategory(string categoryName);
     TagModel GetOrCreateTag(string tagName);
     FromPointModel GetOrCreateFromPoint(string fromPointName);
+
+    List<MotorcycleModel> GetMotorcyclesList();
+    MotorcycleModel? GetMotorcycleByKey(string key);
+    MotorcycleModel CreateMotorcycle(MotorcycleModel newMotorcycle);
+    MotorcycleModel UpdateMotorcycle(MotorcycleModel motorcycle);
+    MotorcycleModel DeleteMotorcycle(MotorcycleModel motorcycleForDelete);
 }
