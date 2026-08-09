@@ -49,6 +49,23 @@ namespace TravelGuideDbMigration.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Motorcycles",
+                columns: table => new
+                {
+                    MotorcycleId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Key = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Manufacturer = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Model = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    ReleaseYear = table.Column<int>(type: "int", nullable: false),
+                    StateNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Motorcycles", x => x.MotorcycleId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Places",
                 columns: table => new
                 {
@@ -243,6 +260,12 @@ namespace TravelGuideDbMigration.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Motorcycles_Key",
+                table: "Motorcycles",
+                column: "Key",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Places_Url",
                 table: "Places",
                 column: "Url",
@@ -286,6 +309,9 @@ namespace TravelGuideDbMigration.Migrations
         {
             migrationBuilder.DropTable(
                 name: "DistanceByPlaces");
+
+            migrationBuilder.DropTable(
+                name: "Motorcycles");
 
             migrationBuilder.DropTable(
                 name: "PlacesByBestSeasons");

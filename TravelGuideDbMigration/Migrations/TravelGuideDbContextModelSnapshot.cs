@@ -108,6 +108,42 @@ namespace TravelGuideDbMigration.Migrations
                     b.ToTable("Months", (string)null);
                 });
 
+            modelBuilder.Entity("TravelGuideDbModels.MotorcycleModel", b =>
+                {
+                    b.Property<int>("MotorcycleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MotorcycleId"));
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Manufacturer")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Model")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("ReleaseYear")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StateNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("MotorcycleId");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("Motorcycles", (string)null);
+                });
+
             modelBuilder.Entity("TravelGuideDbModels.PlaceByBestSeason", b =>
                 {
                     b.Property<int>("PlaceId")
