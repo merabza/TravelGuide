@@ -54,7 +54,7 @@ namespace TravelGuideDbMigration.Migrations
                 {
                     MotorcycleId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Key = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    MotorcycleKey = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Manufacturer = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Model = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     ReleaseYear = table.Column<int>(type: "int", nullable: false),
@@ -260,9 +260,9 @@ namespace TravelGuideDbMigration.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Motorcycles_Key",
+                name: "IX_Motorcycles_MotorcycleKey",
                 table: "Motorcycles",
-                column: "Key",
+                column: "MotorcycleKey",
                 unique: true);
 
             migrationBuilder.CreateIndex(

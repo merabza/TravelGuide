@@ -11,7 +11,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Lists;
 
-//მოტოციკლების სიის რედაქტორი. ჩანაწერები ინახება ბაზის Motorcycles ცხრილში, ჩანაწერის სახელი Key ველია
+//მოტოციკლების სიის რედაქტორი. ჩანაწერები ინახება ბაზის Motorcycles ცხრილში, ჩანაწერის სახელი MotorcycleKey ველია
 public sealed class MotorcycleCruder : Cruder
 {
     private readonly ITravelGuideRepository _travelGuideRepository;
@@ -43,7 +43,7 @@ public sealed class MotorcycleCruder : Cruder
     protected override Dictionary<string, ItemData> GetCrudersDictionary()
     {
         List<MotorcycleModel> motorcyclesList = GetMotorcycles();
-        return motorcyclesList.ToDictionary(k => k.Key, ItemData (v) => v);
+        return motorcyclesList.ToDictionary(k => k.MotorcycleKey, ItemData (v) => v);
     }
 
     public override bool ContainsRecordWithKey(string recordKey)
@@ -54,7 +54,7 @@ public sealed class MotorcycleCruder : Cruder
 
     protected override ItemData CreateNewItem(string? recordKey, ItemData? defaultItemData)
     {
-        return new MotorcycleModel { Key = recordKey ?? string.Empty };
+        return new MotorcycleModel { MotorcycleKey = recordKey ?? string.Empty };
     }
 
     protected override ValueTask AddRecordWithKey(string recordKey, ItemData newRecord,
@@ -68,7 +68,7 @@ public sealed class MotorcycleCruder : Cruder
         //ყოველთვის ახალი ობიექტი ემატება: სახელის გადარქმევისას (წაშლა+დამატება) მოსული ობიექტი ძველი იდენტიფიკატორითაა
         _travelGuideRepository.CreateMotorcycle(new MotorcycleModel
         {
-            Key = recordKey,
+            MotorcycleKey = recordKey,
             Manufacturer = newMotorcycle.Manufacturer,
             Model = newMotorcycle.Model,
             ReleaseYear = newMotorcycle.ReleaseYear,

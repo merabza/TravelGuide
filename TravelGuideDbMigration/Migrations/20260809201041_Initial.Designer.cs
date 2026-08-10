@@ -11,7 +11,7 @@ using TravelGuideDbPersistence;
 namespace TravelGuideDbMigration.Migrations
 {
     [DbContext(typeof(TravelGuideDbContext))]
-    [Migration("20260808073033_Initial")]
+    [Migration("20260809201041_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -119,11 +119,6 @@ namespace TravelGuideDbMigration.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MotorcycleId"));
 
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("Manufacturer")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -131,6 +126,11 @@ namespace TravelGuideDbMigration.Migrations
                     b.Property<string>("Model")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("MotorcycleKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("ReleaseYear")
                         .HasColumnType("int");
@@ -141,7 +141,7 @@ namespace TravelGuideDbMigration.Migrations
 
                     b.HasKey("MotorcycleId");
 
-                    b.HasIndex("Key")
+                    b.HasIndex("MotorcycleKey")
                         .IsUnique();
 
                     b.ToTable("Motorcycles", (string)null);

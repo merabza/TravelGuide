@@ -193,7 +193,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
 
     public MotorcycleModel? GetMotorcycleByKey(string key)
     {
-        return _context.Motorcycles.SingleOrDefault(w => w.Key == key);
+        return _context.Motorcycles.SingleOrDefault(w => w.MotorcycleKey == key);
     }
 
     public MotorcycleModel CreateMotorcycle(MotorcycleModel newMotorcycle)
