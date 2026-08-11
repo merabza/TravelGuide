@@ -175,24 +175,42 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         ];
     }
 
-    public List<PlaceModel> GetNearestPlaces(double latitude, double longitude, int count)
+    public List<PlaceModel> GetNearestPlaces(double latitude, double longitude, int count, TimeSpan minRoadTime)
     {
         //გრძედის გრადუსი განედის გრადუსზე მოკლეა, ამიტომ გრძედის სხვაობა განედის კოსინუსით სწორდება
         double cosLatitude = Math.Cos(latitude * Math.PI / 180);
-        //დალაგებისთვის მანძილის კვადრატი საკმარისია — ფესვის ამოღება რიგითობას არ ცვლის.
-        //ადგილი თავისი ყველაზე ახლო ლოკაციით ლაგდება — Min კორელირებულ ქვემოთხოვნად ითარგმნება;
+
         //ულოკაციო ადგილები წინასწარ გამოირიცხება, თორემ ცარიელი Min-ის NULL SQL Server-ში სიის თავში მოხვდებოდა.
         //ნავიგაციები ადგილის ქვემენიუს საინფორმაციო პუნქტებისთვის იტვირთება
+        IQueryable<PlaceModel> placesQuery = _context.Places
+            .Include(i => i.BestSeasons).ThenInclude(t => t.MonthNavigation)
+            .Include(i => i.Tags).ThenInclude(t => t.TagNavigation)
+            .Include(i => i.Distances).ThenInclude(t => t.FromPointNavigation)
+            .Include(i => i.Locations).ThenInclude(t => t.LocationNavigation)
+            .Include(i => i.RegionNavigation)
+            .Include(i => i.MunicipalityNavigation)
+            .Where(w => w.Locations.Any());
+
+        //მინიმალური გზის დროის მოთხოვნისას რჩება მხოლოდ ის ადგილები, რომელთა ლოკაციებამდე დათვლილი გზის
+        //დროების მინიმუმი ზღვარს აღწევს. კოორდინატები ზუსტად დარდება — RouteDistances-ში ზუსტად Locations-ისა
+        //და პარამეტრების მნიშვნელობები იწერება. დაუთვლელი ადგილისთვის Min ცარიელ სიმრავლეზე NULL-ს აბრუნებს
+        //და შედარება მცდარი გამოდის — ასეთი ადგილები განზრახ გამოირიცხება, სანამ Calculate Distances არ დაითვლის
+        if (minRoadTime > TimeSpan.Zero)
+        {
+#pragma warning disable S1244
+            placesQuery = placesQuery.Where(w => _context.RouteDistances
+                .Where(rd => rd.StartLatitude == latitude && rd.StartLongitude == longitude && w.Locations.Any(l =>
+                    l.LocationNavigation.Latitude == rd.EndLatitude &&
+                    l.LocationNavigation.Longitude == rd.EndLongitude))
+                .Min(rd => (TimeSpan?)rd.RoadTime) >= minRoadTime);
+#pragma warning restore S1244
+        }
+
+        //დალაგებისთვის მანძილის კვადრატი საკმარისია — ფესვის ამოღება რიგითობას არ ცვლის.
+        //ადგილი თავისი ყველაზე ახლო ლოკაციით ლაგდება — Min კორელირებულ ქვემოთხოვნად ითარგმნება
         return
         [
-            .. _context.Places
-                .Include(i => i.BestSeasons).ThenInclude(t => t.MonthNavigation)
-                .Include(i => i.Tags).ThenInclude(t => t.TagNavigation)
-                .Include(i => i.Distances).ThenInclude(t => t.FromPointNavigation)
-                .Include(i => i.Locations).ThenInclude(t => t.LocationNavigation)
-                .Include(i => i.RegionNavigation)
-                .Include(i => i.MunicipalityNavigation)
-                .Where(w => w.Locations.Any())
+            .. placesQuery
                 .OrderBy(o => o.Locations.Min(l =>
                     (l.LocationNavigation.Latitude - latitude) * (l.LocationNavigation.Latitude - latitude) +
                     (l.LocationNavigation.Longitude - longitude) * cosLatitude *

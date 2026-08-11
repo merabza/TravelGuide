@@ -1,5 +1,6 @@
 //Created by ProjectParametersClassCreator at 7/24/2025 11:44:10 PM
 
+using System;
 using System.Collections.Generic;
 using ParametersManagement.LibApiClientParameters;
 using ParametersManagement.LibDatabaseParameters;
@@ -30,5 +31,7 @@ public sealed class TravelGuideParameters : IParametersWithApiClients, IParamete
     public Dictionary<string, MyPlace> MyPlaces { get; init; } = [];
 
     public string? MyCurrentPlaceName { get; set; }
+
+    public List<TimeSpan> MinDistanceTimes { get; init; } = [];
 
 }
