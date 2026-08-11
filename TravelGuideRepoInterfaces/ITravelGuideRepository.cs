@@ -28,6 +28,8 @@ public interface ITravelGuideRepository
     List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed, bool includeDownloadErrors);
     bool HasAnalysedPlaces();
     bool HasDownloadErrorPlaces();
+    List<PlaceModel> GetNearestPlaces(double latitude, double longitude, int count);
+    List<PlacePointItem> GetPlacePoints();
 
     UrlGraphNode AddUrlGraphNode(UrlGraphNode newUrlGraphNode);
     List<UrlGraphNode> GetAllUrlGraphNodes();
@@ -45,4 +47,10 @@ public interface ITravelGuideRepository
     MotorcycleModel CreateMotorcycle(MotorcycleModel newMotorcycle);
     MotorcycleModel UpdateMotorcycle(MotorcycleModel motorcycle);
     MotorcycleModel DeleteMotorcycle(MotorcycleModel motorcycleForDelete);
+
+    VisitModel CreateVisit(VisitModel newVisit);
+    List<VisitListItem> GetLastVisits(int count);
+
+    RouteDistanceModel AddRouteDistance(RouteDistanceModel newRouteDistance);
+    List<RouteDistanceModel> GetAllRouteDistances();
 }

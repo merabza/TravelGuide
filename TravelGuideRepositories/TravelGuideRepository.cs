@@ -158,6 +158,41 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return _context.Places.Any(a => a.State == EState.DownloadError);
     }
 
+    public List<PlacePointItem> GetPlacePoints()
+    {
+        //მხოლოდ საჭირო სვეტები იტვირთება და ენთითები კონტექსტს არ ებმება.
+        //კოორდინატები Where-ით გაფილტრულია და null ვერ იქნება — ?? მხოლოდ გამოსახულების ხის სისწორისთვისაა
+        return
+        [
+            .. _context.Places.Where(w => w.Latitude != null && w.Longitude != null).OrderBy(o => o.PlaceId).Select(s =>
+                new PlacePointItem
+                {
+                    PlaceName = s.Name ?? s.Url, Latitude = s.Latitude ?? 0, Longitude = s.Longitude ?? 0
+                })
+        ];
+    }
+
+    public List<PlaceModel> GetNearestPlaces(double latitude, double longitude, int count)
+    {
+        //გრძედის გრადუსი განედის გრადუსზე მოკლეა, ამიტომ გრძედის სხვაობა განედის კოსინუსით სწორდება
+        double cosLatitude = Math.Cos(latitude * Math.PI / 180);
+        //დალაგებისთვის მანძილის კვადრატი საკმარისია — ფესვის ამოღება რიგითობას არ ცვლის.
+        //ნავიგაციები ადგილის ქვემენიუს საინფორმაციო პუნქტებისთვის იტვირთება
+        return
+        [
+            .. _context.Places
+                .Include(i => i.BestSeasons).ThenInclude(t => t.MonthNavigation)
+                .Include(i => i.Tags).ThenInclude(t => t.TagNavigation)
+                .Include(i => i.Distances).ThenInclude(t => t.FromPointNavigation)
+                .Include(i => i.RegionNavigation)
+                .Include(i => i.MunicipalityNavigation)
+                .Where(w => w.Latitude != null && w.Longitude != null)
+                .OrderBy(o => (o.Latitude - latitude) * (o.Latitude - latitude) +
+                              (o.Longitude - longitude) * cosLatitude * (o.Longitude - longitude) * cosLatitude)
+                .Take(count)
+        ];
+    }
+
     #endregion
 
     #region UrlGraphNode cruder
@@ -251,6 +286,50 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     public MotorcycleModel DeleteMotorcycle(MotorcycleModel motorcycleForDelete)
     {
         return _context.Motorcycles.Remove(motorcycleForDelete).Entity;
+    }
+
+    #endregion
+
+    #region Visit cruder
+
+    public VisitModel CreateVisit(VisitModel newVisit)
+    {
+        return _context.Visits.Add(newVisit).Entity;
+    }
+
+    public List<VisitListItem> GetLastVisits(int count)
+    {
+        //ვიზიტს ნავიგაციები არ აქვს, ამიტომ ადგილისა და მოტოციკლის სახელები შეერთებით მოიპოვება.
+        //დალაგება და შეზღუდვა შეერთებების შემდეგ კეთდება, რომ ერთი მოწესრიგებული მოთხოვნა შესრულდეს
+        return
+        [
+            .. _context.Visits
+                .Join(_context.Places, v => v.PlaceId, p => p.PlaceId,
+                    (v, p) => new { v.VisitId, v.VisitDate, PlaceName = p.Name ?? p.Url, v.MotorcycleId })
+                .Join(_context.Motorcycles, v => v.MotorcycleId, m => m.MotorcycleId,
+                    (v, m) => new { v.VisitId, v.VisitDate, v.PlaceName, m.MotorcycleKey })
+                .OrderByDescending(o => o.VisitDate).ThenByDescending(o => o.VisitId)
+                .Take(count)
+                .Select(s => new VisitListItem
+                {
+                    VisitDate = s.VisitDate, PlaceName = s.PlaceName, MotorcycleKey = s.MotorcycleKey
+                })
+        ];
+    }
+
+    #endregion
+
+    #region RouteDistance cruder
+
+    public RouteDistanceModel AddRouteDistance(RouteDistanceModel newRouteDistance)
+    {
+        return _context.RouteDistances.Add(newRouteDistance).Entity;
+    }
+
+    public List<RouteDistanceModel> GetAllRouteDistances()
+    {
+        //ჩანაწერები კონტექსტს ებმება, რადგან ხელახალი გამოთვლისას მნიშვნელობები ადგილზე სწორდება
+        return [.. _context.RouteDistances];
     }
 
     #endregion

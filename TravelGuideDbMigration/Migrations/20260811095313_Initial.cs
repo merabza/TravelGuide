@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -89,6 +90,25 @@ namespace TravelGuideDbMigration.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Regions", x => x.RegionId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RouteDistances",
+                columns: table => new
+                {
+                    RouteDistanceId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    StartLatitude = table.Column<double>(type: "float", nullable: false),
+                    StartLongitude = table.Column<double>(type: "float", nullable: false),
+                    EndLatitude = table.Column<double>(type: "float", nullable: false),
+                    EndLongitude = table.Column<double>(type: "float", nullable: false),
+                    AirDistance = table.Column<double>(type: "float", nullable: false),
+                    RoadDistance = table.Column<double>(type: "float", nullable: false),
+                    RoadTime = table.Column<TimeSpan>(type: "time", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RouteDistances", x => x.RouteDistanceId);
                 });
 
             migrationBuilder.CreateTable(
@@ -292,6 +312,33 @@ namespace TravelGuideDbMigration.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Visits",
+                columns: table => new
+                {
+                    VisitId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PlaceId = table.Column<int>(type: "int", nullable: false),
+                    MotorcycleId = table.Column<int>(type: "int", nullable: false),
+                    VisitDate = table.Column<DateTime>(type: "datetime", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Visits", x => x.VisitId);
+                    table.ForeignKey(
+                        name: "FK_Visits_Motorcycles_MotorcycleId",
+                        column: x => x.MotorcycleId,
+                        principalTable: "Motorcycles",
+                        principalColumn: "MotorcycleId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Visits_Places_PlaceId",
+                        column: x => x.PlaceId,
+                        principalTable: "Places",
+                        principalColumn: "PlaceId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Categories_Name",
                 table: "Categories",
@@ -371,6 +418,12 @@ namespace TravelGuideDbMigration.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_RouteDistances_StartLatitude_StartLongitude_EndLatitude_EndLongitude",
+                table: "RouteDistances",
+                columns: new[] { "StartLatitude", "StartLongitude", "EndLatitude", "EndLongitude" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Tags_Name",
                 table: "Tags",
                 column: "Name",
@@ -397,6 +450,16 @@ namespace TravelGuideDbMigration.Migrations
                 name: "IX_UrlGraphNodes_GotUrlId",
                 table: "UrlGraphNodes",
                 column: "GotUrlId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Visits_MotorcycleId",
+                table: "Visits",
+                column: "MotorcycleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Visits_PlaceId",
+                table: "Visits",
+                column: "PlaceId");
         }
 
         /// <inheritdoc />
@@ -404,9 +467,6 @@ namespace TravelGuideDbMigration.Migrations
         {
             migrationBuilder.DropTable(
                 name: "DistanceByPlaces");
-
-            migrationBuilder.DropTable(
-                name: "Motorcycles");
 
             migrationBuilder.DropTable(
                 name: "PlacesByBestSeasons");
@@ -418,10 +478,16 @@ namespace TravelGuideDbMigration.Migrations
                 name: "PlacesByTags");
 
             migrationBuilder.DropTable(
+                name: "RouteDistances");
+
+            migrationBuilder.DropTable(
                 name: "TaskStartPoints");
 
             migrationBuilder.DropTable(
                 name: "UrlGraphNodes");
+
+            migrationBuilder.DropTable(
+                name: "Visits");
 
             migrationBuilder.DropTable(
                 name: "FromPoints");
@@ -437,6 +503,9 @@ namespace TravelGuideDbMigration.Migrations
 
             migrationBuilder.DropTable(
                 name: "Tasks");
+
+            migrationBuilder.DropTable(
+                name: "Motorcycles");
 
             migrationBuilder.DropTable(
                 name: "Places");

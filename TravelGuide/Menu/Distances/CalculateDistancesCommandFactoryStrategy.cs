@@ -3,16 +3,16 @@ using AppCliTools.CliMenu;
 using ParametersManagement.LibParameters;
 using TravelGuideRepoInterfaces;
 
-namespace TravelGuide.Menu.Visits;
+namespace TravelGuide.Menu.Distances;
 
 // ReSharper disable once ConvertToPrimaryConstructor
-public sealed class VisitsSubMenuCommandFactoryStrategy : IMenuCommandFactoryStrategy
+public sealed class CalculateDistancesCommandFactoryStrategy : IMenuCommandFactoryStrategy
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IParametersManager _parametersManager;
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;
 
-    public VisitsSubMenuCommandFactoryStrategy(IParametersManager parametersManager,
+    public CalculateDistancesCommandFactoryStrategy(IParametersManager parametersManager,
         ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory, IHttpClientFactory httpClientFactory)
     {
         _parametersManager = parametersManager;
@@ -22,6 +22,7 @@ public sealed class VisitsSubMenuCommandFactoryStrategy : IMenuCommandFactoryStr
 
     public CliMenuCommand CreateMenuCommand()
     {
-        return new VisitsSubMenuCommand(_parametersManager, _travelGuideRepositoryCreatorFactory, _httpClientFactory);
+        return new CalculateDistancesCommand(_parametersManager, _travelGuideRepositoryCreatorFactory,
+            _httpClientFactory);
     }
 }
