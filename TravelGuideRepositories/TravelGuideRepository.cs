@@ -140,6 +140,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                 .Include(i => i.Categories).ThenInclude(t => t.CategoryNavigation)
                 .Include(i => i.Tags).ThenInclude(t => t.TagNavigation)
                 .Include(i => i.Distances).ThenInclude(t => t.FromPointNavigation)
+                .Include(i => i.Locations).ThenInclude(t => t.LocationNavigation)
                 .Include(i => i.RegionNavigation)
                 .Include(i => i.MunicipalityNavigation)
                 .Where(w => w.State != EState.NotAttraction && (includeAnalysed || w.State != EState.Analysed) &&
@@ -161,13 +162,15 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     public List<PlacePointItem> GetPlacePoints()
     {
         //მხოლოდ საჭირო სვეტები იტვირთება და ენთითები კონტექსტს არ ებმება.
-        //კოორდინატები Where-ით გაფილტრულია და null ვერ იქნება — ?? მხოლოდ გამოსახულების ხის სისწორისთვისაა
+        //თითო ადგილი-ლოკაციის ბმულზე თითო წერტილი ბრუნდება — გამეორებულ კოორდინატებს გამომძახებელი ფილტრავს
         return
         [
-            .. _context.Places.Where(w => w.Latitude != null && w.Longitude != null).OrderBy(o => o.PlaceId).Select(s =>
+            .. _context.PlacesByLocations.OrderBy(o => o.PlaceId).ThenBy(o => o.LocationId).Select(s =>
                 new PlacePointItem
                 {
-                    PlaceName = s.Name ?? s.Url, Latitude = s.Latitude ?? 0, Longitude = s.Longitude ?? 0
+                    PlaceName = s.PlaceNavigation.Name ?? s.PlaceNavigation.Url,
+                    Latitude = s.LocationNavigation.Latitude,
+                    Longitude = s.LocationNavigation.Longitude
                 })
         ];
     }
@@ -177,6 +180,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         //გრძედის გრადუსი განედის გრადუსზე მოკლეა, ამიტომ გრძედის სხვაობა განედის კოსინუსით სწორდება
         double cosLatitude = Math.Cos(latitude * Math.PI / 180);
         //დალაგებისთვის მანძილის კვადრატი საკმარისია — ფესვის ამოღება რიგითობას არ ცვლის.
+        //ადგილი თავისი ყველაზე ახლო ლოკაციით ლაგდება — Min კორელირებულ ქვემოთხოვნად ითარგმნება;
+        //ულოკაციო ადგილები წინასწარ გამოირიცხება, თორემ ცარიელი Min-ის NULL SQL Server-ში სიის თავში მოხვდებოდა.
         //ნავიგაციები ადგილის ქვემენიუს საინფორმაციო პუნქტებისთვის იტვირთება
         return
         [
@@ -184,11 +189,14 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                 .Include(i => i.BestSeasons).ThenInclude(t => t.MonthNavigation)
                 .Include(i => i.Tags).ThenInclude(t => t.TagNavigation)
                 .Include(i => i.Distances).ThenInclude(t => t.FromPointNavigation)
+                .Include(i => i.Locations).ThenInclude(t => t.LocationNavigation)
                 .Include(i => i.RegionNavigation)
                 .Include(i => i.MunicipalityNavigation)
-                .Where(w => w.Latitude != null && w.Longitude != null)
-                .OrderBy(o => (o.Latitude - latitude) * (o.Latitude - latitude) +
-                              (o.Longitude - longitude) * cosLatitude * (o.Longitude - longitude) * cosLatitude)
+                .Where(w => w.Locations.Any())
+                .OrderBy(o => o.Locations.Min(l =>
+                    (l.LocationNavigation.Latitude - latitude) * (l.LocationNavigation.Latitude - latitude) +
+                    (l.LocationNavigation.Longitude - longitude) * cosLatitude *
+                    (l.LocationNavigation.Longitude - longitude) * cosLatitude))
                 .Take(count)
         ];
     }
@@ -242,6 +250,20 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         FromPointModel? fromPoint = _context.FromPoints.Local.FirstOrDefault(f => f.Name == fromPointName) ??
                                     _context.FromPoints.FirstOrDefault(f => f.Name == fromPointName);
         return fromPoint ?? _context.FromPoints.Add(new FromPointModel { Name = fromPointName }).Entity;
+    }
+
+    public LocationModel GetOrCreateLocation(double latitude, double longitude)
+    {
+        //ზუსტი ტოლობა განზრახაა: მნიშვნელობები ერთი და იმავე ტექსტიდანაა გაპარსული და ბაზაშიც
+        //(Latitude, Longitude) უნიკალური ინდექსი ზუსტ ტოლობას ამოწმებს — მიახლოებითი შედარება
+        //ინდექსის სემანტიკას ასცდებოდა და კონფლიქტს გამოიწვევდა
+#pragma warning disable S1244
+        LocationModel? location =
+            _context.Locations.Local.FirstOrDefault(f => f.Latitude == latitude && f.Longitude == longitude) ??
+            _context.Locations.FirstOrDefault(f => f.Latitude == latitude && f.Longitude == longitude);
+#pragma warning restore S1244
+        return location ?? _context.Locations.Add(new LocationModel { Latitude = latitude, Longitude = longitude })
+            .Entity;
     }
 
     public RegionModel GetOrCreateRegion(string regionName)

@@ -38,6 +38,20 @@ namespace TravelGuideDbMigration.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Locations",
+                columns: table => new
+                {
+                    LocationId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Latitude = table.Column<double>(type: "float", nullable: false),
+                    Longitude = table.Column<double>(type: "float", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Locations", x => x.LocationId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Months",
                 columns: table => new
                 {
@@ -145,8 +159,6 @@ namespace TravelGuideDbMigration.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    Latitude = table.Column<double>(type: "float", nullable: true),
-                    Longitude = table.Column<double>(type: "float", nullable: true),
                     RegionId = table.Column<int>(type: "int", nullable: true),
                     MunicipalityId = table.Column<int>(type: "int", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -263,6 +275,30 @@ namespace TravelGuideDbMigration.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PlacesByLocations",
+                columns: table => new
+                {
+                    PlaceId = table.Column<int>(type: "int", nullable: false),
+                    LocationId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlacesByLocations", x => new { x.PlaceId, x.LocationId });
+                    table.ForeignKey(
+                        name: "FK_PlacesByLocations_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
+                        principalColumn: "LocationId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PlacesByLocations_Places_PlaceId",
+                        column: x => x.PlaceId,
+                        principalTable: "Places",
+                        principalColumn: "PlaceId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PlacesByTags",
                 columns: table => new
                 {
@@ -363,6 +399,12 @@ namespace TravelGuideDbMigration.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Locations_Latitude_Longitude",
+                table: "Locations",
+                columns: new[] { "Latitude", "Longitude" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Months_Name",
                 table: "Months",
                 column: "Name",
@@ -405,6 +447,11 @@ namespace TravelGuideDbMigration.Migrations
                 name: "IX_PlacesByCategories_CategoryId",
                 table: "PlacesByCategories",
                 column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PlacesByLocations_LocationId",
+                table: "PlacesByLocations",
+                column: "LocationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PlacesByTags_TagId",
@@ -475,6 +522,9 @@ namespace TravelGuideDbMigration.Migrations
                 name: "PlacesByCategories");
 
             migrationBuilder.DropTable(
+                name: "PlacesByLocations");
+
+            migrationBuilder.DropTable(
                 name: "PlacesByTags");
 
             migrationBuilder.DropTable(
@@ -497,6 +547,9 @@ namespace TravelGuideDbMigration.Migrations
 
             migrationBuilder.DropTable(
                 name: "Categories");
+
+            migrationBuilder.DropTable(
+                name: "Locations");
 
             migrationBuilder.DropTable(
                 name: "Tags");

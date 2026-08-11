@@ -21,6 +21,8 @@ public sealed class TravelGuideDbContext : DbContext
     public DbSet<PlaceByBestSeason> PlacesByBestSeasons => Set<PlaceByBestSeason>();
     public DbSet<PlaceByCategory> PlacesByCategories => Set<PlaceByCategory>();
     public DbSet<PlaceByTag> PlacesByTags => Set<PlaceByTag>();
+    public DbSet<LocationModel> Locations => Set<LocationModel>();
+    public DbSet<PlaceByLocation> PlacesByLocations => Set<PlaceByLocation>();
     public DbSet<FromPointModel> FromPoints => Set<FromPointModel>();
     public DbSet<DistanceByPlace> DistanceByPlaces => Set<DistanceByPlace>();
     public DbSet<RegionModel> Regions => Set<RegionModel>();

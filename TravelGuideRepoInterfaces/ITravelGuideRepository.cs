@@ -39,6 +39,7 @@ public interface ITravelGuideRepository
     CategoryModel GetOrCreateCategory(string categoryName);
     TagModel GetOrCreateTag(string tagName);
     FromPointModel GetOrCreateFromPoint(string fromPointName);
+    LocationModel GetOrCreateLocation(double latitude, double longitude);
     RegionModel GetOrCreateRegion(string regionName);
     MunicipalityModel GetOrCreateMunicipality(string municipalityName);
 

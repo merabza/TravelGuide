@@ -9,8 +9,7 @@ public sealed class PlaceExtractResult
     public bool IsTouristAttraction { get; init; }
 
     public string? Name { get; init; }
-    public double? Latitude { get; init; }
-    public double? Longitude { get; init; }
+    public List<PlaceLocationItem> Locations { get; init; } = [];
     public string? Region { get; init; }
     public string? Municipality { get; init; }
     public List<string> Categories { get; init; } = [];

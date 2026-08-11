@@ -56,6 +56,10 @@ public sealed class PlaceLinksSynchronizer
             .. NormalizeDistances(extract.Distances)
                 .Select(s => (_repository.GetOrCreateFromPoint(s.FromPointName), s.DistanceKm))
         ];
+        //ექსტრაქტში ზუსტი დუბლიკატები უკვე გაფილტრულია და GetOrCreateLocation ზუსტი ტოლობით ეძებს,
+        //ამიტომ განსხვავებული წყვილები ყოველთვის განსხვავებულ ობიექტებად ბრუნდება
+        List<LocationModel> locations =
+            [.. extract.Locations.Select(s => _repository.GetOrCreateLocation(s.Latitude, s.Longitude))];
         string? regionName = NormalizeName(extract.Region, RegionModelConfiguration.NameLength);
         RegionModel? region = regionName is null ? null : _repository.GetOrCreateRegion(regionName);
         string? municipalityName = NormalizeName(extract.Municipality, MunicipalityModelConfiguration.NameLength);
@@ -66,6 +70,7 @@ public sealed class PlaceLinksSynchronizer
         SyncCategories(place, categories);
         SyncTags(place, tags);
         SyncDistances(place, distances);
+        SyncLocations(place, locations);
 
         //რეგიონი და მუნიციპალიტეტი place-ის პირდაპირი ბმულებია — მინიჭება საკმარისია;
         //ნავიგაციები ჩატვირთულია, ამიტომ null-ის მინიჭებაც ცვლილებად აღიქმება და FK სუფთავდება
@@ -152,6 +157,24 @@ public sealed class PlaceLinksSynchronizer
         foreach (TagModel tag in tags.Where(w => !place.Tags.Any(a => ReferenceEquals(a.TagNavigation, w))))
         {
             place.Tags.Add(new PlaceByTag { TagNavigation = tag });
+        }
+    }
+
+    //ბმულის მოხსნისას Locations-ში ლოკაცია შეიძლება ობლად დარჩეს — განზრახ რჩება: არსად ჩანს
+    //(GetPlacePoints და GetNearestPlaces ბმულებით კითხულობს), გასუფთავება კი ჯვარედინ თვლას მოითხოვდა
+    private static void SyncLocations(PlaceModel place, List<LocationModel> locations)
+    {
+        List<PlaceByLocation> linksToRemove =
+            [.. place.Locations.Where(w => !locations.Contains(w.LocationNavigation))];
+        foreach (PlaceByLocation link in linksToRemove)
+        {
+            place.Locations.Remove(link);
+        }
+
+        foreach (LocationModel location in locations.Where(w =>
+                     !place.Locations.Any(a => ReferenceEquals(a.LocationNavigation, w))))
+        {
+            place.Locations.Add(new PlaceByLocation { LocationNavigation = location });
         }
     }
 

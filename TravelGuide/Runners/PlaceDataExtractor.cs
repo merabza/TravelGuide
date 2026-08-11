@@ -22,7 +22,8 @@ public static partial class PlaceDataExtractor
 
     //სერვერი სრულად დარენდერებულ HTML-ს აბრუნებს, ამიტომ ბრაუზერი საჭირო არ არის — საკმარისია მოქაჩული ტექსტის გაპარსვა.
     //დოკუმენტს გამომძახებელი პარსავს, რომ იგივე დოკუმენტი ბმულების ამოკრებასაც მოხმარდეს.
-    //JSON-LD პირველადი წყაროა (კოორდინატები სრული სიზუსტით), ხილული DOM — დანარჩენი ველებისთვის და fallback-ად.
+    //JSON-LD პირველადი წყაროა, ხილული DOM — დანარჩენი ველებისთვის და fallback-ად;
+    //ლოკაციები ორივე წყაროდან ერთიანდება, რადგან სრულ სიას მხოლოდ ხილული DOM შეიცავს (იხ. BuildLocations).
     public static PlaceExtractResult Extract(IHtmlDocument document)
     {
         JsonLdData jsonLd = JsonLdData.Parse(document);
@@ -36,23 +37,11 @@ public static partial class PlaceDataExtractor
             (region, municipality) = ParseLocationFallback(document);
         }
 
-        double? latitude = jsonLd.Latitude;
-        double? longitude = jsonLd.Longitude;
-        if (latitude is null || longitude is null)
-        {
-            (double, double)? coordinates = ParseCoordinatesFallback(document);
-            if (coordinates is not null)
-            {
-                (latitude, longitude) = coordinates.Value;
-            }
-        }
-
         return new PlaceExtractResult
         {
             IsTouristAttraction = jsonLd.IsTouristAttraction,
             Name = name,
-            Latitude = latitude,
-            Longitude = longitude,
+            Locations = BuildLocations(jsonLd.Locations, ParseDomLocations(document)),
             Region = region,
             Municipality = municipality,
             Categories = SelectTexts(document, ".destination-header .categories a"),
@@ -63,12 +52,10 @@ public static partial class PlaceDataExtractor
         };
     }
 
-    //რეგიონი და მუნიციპალიტეტი აქ არ ისმება — ისინი ცალკე ცხრილების ბმულებია და PlaceLinksSynchronizer აწესრიგებს
+    //რეგიონი, მუნიციპალიტეტი და ლოკაციები აქ არ ისმება — ისინი ცალკე ცხრილების ბმულებია და PlaceLinksSynchronizer აწესრიგებს
     public static void Apply(PlaceExtractResult extract, PlaceModel place)
     {
         place.Name = Truncate(extract.Name, PlaceModelConfiguration.NameLength);
-        place.Latitude = extract.Latitude;
-        place.Longitude = extract.Longitude;
         place.Description = extract.Description;
     }
 
@@ -102,17 +89,90 @@ public static partial class PlaceDataExtractor
         return (parts.Length > 0 ? parts[0] : null, parts.Length > 1 ? parts[1] : null);
     }
 
-    private static (double, double)? ParseCoordinatesFallback(IHtmlDocument document)
+    //გეოგრაფიულად დასაშვები ზღვრები: ამათ გარეთ მოხვედრილი წყვილი (მაგ. UTM-ის მეტრული
+    //მნიშვნელობები, როგორც 297267, 4768381) მცდარია და არ ინახება
+    private const double MinValidLatitude = -90;
+    private const double MaxValidLatitude = 90;
+    private const double MinValidLongitude = -180;
+    private const double MaxValidLongitude = 180;
+
+    //ხილულ სიაში კოორდინატები 6 ნიშნამდეა დამრგვალებული (მაქს. ცდომილება 5e-7), ამიტომ 1e-5
+    //დაშვება დამრგვალების სხვაობას ფარავს, რეალურად განსხვავებულ წერტილებს კი ვერ შეაწებებს
+    private const double DuplicateToleranceDegrees = 1e-5;
+
+    private static bool IsValidCoordinatePair(double latitude, double longitude)
     {
-        IElement? content = document.QuerySelectorAll(".technical-details .item")
-            .FirstOrDefault(f => f.QuerySelector("span.icon-location") is not null)?.QuerySelector("div.content");
-        if (content is null)
+        return latitude is >= MinValidLatitude and <= MaxValidLatitude &&
+               longitude is >= MinValidLongitude and <= MaxValidLongitude;
+    }
+
+    //ორი წყარო ერთმანეთს ავსებს: JSON-LD მხოლოდ პირველ ლოკაციას შეიცავს, მაგრამ სრული სიზუსტით,
+    //ხილული სია — ყველა ლოკაციას, ოღონდ დამრგვალებულს. ჯერ JSON-LD-ის ვალიდური წყვილები შედის,
+    //შემდეგ DOM-ის ისინი, რომლებსაც უკვე შესულებში დაშვების ფარგლებში შესატყვისი არ აქვთ —
+    //ტოლერანსი DOM-ის ურთიერთახლო წყვილებსაც აწებებს (~1 მ-ში — ფიზიკურად იგივე წერტილია)
+    private static List<PlaceLocationItem> BuildLocations(List<PlaceLocationItem> jsonLdLocations,
+        List<PlaceLocationItem> domLocations)
+    {
+        List<PlaceLocationItem> locations = [];
+        foreach (PlaceLocationItem item in jsonLdLocations
+                     .Where(w => IsValidCoordinatePair(w.Latitude, w.Longitude))
+                     .Where(w => !locations.Contains(w)))
+        {
+            locations.Add(item);
+        }
+
+        foreach (PlaceLocationItem item in domLocations
+                     .Where(w => IsValidCoordinatePair(w.Latitude, w.Longitude))
+                     .Where(w => !locations.Any(a =>
+                         Math.Abs(a.Latitude - w.Latitude) <= DuplicateToleranceDegrees &&
+                         Math.Abs(a.Longitude - w.Longitude) <= DuplicateToleranceDegrees)))
+        {
+            locations.Add(item);
+        }
+
+        return locations;
+    }
+
+    private static List<PlaceLocationItem> ParseDomLocations(IHtmlDocument document)
+    {
+        IElement? locationItem = document.QuerySelectorAll(".technical-details .item")
+            .FirstOrDefault(f => f.QuerySelector("span.icon-location") is not null);
+        if (locationItem is null)
+        {
+            return [];
+        }
+
+        //რამდენიმე ლოკაციისას წყვილები ქვესიის ელემენტებშია, ერთისას — პირდაპირ content ელემენტში
+        List<PlaceLocationItem> locations = [];
+        IHtmlCollection<IElement> subItems = locationItem.QuerySelectorAll("ul.sub-content li");
+        if (subItems.Length == 0)
+        {
+            PlaceLocationItem? contentPair = TryParsePair(locationItem.QuerySelector("div.content")?.TextContent);
+            if (contentPair is not null)
+            {
+                locations.Add(contentPair);
+            }
+
+            return locations;
+        }
+
+        foreach (PlaceLocationItem pair in subItems.Select(s => TryParsePair(s.TextContent)).OfType<PlaceLocationItem>())
+        {
+            locations.Add(pair);
+        }
+
+        return locations;
+    }
+
+    private static PlaceLocationItem? TryParsePair(string? text)
+    {
+        if (text is null)
         {
             return null;
         }
 
         List<double> numbers = [];
-        foreach (string part in content.TextContent.Split(','))
+        foreach (string part in text.Split(','))
         {
             if (double.TryParse(part.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double number))
             {
@@ -120,7 +180,7 @@ public static partial class PlaceDataExtractor
             }
         }
 
-        return numbers.Count == 2 ? (numbers[0], numbers[1]) : null;
+        return numbers.Count == 2 ? new PlaceLocationItem(numbers[0], numbers[1]) : null;
     }
 
     private static List<PlaceDistanceItem> ParseDistances(IHtmlDocument document)
@@ -218,13 +278,13 @@ public static partial class PlaceDataExtractor
     [GeneratedRegex(@"\s+")]
     private static partial Regex WhitespaceRegex();
 
-    //JSON-LD ბლოკებიდან ამოკრებილი მონაცემები; გვიანდელი კვანძები ადრინდელებს გადაფარავს, როგორც ძველ JS-სკრიპტში
+    //JSON-LD ბლოკებიდან ამოკრებილი მონაცემები; გვიანდელი კვანძები ადრინდელებს გადაფარავს, როგორც ძველ
+    //JS-სკრიპტში — გარდა ლოკაციებისა, რომლებიც ყველა კვანძიდან გროვდება
     private sealed class JsonLdData
     {
         public bool IsTouristAttraction { get; private set; }
         public string? Name { get; private set; }
-        public double? Latitude { get; private set; }
-        public double? Longitude { get; private set; }
+        public List<PlaceLocationItem> Locations { get; } = [];
         public string? Region { get; private set; }
         public string? Municipality { get; private set; }
 
@@ -320,21 +380,35 @@ public static partial class PlaceDataExtractor
                 }
             }
 
-            if (!node.TryGetProperty("geo", out JsonElement geo) || geo.ValueKind != JsonValueKind.Object)
+            if (!node.TryGetProperty("geo", out JsonElement geo))
             {
                 return;
             }
 
-            if (geo.TryGetProperty("latitude", out JsonElement latitude) &&
-                latitude.ValueKind == JsonValueKind.Number)
+            //geo ჩვეულებრივ ერთი ობიექტია, მაგრამ schema.org მასივსაც უშვებს — ორივე ფორმა იკითხება
+            if (geo.ValueKind == JsonValueKind.Object)
             {
-                Latitude = latitude.GetDouble();
+                TryAddGeoPair(geo);
             }
+            else if (geo.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement geoItem in geo.EnumerateArray()
+                             .Where(w => w.ValueKind == JsonValueKind.Object))
+                {
+                    TryAddGeoPair(geoItem);
+                }
+            }
+        }
 
-            if (geo.TryGetProperty("longitude", out JsonElement longitude) &&
+        private void TryAddGeoPair(JsonElement geo)
+        {
+            //წყვილი მხოლოდ მაშინ ემატება, როცა ორივე კოორდინატი რიცხვია
+            if (geo.TryGetProperty("latitude", out JsonElement latitude) &&
+                latitude.ValueKind == JsonValueKind.Number &&
+                geo.TryGetProperty("longitude", out JsonElement longitude) &&
                 longitude.ValueKind == JsonValueKind.Number)
             {
-                Longitude = longitude.GetDouble();
+                Locations.Add(new PlaceLocationItem(latitude.GetDouble(), longitude.GetDouble()));
             }
         }
 

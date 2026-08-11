@@ -12,7 +12,7 @@ using TravelGuideDbPersistence;
 namespace TravelGuideDbMigration.Migrations
 {
     [DbContext(typeof(TravelGuideDbContext))]
-    [Migration("20260811095313_Initial")]
+    [Migration("20260811115805_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -92,6 +92,28 @@ namespace TravelGuideDbMigration.Migrations
                         .IsUnique();
 
                     b.ToTable("FromPoints", (string)null);
+                });
+
+            modelBuilder.Entity("TravelGuideDbModels.LocationModel", b =>
+                {
+                    b.Property<int>("LocationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LocationId"));
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("float");
+
+                    b.HasKey("LocationId");
+
+                    b.HasIndex("Latitude", "Longitude")
+                        .IsUnique();
+
+                    b.ToTable("Locations", (string)null);
                 });
 
             modelBuilder.Entity("TravelGuideDbModels.MonthModel", b =>
@@ -199,6 +221,21 @@ namespace TravelGuideDbMigration.Migrations
                     b.ToTable("PlacesByCategories", (string)null);
                 });
 
+            modelBuilder.Entity("TravelGuideDbModels.PlaceByLocation", b =>
+                {
+                    b.Property<int>("PlaceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PlaceId", "LocationId");
+
+                    b.HasIndex("LocationId");
+
+                    b.ToTable("PlacesByLocations", (string)null);
+                });
+
             modelBuilder.Entity("TravelGuideDbModels.PlaceByTag", b =>
                 {
                     b.Property<int>("PlaceId")
@@ -224,12 +261,6 @@ namespace TravelGuideDbMigration.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<double?>("Latitude")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("Longitude")
-                        .HasColumnType("float");
 
                     b.Property<int?>("MunicipalityId")
                         .HasColumnType("int");
@@ -491,6 +522,25 @@ namespace TravelGuideDbMigration.Migrations
                     b.Navigation("PlaceNavigation");
                 });
 
+            modelBuilder.Entity("TravelGuideDbModels.PlaceByLocation", b =>
+                {
+                    b.HasOne("TravelGuideDbModels.LocationModel", "LocationNavigation")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TravelGuideDbModels.PlaceModel", "PlaceNavigation")
+                        .WithMany("Locations")
+                        .HasForeignKey("PlaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LocationNavigation");
+
+                    b.Navigation("PlaceNavigation");
+                });
+
             modelBuilder.Entity("TravelGuideDbModels.PlaceByTag", b =>
                 {
                     b.HasOne("TravelGuideDbModels.PlaceModel", "PlaceNavigation")
@@ -573,6 +623,8 @@ namespace TravelGuideDbMigration.Migrations
                     b.Navigation("Categories");
 
                     b.Navigation("Distances");
+
+                    b.Navigation("Locations");
 
                     b.Navigation("Tags");
                 });
