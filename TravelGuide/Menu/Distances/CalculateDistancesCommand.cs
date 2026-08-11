@@ -81,16 +81,17 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
             reCalculate = Inputer.InputBool("Re-calculate already counted distances?", false, false);
         }
 
-        //ბაზიდან იტვირთება ყველა ადგილი, რომელსაც კოორდინატები აქვს
-        List<PlacePointItem> placePoints = repository.GetPlacePoints();
-        if (placePoints.Count == 0)
+        //ბაზიდან იტვირთება Locations ცხრილის ყველა ჩანაწერი — მანძილი ყველა ლოკაციამდე ითვლება,
+        //ადგილებთან ბმულების მიუხედავად
+        List<LocationModel> locations = repository.GetAllLocations();
+        if (locations.Count == 0)
         {
-            Console.WriteLine("No Places with coordinates found");
+            Console.WriteLine("No Locations found");
             return true;
         }
 
         Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
-            $"Calculate Distances started: from {myCurrentPlaceName} ({myPlace.Latitude}, {myPlace.Longitude}) to {placePoints.Count} places"));
+            $"Calculate Distances started: from {myCurrentPlaceName} ({myPlace.Latitude}, {myPlace.Longitude}) to {locations.Count} locations"));
 
         var savedCount = 0;
         var updatedCount = 0;
@@ -98,11 +99,7 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
         var skippedCount = 0;
         var failedCount = 0;
 
-        //ამ გაშვებაში უკვე დამუშავებული წყვილები — რამდენიმე ადგილს ერთი და იგივე კოორდინატები რომ ჰქონდეს,
-        //წყვილი მეორედ არ დამუშავდეს
-        HashSet<(double, double, double, double)> processedPairs = [];
-
-        for (var index = 0; index < placePoints.Count; index++)
+        for (var index = 0; index < locations.Count; index++)
         {
             //მომხმარებლის მიერ შეწყვეტისას პროცესი მშვიდად ჩერდება — შენახული წყვილები ბაზაში რჩება
             if (cancellationToken.IsCancellationRequested)
@@ -111,24 +108,23 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
                 break;
             }
 
-            PlacePointItem placePoint = placePoints[index];
-            (double, double, double, double) pairKey = (myPlace.Latitude, myPlace.Longitude, placePoint.Latitude,
-                placePoint.Longitude);
+            LocationModel location = locations[index];
 
-            bool pairExists = existingByPair.TryGetValue(pairKey, out RouteDistanceModel? existingRouteDistance);
-
-            //განმეორებული კოორდინატების წყვილი მეორედ არ მუშავდება, ხოლო უკვე დათვლილი —
-            //მხოლოდ დადებითი პასუხისას გადაითვლება
-            if (!processedPairs.Add(pairKey) || pairExists && !reCalculate)
+            //ლოკაციები კოორდინატებით უნიკალურია და წყვილი განმეორებით ვერ შეგვხვდება;
+            //უკვე დათვლილი წყვილი მხოლოდ დადებითი პასუხისას გადაითვლება
+            bool pairExists = existingByPair.TryGetValue(
+                (myPlace.Latitude, myPlace.Longitude, location.Latitude, location.Longitude),
+                out RouteDistanceModel? existingRouteDistance);
+            if (pairExists && !reCalculate)
             {
                 skippedCount++;
                 continue;
             }
 
             string progressPrefix = string.Create(CultureInfo.InvariantCulture,
-                $"{index + 1}/{placePoints.Count} {placePoint.PlaceName}");
+                $"{index + 1}/{locations.Count} Location {location.LocationId} ({location.Latitude:F6}, {location.Longitude:F6})");
 
-            EPairResult pairResult = CountAndPersistPair(repository, myPlace, placePoint, existingRouteDistance,
+            EPairResult pairResult = CountAndPersistPair(repository, myPlace, location, existingRouteDistance,
                 progressPrefix, cancellationToken);
 
             switch (pairResult)
@@ -160,14 +156,14 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
 
     //ერთი წყვილის დამუშავება: მანძილების გამოთვლა და შედეგის ბაზაში შენახვა, ან არსებულის შემოწმება-ჩასწორება
     private EPairResult CountAndPersistPair(ITravelGuideRepository repository, MyPlace myPlace,
-        PlacePointItem placePoint, RouteDistanceModel? existingRouteDistance, string progressPrefix,
+        LocationModel location, RouteDistanceModel? existingRouteDistance, string progressPrefix,
         CancellationToken cancellationToken)
     {
         double airDistanceKm = DistanceCounter.CountAirDistanceKm(myPlace.Latitude, myPlace.Longitude,
-            placePoint.Latitude, placePoint.Longitude);
+            location.Latitude, location.Longitude);
 
         (double DistanceKm, TimeSpan Duration)? roadRoute = DistanceCounter.TryGetRoadRoute(_httpClientFactory,
-            myPlace.Latitude, myPlace.Longitude, placePoint.Latitude, placePoint.Longitude, cancellationToken);
+            myPlace.Latitude, myPlace.Longitude, location.Latitude, location.Longitude, cancellationToken);
 
         //გზის მარშრუტი ვერ დადგინდა — წყვილი არ ინახება და შემდეგი გაშვება მას ხელახლა ცდის
         if (roadRoute is null)
@@ -185,8 +181,8 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
             {
                 StartLatitude = myPlace.Latitude,
                 StartLongitude = myPlace.Longitude,
-                EndLatitude = placePoint.Latitude,
-                EndLongitude = placePoint.Longitude,
+                EndLatitude = location.Latitude,
+                EndLongitude = location.Longitude,
                 AirDistance = airDistanceKm,
                 RoadDistance = roadRoute.Value.DistanceKm,
                 RoadTime = roadRoute.Value.Duration

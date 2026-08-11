@@ -30,7 +30,7 @@ public interface ITravelGuideRepository
     bool HasDownloadErrorPlaces();
     List<PlaceByLocation> GetNearestPlaces(double latitude, double longitude, int skip, int take,
         TimeSpan minRoadTime);
-    List<PlacePointItem> GetPlacePoints();
+    List<LocationModel> GetAllLocations();
 
     UrlGraphNode AddUrlGraphNode(UrlGraphNode newUrlGraphNode);
     List<UrlGraphNode> GetAllUrlGraphNodes();

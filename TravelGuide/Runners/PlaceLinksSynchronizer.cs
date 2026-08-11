@@ -160,8 +160,9 @@ public sealed class PlaceLinksSynchronizer
         }
     }
 
-    //ბმულის მოხსნისას Locations-ში ლოკაცია შეიძლება ობლად დარჩეს — განზრახ რჩება: არსად ჩანს
-    //(GetPlacePoints და GetNearestPlaces ბმულებით კითხულობს), გასუფთავება კი ჯვარედინ თვლას მოითხოვდა
+    //ბმულის მოხსნისას Locations-ში ლოკაცია შეიძლება ობლად დარჩეს — განზრახ რჩება: სიებში არ ჩანს
+    //(GetNearestPlaces ბმულებით კითხულობს), მანძილი კი ყველა ლოკაციას განზრახ ეთვლება (GetAllLocations),
+    //გასუფთავება ჯვარედინ თვლას მოითხოვდა
     private static void SyncLocations(PlaceModel place, List<LocationModel> locations)
     {
         List<PlaceByLocation> linksToRemove =

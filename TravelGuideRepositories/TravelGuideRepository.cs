@@ -159,20 +159,11 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return _context.Places.Any(a => a.State == EState.DownloadError);
     }
 
-    public List<PlacePointItem> GetPlacePoints()
+    public List<LocationModel> GetAllLocations()
     {
-        //მხოლოდ საჭირო სვეტები იტვირთება და ენთითები კონტექსტს არ ებმება.
-        //თითო ადგილი-ლოკაციის ბმულზე თითო წერტილი ბრუნდება — გამეორებულ კოორდინატებს გამომძახებელი ფილტრავს
-        return
-        [
-            .. _context.PlacesByLocations.OrderBy(o => o.PlaceId).ThenBy(o => o.LocationId).Select(s =>
-                new PlacePointItem
-                {
-                    PlaceName = s.PlaceNavigation.Name ?? s.PlaceNavigation.Url,
-                    Latitude = s.LocationNavigation.Latitude,
-                    Longitude = s.LocationNavigation.Longitude
-                })
-        ];
+        //ლოკაციები მხოლოდ კოორდინატების წასაკითხად იტვირთება და ენთითები კონტექსტს არ ებმება.
+        //ბაზაში არსებული ყველა ლოკაცია ბრუნდება — ადგილებთან ბმულების მიუხედავად
+        return [.. _context.Locations.AsNoTracking().OrderBy(o => o.LocationId)];
     }
 
     public List<PlaceByLocation> GetNearestPlaces(double latitude, double longitude, int skip, int take,
