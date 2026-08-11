@@ -96,11 +96,10 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
                 _place.MunicipalityNavigation.Name));
         }
 
-        //აღწერა ერთ სტრიქონად — ახალი ხაზები მენიუს პუნქტს დაშლიდა, ამიტომ ჰარეები იკეცება
+        //აღწერის სტატუსში ტექსტი ერთ სტრიქონად ჩანს, ნომრის აკრეფისას კი სრული ტექსტის ქვემენიუ იხსნება
         if (!string.IsNullOrWhiteSpace(_place.Description))
         {
-            placeSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Description",
-                string.Join(' ', _place.Description.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))));
+            placeSubMenuSet.AddMenuItem(new DescriptionSubMenuCommand(_place.Description));
         }
 
         //ტეგების სახელები
