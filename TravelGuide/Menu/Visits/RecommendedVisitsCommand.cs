@@ -99,18 +99,20 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
                 //62-ზე მეტ პუნქტს მენიუს გასაღებები (0-9, a-z, A-Z) აღარ ჰყოფნის
                 int portionSize = Math.Clamp(Console.WindowHeight - 10, 1, 62);
 
-                //ბაზიდან ამოირჩევა ჩემს კოორდინატებთან ყველაზე ახლოს მდებარე ადგილების მიმდინარე პორცია
-                //(რომელთა გზის დროც არჩეულ მინიმუმზე ნაკლები არ არის). ერთით მეტი ჩანაწერი ითხოვება,
-                //რომ გაირკვეს, არსებობს თუ არა შემდეგი პორცია
-                List<PlaceModel> nearestPlaces = repository.GetNearestPlaces(myPlace.Latitude, myPlace.Longitude,
-                    _currentPortionNumber * portionSize, portionSize + 1, _minRoadTime);
+                //ბაზიდან ამოირჩევა ჩემს კოორდინატებთან ყველაზე ახლოს მდებარე ადგილი-ლოკაციის ბმულების
+                //მიმდინარე პორცია (რომლებამდე გზის დროც არჩეულ მინიმუმზე ნაკლები არ არის). ერთით მეტი
+                //ჩანაწერი ითხოვება, რომ გაირკვეს, არსებობს თუ არა შემდეგი პორცია
+                List<PlaceByLocation> nearestPlaceLocations = repository.GetNearestPlaces(myPlace.Latitude,
+                    myPlace.Longitude, _currentPortionNumber * portionSize, portionSize + 1, _minRoadTime);
 
-                //თითო ადგილი თითო მენიუს პუნქტად: სახელად მხოლოდ დასახელება, ხოლო ბმული და კოორდინატები
-                //პუნქტის სტატუსში, ფრჩხილებში გამოდის
-                foreach (PlaceModel place in nearestPlaces.Take(portionSize))
+                //თითო ადგილი-ლოკაციის წყვილი თითო მენიუს პუნქტად — მრავალლოკაციიანი ადგილი იმდენჯერ გამოდის,
+                //რამდენი ლოკაციაც აქვს. სახელად დასახელება, ხოლო ბმული და კოორდინატები პუნქტის სტატუსში,
+                //ფრჩხილებში გამოდის
+                foreach (PlaceByLocation placeByLocation in nearestPlaceLocations.Take(portionSize))
                 {
                     recommendedVisitsMenuSet.AddMenuItem(new RecommendedPlaceSubMenuCommand(
-                        _travelGuideRepositoryCreatorFactory, _httpClientFactory, myPlace, place));
+                        _travelGuideRepositoryCreatorFactory, _httpClientFactory, myPlace,
+                        placeByLocation.PlaceNavigation, placeByLocation.LocationNavigation));
                 }
 
                 //გადაფურცვლის ღილაკები ფიზიკურ PageUp/PageDown კლავიშებზეა მიბმული ისევე, როგორც
@@ -121,7 +123,7 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
                         new ChangePortionCommand("Page Up", () => _currentPortionNumber--));
                 }
 
-                if (nearestPlaces.Count > portionSize)
+                if (nearestPlaceLocations.Count > portionSize)
                 {
                     recommendedVisitsMenuSet.AddMenuItem(ConsoleKey.PageDown.Value().Pascalize(),
                         new ChangePortionCommand("Page Down", () => _currentPortionNumber++));
