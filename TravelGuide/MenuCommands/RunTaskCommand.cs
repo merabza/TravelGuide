@@ -64,6 +64,14 @@ public sealed class RunTaskCommand : CliMenuCommand
             reProcessAnalysed = Inputer.InputBool("Re-process already analysed places?", false, false);
         }
 
+        //სრული ხელახალი დამუშავება შეცდომიან გვერდებსაც მოიცავს; თუ ხელახალი დამუშავება არ არჩეულა და
+        //ბაზაში შეცდომის სტატუსიანი გვერდებია, ცალკე ვკითხოთ, ვცადოთ თუ არა მათი ხელახლა ჩამოტვირთვა
+        var retryDownloadErrors = reProcessAnalysed;
+        if (!reProcessAnalysed && repository.HasDownloadErrorPlaces())
+        {
+            retryDownloadErrors = Inputer.InputBool("Retry pages with download error status?", false, false);
+        }
+
         //გვერდები ბრაუზერის გარეშე, პირდაპირ HTTP-ით მოიქაჩება — Chrome მხოლოდ Selenium-რეჟიმის სიის გვერდს სჭირდება
         using var httpClientHandler = new HttpClientHandler
         {
@@ -121,7 +129,8 @@ public sealed class RunTaskCommand : CliMenuCommand
 
         //ფაზა 2: ჩამოსატვირთი გვერდების ჩატვირთვა ბაზიდან და სათითაოდ ჩამოტვირთვა-გაანალიზება;
         //გვერდებზე ნაპოვნი ახალი მისამართებიც რიგში ემატება, სანამ დასამუშავებელი აღარაფერი დარჩება
-        var analyser = new PlaceAnalyser(httpClient, repository, urlPersister, reProcessAnalysed);
+        var analyser = new PlaceAnalyser(httpClient, repository, urlPersister, reProcessAnalysed,
+            retryDownloadErrors);
         await analyser.RunAsync(cancellationToken).ConfigureAwait(false);
 
         //ამოცანის გაშვების პროცესი დასრულდა

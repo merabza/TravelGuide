@@ -64,9 +64,10 @@ public sealed class GeorgianTravelGuideRunner
 
         FindElementAndWaitUntilDisappear("იტვირთება...", "span");
 
-        //სიის გვერდიდან ყველა ღირსშესანიშნაობის ბმულის შეგროვება და ბაზაში შენახვა
+        //სიის გვერდიდან ყველა ღირსშესანიშნაობის ბმულის შეგროვება და ბაზაში შენახვა; სია საწყისი წერტილიდან
+        //იხსნება, ამიტომ UrlGraphNodes-ში წყარო გვერდად საწყისი წერტილი ითვლება
         List<string> urlList = ScrollAndCollectUrls();
-        _urlPersister.PersistNewUrls(urlList);
+        _urlPersister.PersistNewUrls(urlList, _startPoint);
 
         Console.WriteLine("Success");
         return true;
@@ -93,7 +94,7 @@ public sealed class GeorgianTravelGuideRunner
                 sameCount = 0;
 
                 //ახლად ჩატვირთული ბმულები მაშინვე ინახება, რომ სქროლვის შეწყვეტისას შეგროვებული არ დაიკარგოს
-                _urlPersister.PersistNewUrls(urlList);
+                _urlPersister.PersistNewUrls(urlList, _startPoint);
             }
 
             lastCount = urlList.Count;

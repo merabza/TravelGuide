@@ -13,10 +13,13 @@ public sealed class PlaceModel
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
 
-    public string? Region { get; set; }
-    public string? Municipality { get; set; }
+    public int? RegionId { get; set; }
+    public int? MunicipalityId { get; set; }
     public string? Description { get; set; }
     public EState State { get; set; }
+
+    public RegionModel? RegionNavigation { get; set; }
+    public MunicipalityModel? MunicipalityNavigation { get; set; }
 
     public ICollection<PlaceByBestSeason> BestSeasons { get; init; } = new HashSet<PlaceByBestSeason>();
     public ICollection<PlaceByCategory> Categories { get; init; } = new HashSet<PlaceByCategory>();

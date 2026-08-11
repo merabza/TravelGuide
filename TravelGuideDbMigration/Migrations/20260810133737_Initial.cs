@@ -66,23 +66,29 @@ namespace TravelGuideDbMigration.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Places",
+                name: "Municipalities",
                 columns: table => new
                 {
-                    PlaceId = table.Column<int>(type: "int", nullable: false)
+                    MunicipalityId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    Latitude = table.Column<double>(type: "float", nullable: true),
-                    Longitude = table.Column<double>(type: "float", nullable: true),
-                    Region = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Municipality = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    State = table.Column<int>(type: "int", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Places", x => x.PlaceId);
+                    table.PrimaryKey("PK_Municipalities", x => x.MunicipalityId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Regions",
+                columns: table => new
+                {
+                    RegionId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Regions", x => x.RegionId);
                 });
 
             migrationBuilder.CreateTable(
@@ -109,6 +115,56 @@ namespace TravelGuideDbMigration.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tasks", x => x.TaskId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Places",
+                columns: table => new
+                {
+                    PlaceId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Latitude = table.Column<double>(type: "float", nullable: true),
+                    Longitude = table.Column<double>(type: "float", nullable: true),
+                    RegionId = table.Column<int>(type: "int", nullable: true),
+                    MunicipalityId = table.Column<int>(type: "int", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    State = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Places", x => x.PlaceId);
+                    table.ForeignKey(
+                        name: "FK_Places_Municipalities_MunicipalityId",
+                        column: x => x.MunicipalityId,
+                        principalTable: "Municipalities",
+                        principalColumn: "MunicipalityId");
+                    table.ForeignKey(
+                        name: "FK_Places_Regions_RegionId",
+                        column: x => x.RegionId,
+                        principalTable: "Regions",
+                        principalColumn: "RegionId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TaskStartPoints",
+                columns: table => new
+                {
+                    TspId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TaskId = table.Column<int>(type: "int", nullable: false),
+                    StartPoint = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TaskStartPoints", x => x.TspId);
+                    table.ForeignKey(
+                        name: "FK_TaskStartPoints_Tasks_TaskId",
+                        column: x => x.TaskId,
+                        principalTable: "Tasks",
+                        principalColumn: "TaskId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -211,23 +267,29 @@ namespace TravelGuideDbMigration.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TaskStartPoints",
+                name: "UrlGraphNodes",
                 columns: table => new
                 {
-                    TspId = table.Column<int>(type: "int", nullable: false)
+                    UgnId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    TaskId = table.Column<int>(type: "int", nullable: false),
-                    StartPoint = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: false)
+                    FromUrlId = table.Column<int>(type: "int", nullable: false),
+                    GotUrlId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TaskStartPoints", x => x.TspId);
+                    table.PrimaryKey("PK_UrlGraphNodes", x => x.UgnId);
                     table.ForeignKey(
-                        name: "FK_TaskStartPoints_Tasks_TaskId",
-                        column: x => x.TaskId,
-                        principalTable: "Tasks",
-                        principalColumn: "TaskId",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_UrlGraphNodes_Places_FromUrlId",
+                        column: x => x.FromUrlId,
+                        principalTable: "Places",
+                        principalColumn: "PlaceId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UrlGraphNodes_Places_GotUrlId",
+                        column: x => x.GotUrlId,
+                        principalTable: "Places",
+                        principalColumn: "PlaceId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -266,6 +328,22 @@ namespace TravelGuideDbMigration.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Municipalities_Name",
+                table: "Municipalities",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Places_MunicipalityId",
+                table: "Places",
+                column: "MunicipalityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Places_RegionId",
+                table: "Places",
+                column: "RegionId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Places_Url",
                 table: "Places",
                 column: "Url",
@@ -287,6 +365,12 @@ namespace TravelGuideDbMigration.Migrations
                 column: "TagId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Regions_Name",
+                table: "Regions",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Tags_Name",
                 table: "Tags",
                 column: "Name",
@@ -302,6 +386,17 @@ namespace TravelGuideDbMigration.Migrations
                 name: "IX_TaskStartPoints_TaskId",
                 table: "TaskStartPoints",
                 column: "TaskId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UrlGraphNodes_FromUrlId_GotUrlId",
+                table: "UrlGraphNodes",
+                columns: new[] { "FromUrlId", "GotUrlId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UrlGraphNodes_GotUrlId",
+                table: "UrlGraphNodes",
+                column: "GotUrlId");
         }
 
         /// <inheritdoc />
@@ -326,6 +421,9 @@ namespace TravelGuideDbMigration.Migrations
                 name: "TaskStartPoints");
 
             migrationBuilder.DropTable(
+                name: "UrlGraphNodes");
+
+            migrationBuilder.DropTable(
                 name: "FromPoints");
 
             migrationBuilder.DropTable(
@@ -335,13 +433,19 @@ namespace TravelGuideDbMigration.Migrations
                 name: "Categories");
 
             migrationBuilder.DropTable(
-                name: "Places");
-
-            migrationBuilder.DropTable(
                 name: "Tags");
 
             migrationBuilder.DropTable(
                 name: "Tasks");
+
+            migrationBuilder.DropTable(
+                name: "Places");
+
+            migrationBuilder.DropTable(
+                name: "Municipalities");
+
+            migrationBuilder.DropTable(
+                name: "Regions");
         }
     }
 }

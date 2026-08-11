@@ -63,13 +63,12 @@ public static partial class PlaceDataExtractor
         };
     }
 
+    //რეგიონი და მუნიციპალიტეტი აქ არ ისმება — ისინი ცალკე ცხრილების ბმულებია და PlaceLinksSynchronizer აწესრიგებს
     public static void Apply(PlaceExtractResult extract, PlaceModel place)
     {
         place.Name = Truncate(extract.Name, PlaceModelConfiguration.NameLength);
         place.Latitude = extract.Latitude;
         place.Longitude = extract.Longitude;
-        place.Region = Truncate(extract.Region, PlaceModelConfiguration.RegionLength);
-        place.Municipality = Truncate(extract.Municipality, PlaceModelConfiguration.MunicipalityLength);
         place.Description = extract.Description;
     }
 

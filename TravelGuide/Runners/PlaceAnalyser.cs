@@ -23,15 +23,17 @@ public sealed class PlaceAnalyser
     private readonly PlaceLinksSynchronizer _placeLinksSynchronizer;
     private readonly bool _reProcessAnalysed;
     private readonly ITravelGuideRepository _repository;
+    private readonly bool _retryDownloadErrors;
     private readonly HarvestedUrlPersister _urlPersister;
 
     public PlaceAnalyser(HttpClient httpClient, ITravelGuideRepository repository, HarvestedUrlPersister urlPersister,
-        bool reProcessAnalysed)
+        bool reProcessAnalysed, bool retryDownloadErrors)
     {
         _httpClient = httpClient;
         _repository = repository;
         _urlPersister = urlPersister;
         _reProcessAnalysed = reProcessAnalysed;
+        _retryDownloadErrors = retryDownloadErrors;
         _placeLinksSynchronizer = new PlaceLinksSynchronizer(repository);
     }
 
@@ -39,8 +41,8 @@ public sealed class PlaceAnalyser
     {
         _placeLinksSynchronizer.EnsureMonths();
 
-        //ერთ გაშვებაზე თითო გვერდი მხოლოდ ერთხელ მუშავდება: წარუმატებელი New-დ რჩება (მომდევნო გაშვება სცდის),
-        //მაგრამ ამ ციკლში აღარ ბრუნდება, რომ ციკლი აუცილებლად დასრულდეს
+        //ერთ გაშვებაზე თითო გვერდი მხოლოდ ერთხელ მუშავდება: წარუმატებელი შეცდომის სტატუსით ინიშნება და
+        //ამ ციკლში აღარ ბრუნდება, რომ ციკლი აუცილებლად დასრულდეს
         var attemptedIds = new HashSet<int>();
 
         //უკვე გაანალიზებულების ხელახლა დამუშავება მხოლოდ პირველ ულუფას ეხება —
@@ -51,7 +53,8 @@ public sealed class PlaceAnalyser
         {
             List<PlaceModel> places =
             [
-                .. _repository.GetPlacesForAnalysis(includeAnalysed).Where(w => !attemptedIds.Contains(w.PlaceId))
+                .. _repository.GetPlacesForAnalysis(includeAnalysed, _retryDownloadErrors)
+                    .Where(w => !attemptedIds.Contains(w.PlaceId))
             ];
             includeAnalysed = false;
 
@@ -76,7 +79,19 @@ public sealed class PlaceAnalyser
                 Console.WriteLine($"({counter}/{places.Count}) {place.Url}");
                 if (!await TryAnalysePlaceAsync(place, cancellationToken).ConfigureAwait(false))
                 {
+                    //შეჩერების მოთხოვნით გამოწვეული ჩავარდნა შეცდომა არ არის — ჩანაწერი უცვლელი რჩება
+                    //და მომდევნო გაშვება ჩვეულებრივ დაამუშავებს
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
                     StShared.WriteErrorLine($"Failed to analyse {place.Url}", true, null, false);
+
+                    //ჩავარდნილი გვერდი შეცდომის სტატუსით ინიშნება — ხელახლა ცდა მომდევნო გაშვებისას
+                    //მომხმარებლის დასტურზეა დამოკიდებული
+                    place.State = EState.DownloadError;
+                    _repository.SaveChanges();
                 }
             }
         }
@@ -91,7 +106,7 @@ public sealed class PlaceAnalyser
                 await _httpClient.GetAsync(pageUri, cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
-                //წარუმატებელი პასუხისას ჩანაწერი New რჩება, რომ მომდევნო გაშვებამ თავიდან სცადოს
+                //წარუმატებელი პასუხისას false ბრუნდება და გამომძახებელი ჩანაწერს შეცდომის სტატუსით მონიშნავს
                 StShared.WriteErrorLine($"Request failed with status {(int)response.StatusCode} for {place.Url}",
                     true, null, false);
                 return false;
@@ -102,8 +117,9 @@ public sealed class PlaceAnalyser
                 await new HtmlParser().ParseDocumentAsync(html, cancellationToken).ConfigureAwait(false);
 
             //გვერდზე ნაპოვნი ბმულები place-ის შეცვლამდე ინახება — ღირსშესანიშნაობის გარდა სხვა გვერდებიც
-            //(რეგიონები, სიის გვერდები) ახალი მისამართების წყაროა
-            _urlPersister.PersistNewUrls(PageLinkExtractor.ExtractLinks(document, pageUri));
+            //(რეგიონები, სიის გვერდები) ახალი მისამართების წყაროა; place.Url წყარო გვერდად გადაეცემა,
+            //რომ ნაპოვნი კავშირები UrlGraphNodes-შიც ჩაიწეროს
+            _urlPersister.PersistNewUrls(PageLinkExtractor.ExtractLinks(document, pageUri), place.Url);
 
             PlaceExtractResult extract = PlaceDataExtractor.Extract(document);
 

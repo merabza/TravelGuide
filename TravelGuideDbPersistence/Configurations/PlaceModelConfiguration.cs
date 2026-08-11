@@ -9,8 +9,6 @@ public sealed class PlaceModelConfiguration : IEntityTypeConfiguration<PlaceMode
     //Url-ის სიგრძე 850-ს არ უნდა აღემატებოდეს, რადგან SQL Server-ის უნიკალური ინდექსის გასაღების ლიმიტი 1700 ბაიტია
     public const int UrlLength = 500;
     public const int NameLength = 200;
-    public const int RegionLength = 100;
-    public const int MunicipalityLength = 100;
 
     public void Configure(EntityTypeBuilder<PlaceModel> builder)
     {
@@ -22,7 +20,8 @@ public sealed class PlaceModelConfiguration : IEntityTypeConfiguration<PlaceMode
 
         builder.Property(e => e.Url).HasMaxLength(UrlLength);
         builder.Property(e => e.Name).HasMaxLength(NameLength);
-        builder.Property(e => e.Region).HasMaxLength(RegionLength);
-        builder.Property(e => e.Municipality).HasMaxLength(MunicipalityLength);
+
+        builder.HasOne(d => d.RegionNavigation).WithMany().HasForeignKey(d => d.RegionId);
+        builder.HasOne(d => d.MunicipalityNavigation).WithMany().HasForeignKey(d => d.MunicipalityId);
     }
 }

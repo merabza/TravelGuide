@@ -56,11 +56,32 @@ public sealed class PlaceLinksSynchronizer
             .. NormalizeDistances(extract.Distances)
                 .Select(s => (_repository.GetOrCreateFromPoint(s.FromPointName), s.DistanceKm))
         ];
+        string? regionName = NormalizeName(extract.Region, RegionModelConfiguration.NameLength);
+        RegionModel? region = regionName is null ? null : _repository.GetOrCreateRegion(regionName);
+        string? municipalityName = NormalizeName(extract.Municipality, MunicipalityModelConfiguration.NameLength);
+        MunicipalityModel? municipality =
+            municipalityName is null ? null : _repository.GetOrCreateMunicipality(municipalityName);
 
         SyncBestSeasons(place, monthIds);
         SyncCategories(place, categories);
         SyncTags(place, tags);
         SyncDistances(place, distances);
+
+        //რეგიონი და მუნიციპალიტეტი place-ის პირდაპირი ბმულებია — მინიჭება საკმარისია;
+        //ნავიგაციები ჩატვირთულია, ამიტომ null-ის მინიჭებაც ცვლილებად აღიქმება და FK სუფთავდება
+        place.RegionNavigation = region;
+        place.MunicipalityNavigation = municipality;
+    }
+
+    private static string? NormalizeName(string? name, int maxLength)
+    {
+        string? trimmed = name?.Trim();
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            return null;
+        }
+
+        return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength];
     }
 
     private static List<string> NormalizeNames(IEnumerable<string> names, int maxLength)

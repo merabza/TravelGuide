@@ -24,15 +24,21 @@ public interface ITravelGuideRepository
     TaskStartPoint DeleteStartPoint(TaskStartPoint startPointForDelete);
 
     PlaceModel AddPlace(PlaceModel newPlace);
-    List<string> GetAllPlaceUrls();
-    List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed);
+    Dictionary<string, int> GetPlaceIdsByUrl();
+    List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed, bool includeDownloadErrors);
     bool HasAnalysedPlaces();
+    bool HasDownloadErrorPlaces();
+
+    UrlGraphNode AddUrlGraphNode(UrlGraphNode newUrlGraphNode);
+    List<UrlGraphNode> GetAllUrlGraphNodes();
 
     List<MonthModel> GetMonths();
     MonthModel AddMonth(MonthModel newMonth);
     CategoryModel GetOrCreateCategory(string categoryName);
     TagModel GetOrCreateTag(string tagName);
     FromPointModel GetOrCreateFromPoint(string fromPointName);
+    RegionModel GetOrCreateRegion(string regionName);
+    MunicipalityModel GetOrCreateMunicipality(string municipalityName);
 
     List<MotorcycleModel> GetMotorcyclesList();
     MotorcycleModel? GetMotorcycleByKey(string key);

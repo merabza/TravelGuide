@@ -11,7 +11,7 @@ using TravelGuideDbPersistence;
 namespace TravelGuideDbMigration.Migrations
 {
     [DbContext(typeof(TravelGuideDbContext))]
-    [Migration("20260809201041_Initial")]
+    [Migration("20260810133737_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -147,6 +147,27 @@ namespace TravelGuideDbMigration.Migrations
                     b.ToTable("Motorcycles", (string)null);
                 });
 
+            modelBuilder.Entity("TravelGuideDbModels.MunicipalityModel", b =>
+                {
+                    b.Property<int>("MunicipalityId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MunicipalityId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("MunicipalityId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Municipalities", (string)null);
+                });
+
             modelBuilder.Entity("TravelGuideDbModels.PlaceByBestSeason", b =>
                 {
                     b.Property<int>("PlaceId")
@@ -209,17 +230,15 @@ namespace TravelGuideDbMigration.Migrations
                     b.Property<double?>("Longitude")
                         .HasColumnType("float");
 
-                    b.Property<string>("Municipality")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<int?>("MunicipalityId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("Region")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<int?>("RegionId")
+                        .HasColumnType("int");
 
                     b.Property<int>("State")
                         .HasColumnType("int");
@@ -231,10 +250,35 @@ namespace TravelGuideDbMigration.Migrations
 
                     b.HasKey("PlaceId");
 
+                    b.HasIndex("MunicipalityId");
+
+                    b.HasIndex("RegionId");
+
                     b.HasIndex("Url")
                         .IsUnique();
 
                     b.ToTable("Places", (string)null);
+                });
+
+            modelBuilder.Entity("TravelGuideDbModels.RegionModel", b =>
+                {
+                    b.Property<int>("RegionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RegionId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("RegionId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Regions", (string)null);
                 });
 
             modelBuilder.Entity("TravelGuideDbModels.TagModel", b =>
@@ -300,6 +344,30 @@ namespace TravelGuideDbMigration.Migrations
                     b.HasIndex("TaskId");
 
                     b.ToTable("TaskStartPoints", (string)null);
+                });
+
+            modelBuilder.Entity("TravelGuideDbModels.UrlGraphNode", b =>
+                {
+                    b.Property<int>("UgnId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UgnId"));
+
+                    b.Property<int>("FromUrlId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GotUrlId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UgnId");
+
+                    b.HasIndex("GotUrlId");
+
+                    b.HasIndex("FromUrlId", "GotUrlId")
+                        .IsUnique();
+
+                    b.ToTable("UrlGraphNodes", (string)null);
                 });
 
             modelBuilder.Entity("TravelGuideDbModels.DistanceByPlace", b =>
@@ -378,6 +446,21 @@ namespace TravelGuideDbMigration.Migrations
                     b.Navigation("TagNavigation");
                 });
 
+            modelBuilder.Entity("TravelGuideDbModels.PlaceModel", b =>
+                {
+                    b.HasOne("TravelGuideDbModels.MunicipalityModel", "MunicipalityNavigation")
+                        .WithMany()
+                        .HasForeignKey("MunicipalityId");
+
+                    b.HasOne("TravelGuideDbModels.RegionModel", "RegionNavigation")
+                        .WithMany()
+                        .HasForeignKey("RegionId");
+
+                    b.Navigation("MunicipalityNavigation");
+
+                    b.Navigation("RegionNavigation");
+                });
+
             modelBuilder.Entity("TravelGuideDbModels.TaskStartPoint", b =>
                 {
                     b.HasOne("TravelGuideDbModels.TaskModel", "TaskNavigation")
@@ -387,6 +470,21 @@ namespace TravelGuideDbMigration.Migrations
                         .IsRequired();
 
                     b.Navigation("TaskNavigation");
+                });
+
+            modelBuilder.Entity("TravelGuideDbModels.UrlGraphNode", b =>
+                {
+                    b.HasOne("TravelGuideDbModels.PlaceModel", null)
+                        .WithMany()
+                        .HasForeignKey("FromUrlId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TravelGuideDbModels.PlaceModel", null)
+                        .WithMany()
+                        .HasForeignKey("GotUrlId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TravelGuideDbModels.PlaceModel", b =>

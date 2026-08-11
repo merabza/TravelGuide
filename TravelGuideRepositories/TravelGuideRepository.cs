@@ -121,22 +121,29 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return _context.Places.Add(newPlace).Entity;
     }
 
-    public List<string> GetAllPlaceUrls()
+    public Dictionary<string, int> GetPlaceIdsByUrl()
     {
-        return [.. _context.Places.Select(s => s.Url)];
+        //მხოლოდ ორი სვეტი იტვირთება და ენთითები კონტექსტს არ ებმება
+        return _context.Places.Select(s => new { s.Url, s.PlaceId })
+            .ToDictionary(k => k.Url, v => v.PlaceId, StringComparer.Ordinal);
     }
 
-    public List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed)
+    public List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed, bool includeDownloadErrors)
     {
         //ThenInclude აუცილებელია: ბმულების სინქრონიზაცია lookup-ობიექტების იგივეობით ადარებს და დაუტვირთავი ნავიგაცია გამონაკლისს ისვრის
+        //რეგიონისა და მუნიციპალიტეტის ნავიგაციებიც იტვირთება, რომ ხელახალი ანალიზისას null-ის მინიჭებამ FK ნამდვილად გაასუფთაოს
         //NotAttraction გვერდები ხელახლა დამუშავებისასაც გამოტოვებულია — ისინი ღირსშესანიშნაობის გვერდები არ არის
+        //DownloadError გვერდები მხოლოდ მაშინ იტვირთება, როცა მომხმარებელმა მათი ხელახლა ცდა მოითხოვა
         return
         [
             .. _context.Places.Include(i => i.BestSeasons)
                 .Include(i => i.Categories).ThenInclude(t => t.CategoryNavigation)
                 .Include(i => i.Tags).ThenInclude(t => t.TagNavigation)
                 .Include(i => i.Distances).ThenInclude(t => t.FromPointNavigation)
-                .Where(w => w.State != EState.NotAttraction && (includeAnalysed || w.State != EState.Analysed))
+                .Include(i => i.RegionNavigation)
+                .Include(i => i.MunicipalityNavigation)
+                .Where(w => w.State != EState.NotAttraction && (includeAnalysed || w.State != EState.Analysed) &&
+                            (includeDownloadErrors || w.State != EState.DownloadError))
                 .OrderBy(o => o.PlaceId)
         ];
     }
@@ -144,6 +151,26 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     public bool HasAnalysedPlaces()
     {
         return _context.Places.Any(a => a.State == EState.Analysed);
+    }
+
+    public bool HasDownloadErrorPlaces()
+    {
+        return _context.Places.Any(a => a.State == EState.DownloadError);
+    }
+
+    #endregion
+
+    #region UrlGraphNode cruder
+
+    public UrlGraphNode AddUrlGraphNode(UrlGraphNode newUrlGraphNode)
+    {
+        return _context.UrlGraphNodes.Add(newUrlGraphNode).Entity;
+    }
+
+    public List<UrlGraphNode> GetAllUrlGraphNodes()
+    {
+        //მხოლოდ გამეორებული კავშირების გასაფილტრად იკითხება — კონტექსტს მიბმა არ სჭირდება
+        return [.. _context.UrlGraphNodes.AsNoTracking()];
     }
 
     #endregion
@@ -180,6 +207,21 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         FromPointModel? fromPoint = _context.FromPoints.Local.FirstOrDefault(f => f.Name == fromPointName) ??
                                     _context.FromPoints.FirstOrDefault(f => f.Name == fromPointName);
         return fromPoint ?? _context.FromPoints.Add(new FromPointModel { Name = fromPointName }).Entity;
+    }
+
+    public RegionModel GetOrCreateRegion(string regionName)
+    {
+        RegionModel? region = _context.Regions.Local.FirstOrDefault(f => f.Name == regionName) ??
+                              _context.Regions.FirstOrDefault(f => f.Name == regionName);
+        return region ?? _context.Regions.Add(new RegionModel { Name = regionName }).Entity;
+    }
+
+    public MunicipalityModel GetOrCreateMunicipality(string municipalityName)
+    {
+        MunicipalityModel? municipality = _context.Municipalities.Local.FirstOrDefault(f =>
+                                              f.Name == municipalityName) ??
+                                          _context.Municipalities.FirstOrDefault(f => f.Name == municipalityName);
+        return municipality ?? _context.Municipalities.Add(new MunicipalityModel { Name = municipalityName }).Entity;
     }
 
     #endregion

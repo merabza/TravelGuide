@@ -23,7 +23,10 @@ public sealed class TravelGuideDbContext : DbContext
     public DbSet<PlaceByTag> PlacesByTags => Set<PlaceByTag>();
     public DbSet<FromPointModel> FromPoints => Set<FromPointModel>();
     public DbSet<DistanceByPlace> DistanceByPlaces => Set<DistanceByPlace>();
+    public DbSet<RegionModel> Regions => Set<RegionModel>();
+    public DbSet<MunicipalityModel> Municipalities => Set<MunicipalityModel>();
     public DbSet<MotorcycleModel> Motorcycles => Set<MotorcycleModel>();
+    public DbSet<UrlGraphNode> UrlGraphNodes => Set<UrlGraphNode>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
