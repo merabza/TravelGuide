@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using AppCliTools.CliMenu;
+using AppCliTools.LibDataInput;
 using AppCliTools.LibMenuInput;
 using DoTravelGuide.Models;
 using ParametersManagement.LibParameters;
@@ -18,12 +19,14 @@ namespace TravelGuide.Menu.Visits;
 // ReSharper disable once ConvertToPrimaryConstructor
 public sealed class RecommendedVisitsCommand : CliMenuCommand
 {
-    //რეკომენდებული ადგილების მაქსიმალური რაოდენობა
-    private const int RecommendedPlacesCount = 10;
-
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IParametersManager _parametersManager;
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;
+
+    //მიმდინარე პორციის ნომერი. გადაფურცვლისას იცვლება და მენიუს გადაწყობებს შორის ინახება
+    //(მაგალითად ადგილიდან უკან დაბრუნებისას იგივე პორცია რჩება); ქვემენიუში თავიდან შესვლისას
+    //ბრძანება ახლიდან იქმნება და სია ისევ პირველი პორციიდან იწყება
+    private int _currentPortionNumber;
 
     //მინიმალური გზის დრო ქვემენიუში შესვლისას ერთხელ ირჩევა და მენიუს ყოველ გადაწყობაზე
     //(მაგალითად ადგილიდან უკან დაბრუნებისას) ხელახლა აღარ იკითხება
@@ -89,17 +92,39 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
             {
                 ITravelGuideRepository repository = _travelGuideRepositoryCreatorFactory.GetTravelGuideRepository();
 
-                //ბაზიდან ამოირჩევა ჩემს კოორდინატებთან ყველაზე ახლოს მდებარე ადგილები, რომელთა
-                //გზის დროც არჩეულ მინიმუმზე ნაკლები არ არის
+                //პორციის ზომა მიმდინარე კონსოლის ფანჯრის სიმაღლიდან ითვლება CliMenuSet.Show-ს ფორმულის
+                //მიხედვით: 7 სტრიქონი სათაურს, ცარიელ სტრიქონებსა და არჩევანის მოთხოვნას მიაქვს, კიდევ 3 —
+                //Escape-სა და გადაფურცვლის ორ ღილაკს. პორცია ამ ზომას რომ აჭარბებდეს, CliMenuSet საკუთარ
+                //გადაფურცვლას ჩართავდა და მისი PageUp/PageDown გასაღებები ჩვენსას დაეჯახებოდა.
+                //62-ზე მეტ პუნქტს მენიუს გასაღებები (0-9, a-z, A-Z) აღარ ჰყოფნის
+                int portionSize = Math.Clamp(Console.WindowHeight - 10, 1, 62);
+
+                //ბაზიდან ამოირჩევა ჩემს კოორდინატებთან ყველაზე ახლოს მდებარე ადგილების მიმდინარე პორცია
+                //(რომელთა გზის დროც არჩეულ მინიმუმზე ნაკლები არ არის). ერთით მეტი ჩანაწერი ითხოვება,
+                //რომ გაირკვეს, არსებობს თუ არა შემდეგი პორცია
                 List<PlaceModel> nearestPlaces = repository.GetNearestPlaces(myPlace.Latitude, myPlace.Longitude,
-                    RecommendedPlacesCount, _minRoadTime);
+                    _currentPortionNumber * portionSize, portionSize + 1, _minRoadTime);
 
                 //თითო ადგილი თითო მენიუს პუნქტად: სახელად მხოლოდ დასახელება, ხოლო ბმული და კოორდინატები
                 //პუნქტის სტატუსში, ფრჩხილებში გამოდის
-                foreach (PlaceModel place in nearestPlaces)
+                foreach (PlaceModel place in nearestPlaces.Take(portionSize))
                 {
                     recommendedVisitsMenuSet.AddMenuItem(new RecommendedPlaceSubMenuCommand(
                         _travelGuideRepositoryCreatorFactory, _httpClientFactory, myPlace, place));
+                }
+
+                //გადაფურცვლის ღილაკები ფიზიკურ PageUp/PageDown კლავიშებზეა მიბმული ისევე, როგორც
+                //CliMenuSet-ის ჩაშენებულ გადაფურცვლაში, და მხოლოდ მაშინ ჩანს, როცა შესაბამისი პორცია არსებობს
+                if (_currentPortionNumber > 0)
+                {
+                    recommendedVisitsMenuSet.AddMenuItem(ConsoleKey.PageUp.Value().Pascalize(),
+                        new ChangePortionCommand("Page Up", () => _currentPortionNumber--));
+                }
+
+                if (nearestPlaces.Count > portionSize)
+                {
+                    recommendedVisitsMenuSet.AddMenuItem(ConsoleKey.PageDown.Value().Pascalize(),
+                        new ChangePortionCommand("Page Down", () => _currentPortionNumber++));
                 }
             }
         }

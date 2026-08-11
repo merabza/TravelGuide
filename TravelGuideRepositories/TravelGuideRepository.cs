@@ -175,7 +175,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         ];
     }
 
-    public List<PlaceModel> GetNearestPlaces(double latitude, double longitude, int count, TimeSpan minRoadTime)
+    public List<PlaceModel> GetNearestPlaces(double latitude, double longitude, int skip, int take, TimeSpan minRoadTime)
     {
         //გრძედის გრადუსი განედის გრადუსზე მოკლეა, ამიტომ გრძედის სხვაობა განედის კოსინუსით სწორდება
         double cosLatitude = Math.Cos(latitude * Math.PI / 180);
@@ -207,7 +207,9 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         }
 
         //დალაგებისთვის მანძილის კვადრატი საკმარისია — ფესვის ამოღება რიგითობას არ ცვლის.
-        //ადგილი თავისი ყველაზე ახლო ლოკაციით ლაგდება — Min კორელირებულ ქვემოთხოვნად ითარგმნება
+        //ადგილი თავისი ყველაზე ახლო ლოკაციით ლაგდება — Min კორელირებულ ქვემოთხოვნად ითარგმნება.
+        //სია პორციებად იტვირთება (Skip/Take → OFFSET/FETCH), ამიტომ დალაგება ცალსახა უნდა იყოს —
+        //თანაბარი მანძილებისას PlaceId წყვეტს, თორემ ჩანაწერი ორ პორციაში მოხვდებოდა ან საერთოდ გამორჩებოდა
         return
         [
             .. placesQuery
@@ -215,7 +217,9 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                     (l.LocationNavigation.Latitude - latitude) * (l.LocationNavigation.Latitude - latitude) +
                     (l.LocationNavigation.Longitude - longitude) * cosLatitude *
                     (l.LocationNavigation.Longitude - longitude) * cosLatitude))
-                .Take(count)
+                .ThenBy(o => o.PlaceId)
+                .Skip(skip)
+                .Take(take)
         ];
     }
 

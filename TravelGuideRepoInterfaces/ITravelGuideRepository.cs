@@ -28,7 +28,7 @@ public interface ITravelGuideRepository
     List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed, bool includeDownloadErrors);
     bool HasAnalysedPlaces();
     bool HasDownloadErrorPlaces();
-    List<PlaceModel> GetNearestPlaces(double latitude, double longitude, int count, TimeSpan minRoadTime);
+    List<PlaceModel> GetNearestPlaces(double latitude, double longitude, int skip, int take, TimeSpan minRoadTime);
     List<PlacePointItem> GetPlacePoints();
 
     UrlGraphNode AddUrlGraphNode(UrlGraphNode newUrlGraphNode);
