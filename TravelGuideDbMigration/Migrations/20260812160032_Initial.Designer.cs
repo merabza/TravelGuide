@@ -12,7 +12,7 @@ using TravelGuideDbPersistence;
 namespace TravelGuideDbMigration.Migrations
 {
     [DbContext(typeof(TravelGuideDbContext))]
-    [Migration("20260812150622_Initial")]
+    [Migration("20260812160032_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
