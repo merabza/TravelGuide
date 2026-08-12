@@ -158,6 +158,7 @@ namespace TravelGuideDbMigration.Migrations
                     PlaceId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    UrlHashCode = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     RegionId = table.Column<int>(type: "int", nullable: true),
                     MunicipalityId = table.Column<int>(type: "int", nullable: true),
@@ -433,10 +434,9 @@ namespace TravelGuideDbMigration.Migrations
                 column: "RegionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Places_Url",
+                name: "IX_Places_UrlHashCode",
                 table: "Places",
-                column: "Url",
-                unique: true);
+                column: "UrlHashCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PlacesByBestSeasons_MonthId",

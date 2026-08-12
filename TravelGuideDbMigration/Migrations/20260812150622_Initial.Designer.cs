@@ -12,7 +12,7 @@ using TravelGuideDbPersistence;
 namespace TravelGuideDbMigration.Migrations
 {
     [DbContext(typeof(TravelGuideDbContext))]
-    [Migration("20260811115805_Initial")]
+    [Migration("20260812150622_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -280,14 +280,16 @@ namespace TravelGuideDbMigration.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<int>("UrlHashCode")
+                        .HasColumnType("int");
+
                     b.HasKey("PlaceId");
 
                     b.HasIndex("MunicipalityId");
 
                     b.HasIndex("RegionId");
 
-                    b.HasIndex("Url")
-                        .IsUnique();
+                    b.HasIndex("UrlHashCode");
 
                     b.ToTable("Places", (string)null);
                 });

@@ -13,8 +13,8 @@ namespace TravelGuide.Runners;
 //მსგავსი მისამართები: ზუსტად საწყისი წერტილი ან მისი ქვეგვერდი
 public sealed class HarvestedUrlPersister
 {
-    //ბაზაში უკვე არსებული მისამართები ერთხელ იტვირთება და შენახვისას ივსება, რომ ბაზის განმეორებითი კითხვა არ დაჭირდეს
-    private readonly HashSet<string> _knownUrls;
+    //ამ გაშვებაში უკვე ნანახი მისამართები — თითო მისამართი ბაზაში ხეშ-კოდით მხოლოდ ერთხელ შემოწმდეს
+    private readonly HashSet<string> _knownUrls = new(StringComparer.Ordinal);
 
     //ბაზაში უკვე არსებული (FromUrlId, GotUrlId) წყვილები — ერთი და იგივე კავშირი მეორედ არ შეინახოს
     private readonly HashSet<(int FromUrlId, int GotUrlId)> _knownUrlPairs;
@@ -24,15 +24,14 @@ public sealed class HarvestedUrlPersister
     //საწყისი წერტილები ბოლო „/"-ის გარეშე და პრეფიქსად გამოსაყენებელი ფორმით
     private readonly List<(string Exact, string Prefix)> _startPointPatterns;
 
-    //მისამართი -> PlaceId, UrlGraphNodes-ის კავშირებისთვის; ახლად შენახულების იდენტიფიკატორები SaveChanges-ის შემდეგ ემატება
-    private readonly Dictionary<string, int> _urlIds;
+    //მისამართი -> PlaceId, UrlGraphNodes-ის კავშირებისთვის; ბაზაში ნაპოვნი და ახლად შენახული მისამართების
+    //იდენტიფიკატორებით თანდათან ივსება, რომ ბაზის განმეორებითი კითხვა არ დაჭირდეს
+    private readonly Dictionary<string, int> _urlIds = new(StringComparer.Ordinal);
 
     public HarvestedUrlPersister(ITravelGuideRepository repository, IEnumerable<string> startPoints)
     {
         _repository = repository;
         _startPointPatterns = [.. startPoints.Select(s => s.Trim().TrimEnd('/')).Select(s => (s, s + "/"))];
-        _urlIds = repository.GetPlaceIdsByUrl();
-        _knownUrls = new HashSet<string>(_urlIds.Keys, StringComparer.Ordinal);
         _knownUrlPairs = [.. repository.GetAllUrlGraphNodes().Select(s => (s.FromUrlId, s.GotUrlId))];
     }
 
@@ -52,7 +51,20 @@ public sealed class HarvestedUrlPersister
                 continue;
             }
 
-            addedPlaces.Add(_repository.AddPlace(new PlaceModel { Url = url, State = EState.New }));
+            //Url ბაზაში აღარ ინდექსირდება და უნიკალურობას აპლიკაცია იცავს: შენახვამდე ითვლება მისამართის
+            //ხეშ-კოდი, ბაზიდან ამოიკრიბება იგივე ხეშის მქონე ჩანაწერები და ზუსტი შედარებით მოწმდება,
+            //რომ ეს მისამართი უკვე შენახული არ არის
+            int urlHashCode = url.GetDeterministicHashCode();
+            if (_repository.GetPlaceIdsByUrlHashCode(urlHashCode).TryGetValue(url, out int existingPlaceId))
+            {
+                _urlIds[url] = existingPlaceId;
+                continue;
+            }
+
+            addedPlaces.Add(_repository.AddPlace(new PlaceModel
+            {
+                Url = url, UrlHashCode = urlHashCode, State = EState.New
+            }));
             newCount++;
         }
 
@@ -80,7 +92,7 @@ public sealed class HarvestedUrlPersister
     //მისამართებს შორის: ფილტრში ჩაჭრილი ან ზღვარგადაცილებული მისამართები ბაზაში არ არის და კავშირიც არ ჩაიწერება
     private void PersistUrlGraphNodes(string fromUrl, IReadOnlyCollection<string> urlList)
     {
-        if (!_urlIds.TryGetValue(fromUrl.TrimEnd('/'), out int fromUrlId))
+        if (!TryGetPlaceId(fromUrl.TrimEnd('/'), out int fromUrlId))
         {
             return;
         }
@@ -88,6 +100,7 @@ public sealed class HarvestedUrlPersister
         var newPairsCount = 0;
         foreach (string url in urlList.Select(s => s.TrimEnd('/')).Where(IsLikeStartPoint))
         {
+            //ნაპოვნი მისამართები PersistNewUrls-მა უკვე ჩაწერა ქეშში და ბაზაში ხელახლა ძებნა საჭირო აღარ არის;
             //გვერდის ბმული საკუთარ თავზე გრაფისთვის აზრს მოკლებულია და გამოიტოვება
             if (!_urlIds.TryGetValue(url, out int gotUrlId) || gotUrlId == fromUrlId ||
                 !_knownUrlPairs.Add((fromUrlId, gotUrlId)))
@@ -104,6 +117,24 @@ public sealed class HarvestedUrlPersister
             _repository.SaveChanges();
             Console.WriteLine($"New url graph nodes: {newPairsCount}");
         }
+    }
+
+    //მისამართის PlaceId ჯერ ამ გაშვების ქეშში იძებნება, შემდეგ ბაზაში ხეშ-კოდით — წყარო გვერდი (fromUrl)
+    //წინა გაშვებაში შენახული ჩანაწერიც შეიძლება იყოს, რომელიც ქეშში ჯერ არ მოხვედრილა
+    private bool TryGetPlaceId(string url, out int placeId)
+    {
+        if (_urlIds.TryGetValue(url, out placeId))
+        {
+            return true;
+        }
+
+        if (!_repository.GetPlaceIdsByUrlHashCode(url.GetDeterministicHashCode()).TryGetValue(url, out placeId))
+        {
+            return false;
+        }
+
+        _urlIds[url] = placeId;
+        return true;
     }
 
     private bool IsLikeStartPoint(string url)

@@ -7,6 +7,10 @@ public sealed class PlaceModel
     public int PlaceId { get; init; }
     public required string Url { get; init; }
 
+    //Url-ის დეტერმინისტული ხეშ-კოდი (StringExtension.GetDeterministicHashCode) — Url აღარ ინდექსირდება
+    //და ჩანაწერი ბაზაში ამ ველით იძებნება
+    public int UrlHashCode { get; init; }
+
     public string? Name { get; set; }
 
     public int? RegionId { get; set; }

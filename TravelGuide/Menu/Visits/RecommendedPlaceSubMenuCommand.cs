@@ -6,6 +6,7 @@ using System.Net.Http;
 using AppCliTools.CliMenu;
 using AppCliTools.CliParameters.CliMenuCommands;
 using DoTravelGuide.Models;
+using SystemTools.SystemToolsShared;
 using TravelGuide.Menu.Distances;
 using TravelGuideDbModels;
 using TravelGuideRepoInterfaces;
@@ -134,12 +135,10 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
         placeSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Air Distance",
             string.Create(CultureInfo.InvariantCulture, $"{airDistanceKm:F1}კმ")));
 
-        //გზის მანძილი და სავარაუდო დრო ავტომობილით, OSRM სერვისით
+        //გზის მანძილი და სავარაუდო დრო ავტომობილით — ჯერ ბაზიდან, დაუთვლელისთვის OSRM სერვისით
         if (!_roadRouteCounted)
         {
-            Console.WriteLine("Requesting road route from OSRM...");
-            _roadRoute = DistanceCounter.TryGetRoadRoute(_httpClientFactory, _myPlace.Latitude, _myPlace.Longitude,
-                _location.Latitude, _location.Longitude);
+            _roadRoute = GetOrCountRoadRoute(airDistanceKm);
             _roadRouteCounted = true;
         }
 
@@ -157,5 +156,50 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
 
         placeSubMenuSet.AddEscapeCommand("Exit to Recommended Visits menu");
         return placeSubMenuSet;
+    }
+
+    //გზის მარშრუტი ჯერ RouteDistances ცხრილში იძებნება და OSRM-ს მხოლოდ დაუთვლელი წყვილისთვის მიემართება;
+    //მიღებული პასუხი იმავე ცხრილში ინახება, რომ ამ წყვილზე API-ს მიმართვა მომავალშიც აღარ დასჭირდეს.
+    //GetSubMenu გამონაკლისების დამუშავების გარეთ ეშვება, ამიტომ შეცდომისას აქედან გამონაკლისი არ გადის —
+    //null ბრუნდება და მენიუ გზის მონაცემების გარეშე აეწყობა
+    private (double DistanceKm, TimeSpan Duration)? GetOrCountRoadRoute(double airDistanceKm)
+    {
+        try
+        {
+            ITravelGuideRepository repository = _travelGuideRepositoryCreatorFactory.GetTravelGuideRepository();
+            RouteDistanceModel? existingRouteDistance = repository.GetRouteDistance(_myPlace.Latitude,
+                _myPlace.Longitude, _location.Latitude, _location.Longitude);
+            if (existingRouteDistance is not null)
+            {
+                return (existingRouteDistance.RoadDistance, existingRouteDistance.RoadTime);
+            }
+
+            Console.WriteLine("Requesting road route from OSRM...");
+            (double DistanceKm, TimeSpan Duration)? roadRoute = DistanceCounter.TryGetRoadRoute(_httpClientFactory,
+                _myPlace.Latitude, _myPlace.Longitude, _location.Latitude, _location.Longitude);
+            if (roadRoute is null)
+            {
+                return null;
+            }
+
+            //Calculate Distances-ის ჩანაწერის იდენტური სტრუქტურა — საჰაერო მანძილიც წყვილთან ერთად ინახება
+            repository.AddRouteDistance(new RouteDistanceModel
+            {
+                StartLatitude = _myPlace.Latitude,
+                StartLongitude = _myPlace.Longitude,
+                EndLatitude = _location.Latitude,
+                EndLongitude = _location.Longitude,
+                AirDistance = airDistanceKm,
+                RoadDistance = roadRoute.Value.DistanceKm,
+                RoadTime = roadRoute.Value.Duration
+            });
+            repository.SaveChanges();
+            return roadRoute;
+        }
+        catch (Exception e)
+        {
+            StShared.WriteException(e, true);
+            return null;
+        }
     }
 }

@@ -6,7 +6,7 @@ namespace TravelGuideDbPersistence.Configurations;
 
 public sealed class PlaceModelConfiguration : IEntityTypeConfiguration<PlaceModel>
 {
-    //Url-ის სიგრძე 850-ს არ უნდა აღემატებოდეს, რადგან SQL Server-ის უნიკალური ინდექსის გასაღების ლიმიტი 1700 ბაიტია
+    //Url აღარ ინდექსირდება — სიგრძის ზღვარი მხოლოდ სვეტის ზომაა და ზედმეტად გრძელი მისამართების გამოსატოვებლად გამოიყენება
     public const int UrlLength = 500;
     public const int NameLength = 200;
 
@@ -16,7 +16,10 @@ public sealed class PlaceModelConfiguration : IEntityTypeConfiguration<PlaceMode
         builder.ToTable(tableName);
 
         builder.HasKey(e => e.PlaceId);
-        builder.HasIndex(e => e.Url).IsUnique();
+
+        //Url-ის მაგივრად მისი დეტერმინისტული ხეშ-კოდი ინდექსირდება — ინდექსი არაუნიკალურია (სხვადასხვა Url-ს
+        //იშვიათად ერთი ხეში შეიძლება ჰქონდეს); Url-ის უნიკალურობას აპლიკაცია იცავს შენახვამდე შემოწმებით
+        builder.HasIndex(e => e.UrlHashCode);
 
         builder.Property(e => e.Url).HasMaxLength(UrlLength);
         builder.Property(e => e.Name).HasMaxLength(NameLength);

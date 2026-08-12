@@ -121,10 +121,11 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return _context.Places.Add(newPlace).Entity;
     }
 
-    public Dictionary<string, int> GetPlaceIdsByUrl()
+    public Dictionary<string, int> GetPlaceIdsByUrlHashCode(int urlHashCode)
     {
-        //მხოლოდ ორი სვეტი იტვირთება და ენთითები კონტექსტს არ ებმება
-        return _context.Places.Select(s => new { s.Url, s.PlaceId })
+        //ინდექსირებული ხეშ-კოდით ამოკრებილი (ჩვეულებრივ 0 ან 1) ჩანაწერი — Url-ის ზუსტ შედარებას გამომძახებელი
+        //აკეთებს; მხოლოდ ორი სვეტი იტვირთება და ენთითები კონტექსტს არ ებმება
+        return _context.Places.Where(w => w.UrlHashCode == urlHashCode).Select(s => new { s.Url, s.PlaceId })
             .ToDictionary(k => k.Url, v => v.PlaceId, StringComparer.Ordinal);
     }
 
@@ -133,6 +134,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         //ThenInclude აუცილებელია: ბმულების სინქრონიზაცია lookup-ობიექტების იგივეობით ადარებს და დაუტვირთავი ნავიგაცია გამონაკლისს ისვრის
         //რეგიონისა და მუნიციპალიტეტის ნავიგაციებიც იტვირთება, რომ ხელახალი ანალიზისას null-ის მინიჭებამ FK ნამდვილად გაასუფთაოს
         //NotAttraction გვერდები ხელახლა დამუშავებისასაც გამოტოვებულია — ისინი ღირსშესანიშნაობის გვერდები არ არის
+        //Duplicate გვერდებიც სამუდამოდ გამოტოვებულია — მათ შიგთავსს კანონიკური მისამართის ჩანაწერი ფარავს
         //DownloadError გვერდები მხოლოდ მაშინ იტვირთება, როცა მომხმარებელმა მათი ხელახლა ცდა მოითხოვა
         return
         [
@@ -143,7 +145,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                 .Include(i => i.Locations).ThenInclude(t => t.LocationNavigation)
                 .Include(i => i.RegionNavigation)
                 .Include(i => i.MunicipalityNavigation)
-                .Where(w => w.State != EState.NotAttraction && (includeAnalysed || w.State != EState.Analysed) &&
+                .Where(w => w.State != EState.NotAttraction && w.State != EState.Duplicate &&
+                            (includeAnalysed || w.State != EState.Analysed) &&
                             (includeDownloadErrors || w.State != EState.DownloadError))
                 .OrderBy(o => o.PlaceId)
         ];
@@ -175,7 +178,9 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         //თითო ჩანაწერი ადგილი-ლოკაციის ბმულია — მრავალლოკაციიანი ადგილი სიაში იმდენჯერ ჩნდება, რამდენი
         //ლოკაციაც აქვს (ულოკაციო ადგილი ბმულების გარეშე თავისთავად გამოირიცხება). ადგილის ნავიგაციები
         //ქვემენიუს საინფორმაციო პუნქტებისთვის იტვირთება, Locations — პუნქტის სახელში ლოკაციის რიგითი
-        //ნომრის დასათვლელად (მხოლოდ ბმულები, სხვა ლოკაციების კოორდინატები საჭირო არ არის)
+        //ნომრის დასათვლელად (მხოლოდ ბმულები, სხვა ლოკაციების კოორდინატები საჭირო არ არის).
+        //დუბლიკატად მონიშნული ადგილების ბმულები გამოირიცხება — იგივე ადგილი კანონიკური მისამართის
+        //ჩანაწერით არის წარმოდგენილი და მენიუში ორჯერ არ უნდა გამოჩნდეს
         IQueryable<PlaceByLocation> placeLocationsQuery = _context.PlacesByLocations
             .Include(i => i.LocationNavigation)
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.BestSeasons).ThenInclude(t => t.MonthNavigation)
@@ -183,7 +188,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.Distances).ThenInclude(t => t.FromPointNavigation)
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.Locations)
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.RegionNavigation)
-            .Include(i => i.PlaceNavigation).ThenInclude(t => t.MunicipalityNavigation);
+            .Include(i => i.PlaceNavigation).ThenInclude(t => t.MunicipalityNavigation)
+            .Where(w => w.PlaceNavigation.State != EState.Duplicate);
 
         //მინიმალური გზის დროის მოთხოვნისას რჩება მხოლოდ ის ლოკაციები, რომლებამდეც დათვლილი გზის დრო
         //ზღვარს აღწევს. კოორდინატები ზუსტად დარდება — RouteDistances-ში ზუსტად Locations-ისა და
@@ -362,6 +368,18 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     public RouteDistanceModel AddRouteDistance(RouteDistanceModel newRouteDistance)
     {
         return _context.RouteDistances.Add(newRouteDistance).Entity;
+    }
+
+    //წყვილი ზუსტი კოორდინატებით იძებნება — RouteDistances-ში ზუსტად პარამეტრებისა და Locations-ის
+    //მნიშვნელობები იწერება და უნიკალური ინდექსიც ზუსტ ტოლობას ამოწმებს
+    public RouteDistanceModel? GetRouteDistance(double startLatitude, double startLongitude, double endLatitude,
+        double endLongitude)
+    {
+#pragma warning disable S1244
+        return _context.RouteDistances.FirstOrDefault(f =>
+            f.StartLatitude == startLatitude && f.StartLongitude == startLongitude &&
+            f.EndLatitude == endLatitude && f.EndLongitude == endLongitude);
+#pragma warning restore S1244
     }
 
     public List<RouteDistanceModel> GetAllRouteDistances()

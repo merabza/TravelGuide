@@ -112,6 +112,23 @@ public sealed class PlaceAnalyser
                 return false;
             }
 
+            //ზოგი მისამართი საიტზე მუდმივი გადამისამართებით სხვა (კანონიკურ) მისამართზე გადადის და HttpClient
+            //მას ჩუმად მიჰყვება — ორივე მისამართი ერთსა და იმავე გვერდს ცალ-ცალკე ჩანაწერად ინახავდა.
+            //საბოლოო მისამართი place-ის შეცვლამდე რიგში ემატება (კანონიკურ გვერდს ამავე გაშვების ციკლი
+            //დაამუშავებს), place.Url წყარო გვერდად გადაეცემა, რომ დუბლიკატი→კანონიკური კავშირი
+            //UrlGraphNodes-შიც ჩაიწეროს, თავად ჩანაწერი კი დუბლიკატად ინიშნება და ანალიზში აღარ ბრუნდება.
+            //მხოლოდ ბოლო „/"-ით განსხვავება გადამისამართებად არ ითვლება — ბაზაში მისამართები უიმისოდ ინახება.
+            //შიგთავსი განზრახ არ იპარსება: ბმულები კანონიკური გვერდისაა და ძველ მისამართს მიეწერებოდა
+            string finalUrl = (response.RequestMessage?.RequestUri ?? pageUri).AbsoluteUri.TrimEnd('/');
+            if (!finalUrl.Equals(pageUri.AbsoluteUri.TrimEnd('/'), StringComparison.Ordinal))
+            {
+                _urlPersister.PersistNewUrls([finalUrl], place.Url);
+                place.State = EState.Duplicate;
+                _repository.SaveChanges();
+                Console.WriteLine($"Duplicate page (redirected to {finalUrl}): {place.Url}");
+                return true;
+            }
+
             string html = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             using IHtmlDocument document =
                 await new HtmlParser().ParseDocumentAsync(html, cancellationToken).ConfigureAwait(false);

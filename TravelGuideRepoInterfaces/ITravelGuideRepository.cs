@@ -24,7 +24,7 @@ public interface ITravelGuideRepository
     TaskStartPoint DeleteStartPoint(TaskStartPoint startPointForDelete);
 
     PlaceModel AddPlace(PlaceModel newPlace);
-    Dictionary<string, int> GetPlaceIdsByUrl();
+    Dictionary<string, int> GetPlaceIdsByUrlHashCode(int urlHashCode);
     List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed, bool includeDownloadErrors);
     bool HasAnalysedPlaces();
     bool HasDownloadErrorPlaces();
@@ -54,5 +54,9 @@ public interface ITravelGuideRepository
     List<VisitListItem> GetLastVisits(int count);
 
     RouteDistanceModel AddRouteDistance(RouteDistanceModel newRouteDistance);
+
+    RouteDistanceModel? GetRouteDistance(double startLatitude, double startLongitude, double endLatitude,
+        double endLongitude);
+
     List<RouteDistanceModel> GetAllRouteDistances();
 }

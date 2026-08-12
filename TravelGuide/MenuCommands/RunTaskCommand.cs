@@ -82,7 +82,7 @@ public sealed class RunTaskCommand : CliMenuCommand
         httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("TravelGuideBot", "1.0"));
 
         //ფაზა 1: მისამართები ბაზაში ჩამოსატვირთი (New) სტატუსით ინახება — მხოლოდ საწყისი წერტილების მსგავსი.
-        //საზიარო persister ბაზაში არსებულ მისამართებს ერთხელ ტვირთავს და ორივე ფაზას ემსახურება
+        //საზიარო persister მისამართებს ბაზაში ხეშ-კოდით ამოწმებს, ნანახებს იმახსოვრებს და ორივე ფაზას ემსახურება
         var urlPersister = new HarvestedUrlPersister(repository, task.StartPoints.Select(s => s.StartPoint));
 
         //საწყისი წერტილებიც ჩამოსატვირთების რიგში დგება — მათი გვერდებიდან ბმულების ამოკრება ანალიზის ფაზაში მოხდება

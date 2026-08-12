@@ -1,6 +1,6 @@
 -- შეცდომიანი (DownloadError) გვერდები და წყარო გვერდები, რომლებზეც მათი მისამართები მოიძებნა.
 -- State მნიშვნელობები (EState enum, int-ად ინახება):
---   0=New, 1=Opening, 2=Opened, 3=Analysing, 4=Analysed, 5=NotAttraction, 6=DownloadError
+--   0=New, 1=Opening, 2=Opened, 3=Analysing, 4=Analysed, 5=NotAttraction, 6=DownloadError, 7=Duplicate
 --
 -- UrlGraphNodes-ში წიბო ნიშნავს: FromUrlId გვერდზე მოიძებნა GotUrlId მისამართი.
 -- LEFT JOIN იმიტომ, რომ sitemap-იდან მოსულ ან საწყის წერტილად ჩასმულ მისამართებს
