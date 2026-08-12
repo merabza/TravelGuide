@@ -29,7 +29,7 @@ public interface ITravelGuideRepository
     bool HasAnalysedPlaces();
     bool HasDownloadErrorPlaces();
     List<PlaceByLocation> GetNearestPlaces(double latitude, double longitude, int skip, int take,
-        TimeSpan minRoadTime);
+        TimeSpan minRoadTime, int maxVisitsCount);
     List<LocationModel> GetAllLocations();
 
     UrlGraphNode AddUrlGraphNode(UrlGraphNode newUrlGraphNode);
@@ -52,6 +52,11 @@ public interface ITravelGuideRepository
 
     VisitModel CreateVisit(VisitModel newVisit);
     List<VisitListItem> GetLastVisits(int count);
+    List<VisitModel> GetVisitsByPlaceId(int placeId);
+    Dictionary<int, int> GetVisitCountsByPlaceIds(List<int> placeIds);
+    VisitModel? GetVisitById(int visitId);
+    VisitModel UpdateVisit(VisitModel visit);
+    VisitModel DeleteVisit(VisitModel visitForDelete);
 
     RouteDistanceModel AddRouteDistance(RouteDistanceModel newRouteDistance);
 

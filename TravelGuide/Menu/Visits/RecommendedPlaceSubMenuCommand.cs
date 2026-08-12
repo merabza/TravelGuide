@@ -31,17 +31,18 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
     //მრავალლოკაციიანი ადგილი სიაში თითო ლოკაციაზე თითოჯერ გამოდის და ეს პუნქტი მხოლოდ ერთ,
     //გადმოცემულ ლოკაციას წარმოადგენს — სტატუსში, დეტალებში, მარშრუტსა და მანძილებში ის გამოიყენება
     public RecommendedPlaceSubMenuCommand(ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory,
-        IHttpClientFactory httpClientFactory, MyPlace myPlace, PlaceModel place, LocationModel location) : base(
-        GetCaptionName(place, location), EMenuAction.LoadSubMenu)
+        IHttpClientFactory httpClientFactory, MyPlace myPlace, PlaceModel place, LocationModel location,
+        int visitsCount) : base(GetCaptionName(place, location), EMenuAction.LoadSubMenu)
     {
         _travelGuideRepositoryCreatorFactory = travelGuideRepositoryCreatorFactory;
         _httpClientFactory = httpClientFactory;
         _myPlace = myPlace;
         _place = place;
         _location = location;
-        //კოორდინატები მძიმით არის გამოყოფილი, რომ Google Maps-ის ძებნაში პირდაპირ ჩაკოპირება შეიძლებოდეს
+        //სტატუსის თავში ამ ადგილზე უკვე დაფიქსირებული ვიზიტების რაოდენობა გამოდის; კოორდინატები მძიმით
+        //არის გამოყოფილი, რომ Google Maps-ის ძებნაში პირდაპირ ჩაკოპირება შეიძლებოდეს
         _status = string.Create(CultureInfo.InvariantCulture,
-            $"{place.Url} | {location.Latitude}, {location.Longitude}");
+            $"{visitsCount} | {place.Url} | {location.Latitude}, {location.Longitude}");
         //Google Maps-ის მარშრუტის ბმული: საწყისი წერტილი ჩემი მიმდინარე ადგილმდებარეობაა, საბოლოო — ეს ლოკაცია
         _directionsUrl = string.Create(CultureInfo.InvariantCulture,
             $"https://www.google.com/maps/dir/?api=1&origin={myPlace.Latitude},{myPlace.Longitude}&destination={location.Latitude},{location.Longitude}");
@@ -59,8 +60,7 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
         }
 
         List<int> locationIds = [.. place.Locations.Select(s => s.LocationId).Order()];
-        return string.Create(CultureInfo.InvariantCulture,
-            $"{name} ({locationIds.IndexOf(location.LocationId) + 1})");
+        return string.Create(CultureInfo.InvariantCulture, $"{name}_{locationIds.IndexOf(location.LocationId) + 1}");
     }
 
     //ბმული და კოორდინატები მენიუში ფრჩხილებში გამოდის და პუნქტის სახელის ნაწილი არ არის,
@@ -125,8 +125,7 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
             placeSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Distances",
                 string.Join(", ",
                     _place.Distances.OrderBy(o => o.Distance).Select(s =>
-                        string.Create(CultureInfo.InvariantCulture,
-                            $"{s.Distance}კმ {s.FromPointNavigation.Name}")))));
+                        string.Create(CultureInfo.InvariantCulture, $"{s.Distance}კმ {s.FromPointNavigation.Name}")))));
         }
 
         //გამოთვლილი საჰაერო მანძილი ჩემი მიმდინარე ადგილმდებარეობიდან ამ პუნქტის ლოკაციამდე
@@ -153,6 +152,22 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
 
         //ამ ადგილზე ახალი ვიზიტის დაფიქსირება
         placeSubMenuSet.AddMenuItem(new NewVisitCommand(_travelGuideRepositoryCreatorFactory, _place.PlaceId));
+
+        try
+        {
+            //ამ ადგილზე უკვე დაფიქსირებული ვიზიტების ჩამონათვალი — ვიზიტის არჩევა რედაქტირების ქვემენიუს ხსნის
+            ITravelGuideRepository repository = _travelGuideRepositoryCreatorFactory.GetTravelGuideRepository();
+            var visitCruder = new VisitCruder(repository, _place.PlaceId);
+            foreach (KeyValuePair<string, VisitModel> keyedVisit in visitCruder.GetKeyedVisits())
+            {
+                placeSubMenuSet.AddMenuItem(new VisitSubMenuCommand(visitCruder, keyedVisit.Value.VisitId,
+                    keyedVisit.Key));
+            }
+        }
+        catch (Exception e)
+        {
+            StShared.WriteException(e, true);
+        }
 
         placeSubMenuSet.AddEscapeCommand("Exit to Recommended Visits menu");
         return placeSubMenuSet;

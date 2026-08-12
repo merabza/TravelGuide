@@ -28,6 +28,10 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
     //ბრძანება ახლიდან იქმნება და სია ისევ პირველი პორციიდან იწყება
     private int _currentPortionNumber;
 
+    //მაქსიმალური ვიზიტების რაოდენობაც ქვემენიუში შესვლისას ერთხელ შეჰყავს მომხმარებელს და მენიუს
+    //გადაწყობებზე ხელახლა აღარ იკითხება
+    private int _maxVisitsCount;
+
     //მინიმალური გზის დრო ქვემენიუში შესვლისას ერთხელ ირჩევა და მენიუს ყოველ გადაწყობაზე
     //(მაგალითად ადგილიდან უკან დაბრუნებისას) ხელახლა აღარ იკითხება
     private TimeSpan _minRoadTime;
@@ -53,17 +57,29 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
         if (minDistanceTimes.Count == 0)
         {
             _minRoadTime = TimeSpan.Zero;
-            return ValueTask.FromResult(true);
+        }
+        else
+        {
+            List<string> keys = [.. minDistanceTimes.Select(MinDistanceTimeCruder.GetKey)];
+            var selectFromListInput = new SelectFromListInput("Minimal Road Time", keys, keys[0]);
+            if (!selectFromListInput.DoInput() || selectFromListInput.Text is null)
+            {
+                return ValueTask.FromResult(false);
+            }
+
+            _minRoadTime = minDistanceTimes[keys.IndexOf(selectFromListInput.Text)];
         }
 
-        List<string> keys = [.. minDistanceTimes.Select(MinDistanceTimeCruder.GetKey)];
-        var selectFromListInput = new SelectFromListInput("Minimal Road Time", keys, keys[0]);
-        if (!selectFromListInput.DoInput() || selectFromListInput.Text is null)
+        //მაქსიმალური ვიზიტების რაოდენობა — სიაში დარჩება მხოლოდ ის ადგილები, რომლებზეც ვიზიტები ამდენჯერ
+        //ან ნაკლებჯერაა დაფიქსირებული. შემყვანი მხოლოდ ციფრებს იღებს, ამიტომ უარყოფითი რიცხვი ვერ
+        //შეიყვანება; ცარიელ შეყვანაზე Enter ნაგულისხმევ 0-ს ირჩევს — მხოლოდ მოუნახულებელი ადგილები რჩება
+        var maxVisitsCountInput = new IntDataInput("Maximal Visits Count");
+        if (!maxVisitsCountInput.DoInput())
         {
             return ValueTask.FromResult(false);
         }
 
-        _minRoadTime = minDistanceTimes[keys.IndexOf(selectFromListInput.Text)];
+        _maxVisitsCount = maxVisitsCountInput.Value;
         return ValueTask.FromResult(true);
     }
 
@@ -100,19 +116,27 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
                 int portionSize = Math.Clamp(Console.WindowHeight - 10, 1, 62);
 
                 //ბაზიდან ამოირჩევა ჩემს კოორდინატებთან ყველაზე ახლოს მდებარე ადგილი-ლოკაციის ბმულების
-                //მიმდინარე პორცია (რომლებამდე გზის დროც არჩეულ მინიმუმზე ნაკლები არ არის). ერთით მეტი
-                //ჩანაწერი ითხოვება, რომ გაირკვეს, არსებობს თუ არა შემდეგი პორცია
+                //მიმდინარე პორცია (რომლებამდე გზის დროც არჩეულ მინიმუმზე ნაკლები არ არის და რომლების
+                //ვიზიტების რაოდენობაც შეყვანილ მაქსიმუმს არ აღემატება). ერთით მეტი ჩანაწერი ითხოვება,
+                //რომ გაირკვეს, არსებობს თუ არა შემდეგი პორცია
                 List<PlaceByLocation> nearestPlaceLocations = repository.GetNearestPlaces(myPlace.Latitude,
-                    myPlace.Longitude, _currentPortionNumber * portionSize, portionSize + 1, _minRoadTime);
+                    myPlace.Longitude, _currentPortionNumber * portionSize, portionSize + 1, _minRoadTime,
+                    _maxVisitsCount);
+
+                //პორციის ადგილებზე დაფიქსირებული ვიზიტების რაოდენობები ერთი მოთხოვნით იტვირთება —
+                //თითო პუნქტის სტატუსის თავში გამოსატანად
+                List<int> placeIds = [.. nearestPlaceLocations.Take(portionSize).Select(s => s.PlaceId).Distinct()];
+                Dictionary<int, int> visitCounts = repository.GetVisitCountsByPlaceIds(placeIds);
 
                 //თითო ადგილი-ლოკაციის წყვილი თითო მენიუს პუნქტად — მრავალლოკაციიანი ადგილი იმდენჯერ გამოდის,
-                //რამდენი ლოკაციაც აქვს. სახელად დასახელება, ხოლო ბმული და კოორდინატები პუნქტის სტატუსში,
-                //ფრჩხილებში გამოდის
+                //რამდენი ლოკაციაც აქვს. სახელად დასახელება, ხოლო ვიზიტების რაოდენობა, ბმული და კოორდინატები
+                //პუნქტის სტატუსში, ფრჩხილებში გამოდის
                 foreach (PlaceByLocation placeByLocation in nearestPlaceLocations.Take(portionSize))
                 {
                     recommendedVisitsMenuSet.AddMenuItem(new RecommendedPlaceSubMenuCommand(
                         _travelGuideRepositoryCreatorFactory, _httpClientFactory, myPlace,
-                        placeByLocation.PlaceNavigation, placeByLocation.LocationNavigation));
+                        placeByLocation.PlaceNavigation, placeByLocation.LocationNavigation,
+                        visitCounts.GetValueOrDefault(placeByLocation.PlaceId)));
                 }
 
                 //გადაფურცვლის ღილაკები ფიზიკურ PageUp/PageDown კლავიშებზეა მიბმული ისევე, როგორც
