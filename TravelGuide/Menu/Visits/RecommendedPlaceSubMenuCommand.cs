@@ -65,7 +65,7 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
 
     //ბმული და კოორდინატები მენიუში ფრჩხილებში გამოდის და პუნქტის სახელის ნაწილი არ არის,
     //რომ ქვემენიუზე გადასვლისას მენიუს გზაში მხოლოდ სათაური გამოჩნდეს
-    protected override string? GetStatus()
+    protected override string GetStatus()
     {
         return _status;
     }
