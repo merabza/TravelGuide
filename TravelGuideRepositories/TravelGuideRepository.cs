@@ -136,6 +136,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         //NotAttraction გვერდები ხელახლა დამუშავებისასაც გამოტოვებულია — ისინი ღირსშესანიშნაობის გვერდები არ არის
         //Duplicate გვერდებიც სამუდამოდ გამოტოვებულია — მათ შიგთავსს კანონიკური მისამართის ჩანაწერი ფარავს
         //DownloadError გვერდები მხოლოდ მაშინ იტვირთება, როცა მომხმარებელმა მათი ხელახლა ცდა მოითხოვა
+        //AsSplitQuery: რამდენიმე კოლექციის ერთ SQL-ში ჩატვირთვა მწკრივებს კარტეზიულად ამრავლებს —
+        //თითო კოლექცია ცალკე მოთხოვნით იტვირთება (დალაგება PlaceId-ით ცალსახაა, პორციები არ ირევა)
         return
         [
             .. _context.Places.Include(i => i.BestSeasons)
@@ -145,6 +147,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                 .Include(i => i.Locations).ThenInclude(t => t.LocationNavigation)
                 .Include(i => i.RegionNavigation)
                 .Include(i => i.MunicipalityNavigation)
+                .AsSplitQuery()
                 .Where(w => w.State != EState.NotAttraction && w.State != EState.Duplicate &&
                             (includeAnalysed || w.State != EState.Analysed) &&
                             (includeDownloadErrors || w.State != EState.DownloadError))
@@ -180,7 +183,9 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         //ქვემენიუს საინფორმაციო პუნქტებისთვის იტვირთება, Locations — პუნქტის სახელში ლოკაციის რიგითი
         //ნომრის დასათვლელად (მხოლოდ ბმულები, სხვა ლოკაციების კოორდინატები საჭირო არ არის).
         //დუბლიკატად მონიშნული ადგილების ბმულები გამოირიცხება — იგივე ადგილი კანონიკური მისამართის
-        //ჩანაწერით არის წარმოდგენილი და მენიუში ორჯერ არ უნდა გამოჩნდეს
+        //ჩანაწერით არის წარმოდგენილი და მენიუში ორჯერ არ უნდა გამოჩნდეს.
+        //AsSplitQuery: რამდენიმე კოლექციის ერთ SQL-ში ჩატვირთვა მწკრივებს კარტეზიულად ამრავლებს —
+        //თითო კოლექცია ცალკე მოთხოვნით იტვირთება (Skip/Take-ისთვის საჭირო ცალსახა დალაგება ქვემოთ უკვე დგას)
         IQueryable<PlaceByLocation> placeLocationsQuery = _context.PlacesByLocations
             .Include(i => i.LocationNavigation)
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.BestSeasons).ThenInclude(t => t.MonthNavigation)
@@ -189,6 +194,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.Locations)
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.RegionNavigation)
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.MunicipalityNavigation)
+            .AsSplitQuery()
             .Where(w => w.PlaceNavigation.State != EState.Duplicate);
 
         //მინიმალური გზის დროის მოთხოვნისას რჩება მხოლოდ ის ლოკაციები, რომლებამდეც დათვლილი გზის დრო
