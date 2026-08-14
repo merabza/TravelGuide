@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
-using SeleniumExtras.WaitHelpers;
 
 namespace TravelGuide.Runners;
 
@@ -173,10 +172,16 @@ public sealed class GeorgianTravelGuideRunner
             Equals(((IJavaScriptExecutor)driver).ExecuteScript("return document.readyState"), "complete"));
     }
 
+    //SeleniumExtras.WaitHelpers-ის ExpectedConditions ვეღარ გამოიყენება — Selenium.WebDriver 4.47+-ში ასემბლის სახელი შეიცვალა და ძველი პაკეტი ვეღარ ერგება
     private void WaitForElementToBeClickable(By by)
     {
         var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
-        wait.Until(ExpectedConditions.ElementToBeClickable(by));
+        wait.IgnoreExceptionTypes(typeof(StaleElementReferenceException));
+        wait.Until(driver =>
+        {
+            var element = driver.FindElement(by);
+            return element is { Displayed: true, Enabled: true };
+        });
     }
 
     //private void WaitForElementToBeVisible(By by)
