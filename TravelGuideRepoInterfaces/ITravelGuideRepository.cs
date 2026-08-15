@@ -58,6 +58,11 @@ public interface ITravelGuideRepository
     VisitModel UpdateVisit(VisitModel visit);
     VisitModel DeleteVisit(VisitModel visitForDelete);
 
+    List<VisitImage> GetVisitImages(int visitId);
+    VisitImage? GetVisitImage(int visitId, string fileName);
+    VisitImage AddVisitImage(int visitId, string fileName);
+    VisitImage DeleteVisitImage(VisitImage visitImageForDelete);
+
     RouteDistanceModel AddRouteDistance(RouteDistanceModel newRouteDistance);
 
     RouteDistanceModel? GetRouteDistance(double startLatitude, double startLongitude, double endLatitude,

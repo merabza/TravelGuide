@@ -378,11 +378,12 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         //ერთი ადგილის ვიზიტები თარიღის კლებადობით — ბოლო ვიზიტი სიის თავშია.
         //მოუბმელი ასლები ბრუნდება: ველების რედაქტორები მათ პირდაპირ ცვლიან და შეყვანის შეწყვეტისას
         //ნახევრად შეცვლილი ჩანაწერი საზიარო კონტექსტში არ უნდა დარჩეს — შენახვისას ბმული ჩანაწერი
-        //GetVisitById-ით ცალკე მოიძებნება
+        //GetVisitById-ით ცალკე მოიძებნება.
+        //სურათები ვიზიტთან ერთად იტვირთება — მათი რაოდენობა ველის რედაქტორის სტატუსში ჩანს
         return
         [
-            .. _context.Visits.AsNoTracking().Where(w => w.PlaceId == placeId).OrderByDescending(o => o.VisitDate)
-                .ThenByDescending(o => o.VisitId)
+            .. _context.Visits.AsNoTracking().Include(i => i.Images).Where(w => w.PlaceId == placeId)
+                .OrderByDescending(o => o.VisitDate).ThenByDescending(o => o.VisitId)
         ];
     }
 
@@ -407,6 +408,26 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     public VisitModel DeleteVisit(VisitModel visitForDelete)
     {
         return _context.Visits.Remove(visitForDelete).Entity;
+    }
+
+    public List<VisitImage> GetVisitImages(int visitId)
+    {
+        return [.. _context.VisitImages.Where(w => w.VisitId == visitId).OrderBy(o => o.FileName)];
+    }
+
+    public VisitImage? GetVisitImage(int visitId, string fileName)
+    {
+        return _context.VisitImages.SingleOrDefault(w => w.VisitId == visitId && w.FileName == fileName);
+    }
+
+    public VisitImage AddVisitImage(int visitId, string fileName)
+    {
+        return _context.VisitImages.Add(new VisitImage { VisitId = visitId, FileName = fileName }).Entity;
+    }
+
+    public VisitImage DeleteVisitImage(VisitImage visitImageForDelete)
+    {
+        return _context.VisitImages.Remove(visitImageForDelete).Entity;
     }
 
     #endregion

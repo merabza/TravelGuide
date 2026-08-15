@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AppCliTools.CliParameters.Cruders;
+using AppCliTools.CliParameters.FieldEditors;
+using ParametersManagement.LibParameters;
 using SystemTools.SystemToolsShared;
 using TravelGuide.FieldEditors;
 using TravelGuideDbModels;
@@ -22,12 +24,16 @@ public sealed class VisitCruder : Cruder
     private readonly ITravelGuideRepository _travelGuideRepository;
 
     //fieldKeyFromItem=true — ვიზიტს რედაქტირებადი სახელი არ აქვს და Record Name ველი არ სჭირდება
-    public VisitCruder(ITravelGuideRepository travelGuideRepository, int placeId) : base("Visit", "Visits", true)
+    public VisitCruder(ITravelGuideRepository travelGuideRepository, int placeId,
+        IParametersManager parametersManager) : base("Visit", "Visits", true)
     {
         _travelGuideRepository = travelGuideRepository;
         _placeId = placeId;
         FieldEditors.Add(new DateFieldEditor(nameof(VisitModel.VisitDate), DateTime.Today, true));
         FieldEditors.Add(new MotorcycleIdFieldEditor(nameof(VisitModel.MotorcycleId), travelGuideRepository, true));
+        FieldEditors.Add(new OptionalTextFieldEditor(nameof(VisitModel.Comment), true));
+        FieldEditors.Add(new VisitImagesFieldEditor(nameof(VisitModel.Images), travelGuideRepository,
+            parametersManager));
     }
 
     //ერთი ადგილის ვიზიტები წარწერა-გასაღებებით თარიღის კლებადობით. ვიზიტს ნავიგაციები არ აქვს,
@@ -98,6 +104,7 @@ public sealed class VisitCruder : Cruder
                            throw new InvalidOperationException($"Visit with id {newVisit.VisitId} not found");
         visit.VisitDate = newVisit.VisitDate;
         visit.MotorcycleId = newVisit.MotorcycleId;
+        visit.Comment = newVisit.Comment;
         _travelGuideRepository.UpdateVisit(visit);
 
         _travelGuideRepository.SaveChanges();

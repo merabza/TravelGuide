@@ -30,6 +30,7 @@ public sealed class TravelGuideDbContext : DbContext
     public DbSet<MotorcycleModel> Motorcycles => Set<MotorcycleModel>();
     public DbSet<UrlGraphNode> UrlGraphNodes => Set<UrlGraphNode>();
     public DbSet<VisitModel> Visits => Set<VisitModel>();
+    public DbSet<VisitImage> VisitImages => Set<VisitImage>();
     public DbSet<RouteDistanceModel> RouteDistances => Set<RouteDistanceModel>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -6,6 +6,7 @@ using System.Net.Http;
 using AppCliTools.CliMenu;
 using AppCliTools.CliParameters.CliMenuCommands;
 using DoTravelGuide.Models;
+using ParametersManagement.LibParameters;
 using SystemTools.SystemToolsShared;
 using TravelGuide.Menu.Distances;
 using TravelGuideDbModels;
@@ -20,6 +21,7 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly LocationModel _location;
     private readonly MyPlace _myPlace;
+    private readonly IParametersManager _parametersManager;
     private readonly PlaceModel _place;
     private readonly string _status;
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;
@@ -31,11 +33,12 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
     //მრავალლოკაციიანი ადგილი სიაში თითო ლოკაციაზე თითოჯერ გამოდის და ეს პუნქტი მხოლოდ ერთ,
     //გადმოცემულ ლოკაციას წარმოადგენს — სტატუსში, დეტალებში, მარშრუტსა და მანძილებში ის გამოიყენება
     public RecommendedPlaceSubMenuCommand(ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory,
-        IHttpClientFactory httpClientFactory, MyPlace myPlace, PlaceModel place, LocationModel location,
-        int visitsCount) : base(GetCaptionName(place, location), EMenuAction.LoadSubMenu)
+        IHttpClientFactory httpClientFactory, IParametersManager parametersManager, MyPlace myPlace, PlaceModel place,
+        LocationModel location, int visitsCount) : base(GetCaptionName(place, location), EMenuAction.LoadSubMenu)
     {
         _travelGuideRepositoryCreatorFactory = travelGuideRepositoryCreatorFactory;
         _httpClientFactory = httpClientFactory;
+        _parametersManager = parametersManager;
         _myPlace = myPlace;
         _place = place;
         _location = location;
@@ -157,7 +160,7 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
         {
             //ამ ადგილზე უკვე დაფიქსირებული ვიზიტების ჩამონათვალი — ვიზიტის არჩევა რედაქტირების ქვემენიუს ხსნის
             ITravelGuideRepository repository = _travelGuideRepositoryCreatorFactory.GetTravelGuideRepository();
-            var visitCruder = new VisitCruder(repository, _place.PlaceId);
+            var visitCruder = new VisitCruder(repository, _place.PlaceId, _parametersManager);
             foreach (KeyValuePair<string, VisitModel> keyedVisit in visitCruder.GetKeyedVisits())
             {
                 placeSubMenuSet.AddMenuItem(new VisitSubMenuCommand(visitCruder, keyedVisit.Value.VisitId,

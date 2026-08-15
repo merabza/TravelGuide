@@ -357,7 +357,8 @@ namespace TravelGuideDbMigration.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PlaceId = table.Column<int>(type: "int", nullable: false),
                     MotorcycleId = table.Column<int>(type: "int", nullable: false),
-                    VisitDate = table.Column<DateTime>(type: "datetime", nullable: false)
+                    VisitDate = table.Column<DateTime>(type: "datetime", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -373,6 +374,26 @@ namespace TravelGuideDbMigration.Migrations
                         column: x => x.PlaceId,
                         principalTable: "Places",
                         principalColumn: "PlaceId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "VisitImages",
+                columns: table => new
+                {
+                    VisitImageId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    VisitId = table.Column<int>(type: "int", nullable: false),
+                    FileName = table.Column<string>(type: "nvarchar(260)", maxLength: 260, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VisitImages", x => x.VisitImageId);
+                    table.ForeignKey(
+                        name: "FK_VisitImages_Visits_VisitId",
+                        column: x => x.VisitId,
+                        principalTable: "Visits",
+                        principalColumn: "VisitId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -499,6 +520,12 @@ namespace TravelGuideDbMigration.Migrations
                 column: "GotUrlId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_VisitImages_VisitId_FileName",
+                table: "VisitImages",
+                columns: new[] { "VisitId", "FileName" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Visits_MotorcycleId",
                 table: "Visits",
                 column: "MotorcycleId");
@@ -537,7 +564,7 @@ namespace TravelGuideDbMigration.Migrations
                 name: "UrlGraphNodes");
 
             migrationBuilder.DropTable(
-                name: "Visits");
+                name: "VisitImages");
 
             migrationBuilder.DropTable(
                 name: "FromPoints");
@@ -556,6 +583,9 @@ namespace TravelGuideDbMigration.Migrations
 
             migrationBuilder.DropTable(
                 name: "Tasks");
+
+            migrationBuilder.DropTable(
+                name: "Visits");
 
             migrationBuilder.DropTable(
                 name: "Motorcycles");

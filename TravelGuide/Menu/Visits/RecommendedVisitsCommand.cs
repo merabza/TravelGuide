@@ -134,7 +134,7 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
                 foreach (PlaceByLocation placeByLocation in nearestPlaceLocations.Take(portionSize))
                 {
                     recommendedVisitsMenuSet.AddMenuItem(new RecommendedPlaceSubMenuCommand(
-                        _travelGuideRepositoryCreatorFactory, _httpClientFactory, myPlace,
+                        _travelGuideRepositoryCreatorFactory, _httpClientFactory, _parametersManager, myPlace,
                         placeByLocation.PlaceNavigation, placeByLocation.LocationNavigation,
                         visitCounts.GetValueOrDefault(placeByLocation.PlaceId)));
                 }

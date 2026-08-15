@@ -34,4 +34,6 @@ public sealed class TravelGuideParameters : IParametersWithApiClients, IParamete
 
     public List<TimeSpan> MinDistanceTimes { get; init; } = [];
 
+    public string? ImagesFolderPath { get; set; }
+
 }

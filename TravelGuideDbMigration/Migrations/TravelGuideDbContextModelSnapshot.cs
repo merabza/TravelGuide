@@ -17,7 +17,7 @@ namespace TravelGuideDbMigration.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -438,6 +438,30 @@ namespace TravelGuideDbMigration.Migrations
                     b.ToTable("UrlGraphNodes", (string)null);
                 });
 
+            modelBuilder.Entity("TravelGuideDbModels.VisitImage", b =>
+                {
+                    b.Property<int>("VisitImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VisitImageId"));
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<int>("VisitId")
+                        .HasColumnType("int");
+
+                    b.HasKey("VisitImageId");
+
+                    b.HasIndex("VisitId", "FileName")
+                        .IsUnique();
+
+                    b.ToTable("VisitImages", (string)null);
+                });
+
             modelBuilder.Entity("TravelGuideDbModels.VisitModel", b =>
                 {
                     b.Property<int>("VisitId")
@@ -445,6 +469,10 @@ namespace TravelGuideDbMigration.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VisitId"));
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<int>("MotorcycleId")
                         .HasColumnType("int");
@@ -600,6 +628,17 @@ namespace TravelGuideDbMigration.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TravelGuideDbModels.VisitImage", b =>
+                {
+                    b.HasOne("TravelGuideDbModels.VisitModel", "VisitNavigation")
+                        .WithMany("Images")
+                        .HasForeignKey("VisitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("VisitNavigation");
+                });
+
             modelBuilder.Entity("TravelGuideDbModels.VisitModel", b =>
                 {
                     b.HasOne("TravelGuideDbModels.MotorcycleModel", null)
@@ -631,6 +670,11 @@ namespace TravelGuideDbMigration.Migrations
             modelBuilder.Entity("TravelGuideDbModels.TaskModel", b =>
                 {
                     b.Navigation("StartPoints");
+                });
+
+            modelBuilder.Entity("TravelGuideDbModels.VisitModel", b =>
+                {
+                    b.Navigation("Images");
                 });
 #pragma warning restore 612, 618
         }

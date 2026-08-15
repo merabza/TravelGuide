@@ -39,5 +39,7 @@ public sealed class TravelGuideParametersEditor : ParametersEditor
 
         FieldEditors.Add(new MinDistanceTimesFieldEditor(nameof(TravelGuideParameters.MinDistanceTimes),
             parametersManager));
+
+        FieldEditors.Add(new FolderPathFieldEditor(nameof(TravelGuideParameters.ImagesFolderPath)));
     }
 }

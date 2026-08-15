@@ -63,10 +63,25 @@ public sealed class NewVisitCommand : CliMenuCommand
             return ValueTask.FromResult(false);
         }
 
+        //კომენტარი არასავალდებულოა — ცარიელი Enter მას ცარიელად ტოვებს, Escape კი მხოლოდ
+        //კომენტარზე ამბობს უარს და უკვე შეყვანილ თარიღსა და მოტოციკლს არ კარგავს
+        string? comment;
+        try
+        {
+            comment = Inputer.InputText("Comment", null);
+        }
+        catch (DataInputEscapeException)
+        {
+            comment = null;
+        }
+
         //ვიზიტის ჩანაწერის შექმნა და ბაზაში შენახვა
         repository.CreateVisit(new VisitModel
         {
-            PlaceId = _placeId, MotorcycleId = motorcycles[selectedId].MotorcycleId, VisitDate = visitDate
+            PlaceId = _placeId,
+            MotorcycleId = motorcycles[selectedId].MotorcycleId,
+            VisitDate = visitDate,
+            Comment = comment
         });
         repository.SaveChanges();
 
