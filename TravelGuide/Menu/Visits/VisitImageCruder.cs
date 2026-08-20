@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,8 +57,16 @@ public sealed class VisitImageCruder : Cruder
 
     public override void FillDetailsSubMenu(CliMenuSet itemSubMenuSet, string itemName)
     {
-        //განზრახ ცარიელია: ჩანაწერის ქვემენიუში მხოლოდ წაშლა უნდა იყოს, საბაზო რეალიზაცია კი სახელის
-        //თავისუფალი ტექსტით შეცვლის პუნქტს ამატებს, რითაც არარსებული ფაილის სახელის ჩაწერა შეიძლებოდა
+        //საბაზო რეალიზაცია განზრახ არ იძახება: ის სახელის თავისუფალი ტექსტით შეცვლის პუნქტს ამატებს,
+        //რითაც არარსებული ფაილის სახელის ჩაწერა შეიძლებოდა. აქ მხოლოდ სურათის ნახვის პუნქტები ემატება
+        if (string.IsNullOrWhiteSpace(_imagesFolderPath))
+        {
+            return;
+        }
+
+        string imageFullPath = Path.Combine(_imagesFolderPath, itemName);
+        itemSubMenuSet.AddMenuItem(new ViewImageInConsoleCommand(imageFullPath));
+        itemSubMenuSet.AddMenuItem(new ViewImageInWindowCommand(imageFullPath));
     }
 
     public override bool ContainsRecordWithKey(string recordKey)
