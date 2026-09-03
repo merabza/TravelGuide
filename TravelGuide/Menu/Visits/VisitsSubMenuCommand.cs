@@ -5,7 +5,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;
 
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class VisitsSubMenuCommand : CliMenuCommand
 {
     private readonly IHttpClientFactory _httpClientFactory;

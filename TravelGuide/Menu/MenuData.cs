@@ -23,23 +23,5 @@ public static class MenuData
         nameof(NewTaskCommandFactoryStrategy),
         //ამოცანების ჩამონათვალი
         nameof(TasksListFactoryStrategy)
-        ////სერვერის პარამეტრების რედაქტირება
-        //SupportToolsServerEditorCliMenuCommand.MenuCommandName,
-        ////ახალი პროექტების შემქმნელი სუბმენიუ
-        //ProjectCreatorSubMenuCliMenuCommand.MenuCommandName,
-        ////ახალი პროექტის შექმნა 
-        //$"New {ProjectCruder.MenuCommandName}",
-        ////პროექტის დაიმპორტება
-        //ImportProjectCliMenuCommand.MenuCommandName,
-        ////ყველა პროექტის git-ის სინქრონიზაცია V2
-        //SyncAllProjectsAllGitsCliMenuCommandV2.MenuCommandName,
-        ////ყველა პროექტის პაკეტების განახლება
-        //UpdateOutdatedPackagesCliMenuCommand.MenuCommandName,
-        ////ყველა ჯგუფების, ყველა სოლუშენის, ყველა პროექტის გასუფთავება
-        //ClearAllGroupsAllSolutionsAllProjectsCliMenuCommand.MenuCommandName,
-        ////პროექტების ჯგუფების ჩამონათვალი
-        //ProjectGroupSubMenuCliMenuCommand.MenuCommandListName,
-        ////ბოლოს გამოყენებული ბრძანებების ჩამონათვალი
-        //nameof(RecentCommandCliMenuCommand)
     ];
 }

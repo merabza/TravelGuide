@@ -3,7 +3,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Lists;
 
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class ListsSubMenuCommandFactoryStrategy : IMenuCommandFactoryStrategy
 {
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;

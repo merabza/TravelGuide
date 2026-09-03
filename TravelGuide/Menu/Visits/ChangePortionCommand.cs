@@ -13,7 +13,7 @@ public sealed class ChangePortionCommand : CliMenuCommand
 {
     private readonly Action _changePortion;
 
-    // ReSharper disable once ConvertToPrimaryConstructor
+    
     public ChangePortionCommand(string name, Action changePortion) : base(name, EMenuAction.ReloadWithoutPause,
         EMenuAction.ReloadWithoutPause)
     {

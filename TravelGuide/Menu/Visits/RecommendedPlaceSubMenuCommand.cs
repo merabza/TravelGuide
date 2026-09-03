@@ -14,7 +14,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;
 
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
 {
     private readonly string _directionsUrl;

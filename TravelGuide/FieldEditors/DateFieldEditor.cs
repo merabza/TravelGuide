@@ -13,7 +13,7 @@ public sealed class DateFieldEditor : FieldEditor<DateTime>
 {
     private readonly DateTime _defaultValue;
 
-    // ReSharper disable once ConvertToPrimaryConstructor
+    
     public DateFieldEditor(string propertyName, DateTime defaultValue, bool enterFieldDataOnCreate = false) : base(
         propertyName, enterFieldDataOnCreate)
     {

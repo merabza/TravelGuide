@@ -13,7 +13,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;
 
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class NewVisitCommand : CliMenuCommand
 {
     private readonly int _placeId;

@@ -9,7 +9,7 @@ public sealed class TravelGuideMenuBuilder : IMenuBuilder
 {
     private readonly IServiceProvider _serviceProvider;
 
-    // ReSharper disable once ConvertToPrimaryConstructor
+    
     public TravelGuideMenuBuilder(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;

@@ -7,7 +7,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;
 
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class TasksListFactoryStrategy : IMenuCommandListFactoryStrategy
 {
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;

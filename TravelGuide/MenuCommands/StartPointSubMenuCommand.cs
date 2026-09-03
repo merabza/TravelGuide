@@ -3,7 +3,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;
 
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class StartPointSubMenuCommand : CliMenuCommand
 {
     private readonly string _taskName;

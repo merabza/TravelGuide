@@ -9,7 +9,7 @@ public sealed class MyPlaceNameFieldEditor : FieldEditor<string>
 {
     private readonly IParametersManager _parametersManager;
 
-    // ReSharper disable once ConvertToPrimaryConstructor
+    
     public MyPlaceNameFieldEditor(string propertyName, IParametersManager parametersManager,
         bool enterFieldDataOnCreate = false) : base(propertyName, enterFieldDataOnCreate)
     {

@@ -7,7 +7,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Runners;
 
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class PlaceLinksSynchronizer
 {
     private readonly ITravelGuideRepository _repository;

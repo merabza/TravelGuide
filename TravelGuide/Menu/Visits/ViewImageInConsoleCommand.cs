@@ -12,7 +12,7 @@ public sealed class ViewImageInConsoleCommand : CliMenuCommand
 {
     private readonly string _imageFullPath;
 
-    // ReSharper disable once ConvertToPrimaryConstructor
+    
     public ViewImageInConsoleCommand(string imageFullPath) : base("View Image (Console)", EMenuAction.Reload)
     {
         _imageFullPath = imageFullPath;

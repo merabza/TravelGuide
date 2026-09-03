@@ -16,7 +16,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Distances;
 
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class CalculateDistancesCommand : CliMenuCommand
 {
     //ერთი წყვილის დამუშავების შედეგი

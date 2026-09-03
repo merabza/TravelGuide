@@ -16,7 +16,7 @@ namespace TravelGuide.Runners;
 //მოიქაჩება; მონაცემები HTML-იდან ამოიღება, გვერდზე ნაპოვნი ახალი ბმულები კი ისევ ბაზაში ემატება.
 //ციკლი გრძელდება, სანამ დასამუშავებელი აღარაფერი დარჩება (CrawlerService-ის BatchPartRunner-ის ანალოგია) —
 //მდგომარეობა ბაზაშია და შეწყვეტილი პროცესი მომდევნო გაშვებისას გრძელდება
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class PlaceAnalyser
 {
     private readonly HttpClient _httpClient;

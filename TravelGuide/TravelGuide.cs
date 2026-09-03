@@ -18,7 +18,7 @@
 
 //namespace TravelGuide;
 
-//// ReSharper disable once ConvertToPrimaryConstructor
+//
 //public sealed class TravelGuide : CliAppLoop
 //{
 //    private readonly IHttpClientFactory _httpClientFactory;

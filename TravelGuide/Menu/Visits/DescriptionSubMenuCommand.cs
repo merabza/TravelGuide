@@ -12,7 +12,7 @@ public sealed class DescriptionSubMenuCommand : CliMenuCommand
     private readonly string _description;
     private readonly string _oneLineStatus;
 
-    // ReSharper disable once ConvertToPrimaryConstructor
+    
     public DescriptionSubMenuCommand(string description) : base("Description", EMenuAction.LoadSubMenu)
     {
         _description = description;

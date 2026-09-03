@@ -9,7 +9,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;
 
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class LastVisitsCommand : CliMenuCommand
 {
     //ბოლო ვიზიტების მაქსიმალური რაოდენობა

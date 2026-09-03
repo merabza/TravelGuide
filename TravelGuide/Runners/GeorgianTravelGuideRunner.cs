@@ -8,7 +8,7 @@ namespace TravelGuide.Runners;
 
 //სიის გვერდის Selenium-ით გავლა: ღირსშესანიშნაობების ბმულების შეგროვება infinite-scroll-იანი გვერდიდან.
 //გვერდების გაანალიზება ბრაუზერს აღარ საჭიროებს — ის PlaceAnalyser-ში, HTTP-ით სრულდება.
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class GeorgianTravelGuideRunner
 {
     private readonly IWebDriver _driver;

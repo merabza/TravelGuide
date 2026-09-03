@@ -12,7 +12,7 @@ namespace TravelGuide.Runners;
 //საიტის sitemap-იდან გვერდის მისამართების შეგროვება — Selenium-ით სიის გვერდის ჩამოსქროლვის ალტერნატივა.
 //sitemap-ში ღირსშესანიშნაობებთან ერთად ქალაქების/რეგიონების გვერდებიც ხვდება — მათ ანალიზის ფაზა
 //JSON-LD-ის ტიპით არჩევს და NotAttraction-ად ნიშნავს.
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class SitemapUrlHarvester
 {
     //sitemap.xml ინდექსია და ენების მიხედვით ცალ-ცალკე sitemap ფაილებზე მიუთითებს — გვჭირდება ქართულენოვანი

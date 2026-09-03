@@ -4,6 +4,7 @@ using AppCliTools.CliParameters.FieldEditors;
 using AppCliTools.CliParametersDataEdit.Cruders;
 using AppCliTools.CliParametersDataEdit.FieldEditors;
 using AppCliTools.CliParametersEdit.Cruders;
+using DoTravelGuide;
 using DoTravelGuide.Models;
 using Microsoft.Extensions.Logging;
 using ParametersManagement.LibDatabaseParameters;
@@ -36,6 +37,9 @@ public sealed class TravelGuideParametersEditor : ParametersEditor
 
         FieldEditors.Add(
             new MyPlaceNameFieldEditor(nameof(TravelGuideParameters.MyCurrentPlaceName), parametersManager));
+
+        FieldEditors.Add(new EnumFieldEditor<EOrderVisitsBy>(nameof(TravelGuideParameters.OrderVisitsBy),
+            EOrderVisitsBy.RoadTime));
 
         FieldEditors.Add(new MinDistanceTimesFieldEditor(nameof(TravelGuideParameters.MinDistanceTimes),
             parametersManager));

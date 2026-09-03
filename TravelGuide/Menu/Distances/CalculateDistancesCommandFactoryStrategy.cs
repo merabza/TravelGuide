@@ -5,7 +5,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Distances;
 
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class CalculateDistancesCommandFactoryStrategy : IMenuCommandFactoryStrategy
 {
     private readonly IHttpClientFactory _httpClientFactory;

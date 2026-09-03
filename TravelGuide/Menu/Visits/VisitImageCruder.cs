@@ -23,7 +23,7 @@ public sealed class VisitImageCruder : Cruder
     private readonly ITravelGuideRepository _travelGuideRepository;
     private readonly int _visitId;
 
-    // ReSharper disable once ConvertToPrimaryConstructor
+    
     public VisitImageCruder(ITravelGuideRepository travelGuideRepository, int visitId, string? imagesFolderPath) : base(
         "Visit Image", "Visit Images", false, false)
     {

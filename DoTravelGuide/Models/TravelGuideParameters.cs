@@ -17,6 +17,15 @@ public sealed class TravelGuideParameters : IParametersWithApiClients, IParamete
 
     public DatabaseParameters? DatabaseParameters { get; init; }
 
+    public Dictionary<string, MyPlace> MyPlaces { get; init; } = [];
+
+    public EOrderVisitsBy? OrderVisitsBy { get; set; }
+    public string? MyCurrentPlaceName { get; set; }
+
+    public List<TimeSpan> MinDistanceTimes { get; init; } = [];
+
+    public string? ImagesFolderPath { get; set; }
+
     public Dictionary<string, ApiClientSettings> ApiClients { get; } = [];
 
     public bool CheckBeforeSave()
@@ -27,13 +36,4 @@ public sealed class TravelGuideParameters : IParametersWithApiClients, IParamete
     public Dictionary<string, DatabaseServerConnectionData> DatabaseServerConnections { get; init; } = [];
 
     public Dictionary<string, SmartSchema> SmartSchemas { get; } = [];
-
-    public Dictionary<string, MyPlace> MyPlaces { get; init; } = [];
-
-    public string? MyCurrentPlaceName { get; set; }
-
-    public List<TimeSpan> MinDistanceTimes { get; init; } = [];
-
-    public string? ImagesFolderPath { get; set; }
-
 }

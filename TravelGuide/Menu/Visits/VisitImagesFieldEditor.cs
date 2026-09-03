@@ -16,7 +16,7 @@ public sealed class VisitImagesFieldEditor : FieldEditor<ICollection<VisitImage>
     private readonly IParametersManager _parametersManager;
     private readonly ITravelGuideRepository _travelGuideRepository;
 
-    // ReSharper disable once ConvertToPrimaryConstructor
+    
     public VisitImagesFieldEditor(string propertyName, ITravelGuideRepository travelGuideRepository,
         IParametersManager parametersManager) : base(propertyName, false, null, false, null, true)
     {

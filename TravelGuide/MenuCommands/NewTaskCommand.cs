@@ -9,7 +9,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;
 
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class NewTaskCommand : CliMenuCommand
 {
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;

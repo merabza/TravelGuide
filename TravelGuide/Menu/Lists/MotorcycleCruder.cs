@@ -16,7 +16,7 @@ public sealed class MotorcycleCruder : Cruder
 {
     private readonly ITravelGuideRepository _travelGuideRepository;
 
-    // ReSharper disable once ConvertToPrimaryConstructor
+    
     public MotorcycleCruder(ITravelGuideRepository travelGuideRepository) : base("Motorcycle", "Motorcycles")
     {
         _travelGuideRepository = travelGuideRepository;

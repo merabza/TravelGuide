@@ -6,7 +6,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Lists;
 
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class ListsSubMenuCommand : CliMenuCommand
 {
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;

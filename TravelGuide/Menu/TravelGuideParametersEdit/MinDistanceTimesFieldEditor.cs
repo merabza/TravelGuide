@@ -11,7 +11,7 @@ public sealed class MinDistanceTimesFieldEditor : FieldEditor<List<TimeSpan>>
 {
     private readonly IParametersManager _parametersManager;
 
-    // ReSharper disable once ConvertToPrimaryConstructor
+    
     public MinDistanceTimesFieldEditor(string propertyName, IParametersManager parametersManager) : base(propertyName,
         false, null, false, null, true)
     {

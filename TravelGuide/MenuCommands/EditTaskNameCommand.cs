@@ -8,7 +8,7 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;
 
-// ReSharper disable once ConvertToPrimaryConstructor
+
 public sealed class EditTaskNameCommand : CliMenuCommand
 {
     private readonly string _taskName;
