@@ -1,5 +1,6 @@
 //Created by RepositoryClassCreator at 7/24/2025 11:44:10 PM
 
+using DoTravelGuide;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
@@ -140,18 +141,14 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         //თითო კოლექცია ცალკე მოთხოვნით იტვირთება (დალაგება PlaceId-ით ცალსახაა, პორციები არ ირევა)
         return
         [
-            .. _context.Places.Include(i => i.BestSeasons)
-                .Include(i => i.Categories).ThenInclude(t => t.CategoryNavigation)
-                .Include(i => i.Tags).ThenInclude(t => t.TagNavigation)
-                .Include(i => i.Distances).ThenInclude(t => t.FromPointNavigation)
-                .Include(i => i.Locations).ThenInclude(t => t.LocationNavigation)
-                .Include(i => i.RegionNavigation)
-                .Include(i => i.MunicipalityNavigation)
-                .AsSplitQuery()
-                .Where(w => w.State != EState.NotAttraction && w.State != EState.Duplicate &&
-                            (includeAnalysed || w.State != EState.Analysed) &&
-                            (includeDownloadErrors || w.State != EState.DownloadError))
-                .OrderBy(o => o.PlaceId)
+            .. _context.Places.Include(i => i.BestSeasons).Include(i => i.Categories)
+                .ThenInclude(t => t.CategoryNavigation).Include(i => i.Tags).ThenInclude(t => t.TagNavigation)
+                .Include(i => i.Distances).ThenInclude(t => t.FromPointNavigation).Include(i => i.Locations)
+                .ThenInclude(t => t.LocationNavigation).Include(i => i.RegionNavigation)
+                .Include(i => i.MunicipalityNavigation).AsSplitQuery().Where(w =>
+                    w.State != EState.NotAttraction && w.State != EState.Duplicate &&
+                    (includeAnalysed || w.State != EState.Analysed) &&
+                    (includeDownloadErrors || w.State != EState.DownloadError)).OrderBy(o => o.PlaceId)
         ];
     }
 
@@ -173,7 +170,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     }
 
     public List<PlaceByLocation> GetNearestPlaces(double latitude, double longitude, int skip, int take,
-        TimeSpan minRoadTime, int maxVisitsCount)
+        TimeSpan minRoadTime, TimeSpan maxRoadTime, int maxVisitsCount, EOrderVisitsBy orderVisitsBy)
     {
         //გრძედის გრადუსი განედის გრადუსზე მოკლეა, ამიტომ გრძედის სხვაობა განედის კოსინუსით სწორდება
         double cosLatitude = Math.Cos(latitude * Math.PI / 180);
@@ -186,28 +183,39 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         //ჩანაწერით არის წარმოდგენილი და მენიუში ორჯერ არ უნდა გამოჩნდეს.
         //AsSplitQuery: რამდენიმე კოლექციის ერთ SQL-ში ჩატვირთვა მწკრივებს კარტეზიულად ამრავლებს —
         //თითო კოლექცია ცალკე მოთხოვნით იტვირთება (Skip/Take-ისთვის საჭირო ცალსახა დალაგება ქვემოთ უკვე დგას)
-        IQueryable<PlaceByLocation> placeLocationsQuery = _context.PlacesByLocations
-            .Include(i => i.LocationNavigation)
+        IQueryable<PlaceByLocation> placeLocationsQuery = _context.PlacesByLocations.Include(i => i.LocationNavigation)
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.BestSeasons).ThenInclude(t => t.MonthNavigation)
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.Tags).ThenInclude(t => t.TagNavigation)
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.Distances).ThenInclude(t => t.FromPointNavigation)
-            .Include(i => i.PlaceNavigation).ThenInclude(t => t.Locations)
-            .Include(i => i.PlaceNavigation).ThenInclude(t => t.RegionNavigation)
-            .Include(i => i.PlaceNavigation).ThenInclude(t => t.MunicipalityNavigation)
-            .AsSplitQuery()
+            .Include(i => i.PlaceNavigation).ThenInclude(t => t.Locations).Include(i => i.PlaceNavigation)
+            .ThenInclude(t => t.RegionNavigation).Include(i => i.PlaceNavigation)
+            .ThenInclude(t => t.MunicipalityNavigation).AsSplitQuery()
             .Where(w => w.PlaceNavigation.State != EState.Duplicate);
 
         //მინიმალური გზის დროის მოთხოვნისას რჩება მხოლოდ ის ლოკაციები, რომლებამდეც დათვლილი გზის დრო
         //ზღვარს აღწევს. კოორდინატები ზუსტად დარდება — RouteDistances-ში ზუსტად Locations-ისა და
         //პარამეტრების მნიშვნელობები იწერება. დაუთვლელ ლოკაციას შესაბამისი ჩანაწერი არ აქვს და განზრახ
         //გამოირიცხება, სანამ Calculate Distances არ დაითვლის
+        const double tolerance = 0.000001;
         if (minRoadTime > TimeSpan.Zero)
         {
 #pragma warning disable S1244
             placeLocationsQuery = placeLocationsQuery.Where(w => _context.RouteDistances.Any(rd =>
-                rd.StartLatitude == latitude && rd.StartLongitude == longitude &&
-                rd.EndLatitude == w.LocationNavigation.Latitude &&
-                rd.EndLongitude == w.LocationNavigation.Longitude && rd.RoadTime >= minRoadTime));
+                Math.Abs(rd.StartLatitude - latitude) < tolerance &&
+                Math.Abs(rd.StartLongitude - longitude) < tolerance &&
+                Math.Abs(rd.EndLatitude - w.LocationNavigation.Latitude) < tolerance &&
+                Math.Abs(rd.EndLongitude - w.LocationNavigation.Longitude) < tolerance && rd.RoadTime >= minRoadTime));
+#pragma warning restore S1244
+        }
+
+        if (maxRoadTime < TimeSpan.MaxValue)
+        {
+#pragma warning disable S1244
+            placeLocationsQuery = placeLocationsQuery.Where(w => _context.RouteDistances.Any(rd =>
+                Math.Abs(rd.StartLatitude - latitude) < tolerance &&
+                Math.Abs(rd.StartLongitude - longitude) < tolerance &&
+                Math.Abs(rd.EndLatitude - w.LocationNavigation.Latitude) < tolerance &&
+                Math.Abs(rd.EndLongitude - w.LocationNavigation.Longitude) < tolerance && rd.RoadTime <= maxRoadTime));
 #pragma warning restore S1244
         }
 
@@ -217,21 +225,43 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         placeLocationsQuery =
             placeLocationsQuery.Where(w => _context.Visits.Count(c => c.PlaceId == w.PlaceId) <= maxVisitsCount);
 
-        //დალაგებისთვის მანძილის კვადრატი საკმარისია — ფესვის ამოღება რიგითობას არ ცვლის.
+        //თითო ბმულს დალაგების ნიშნები ერთვის: საჰაერო მანძილის კვადრატი (ფესვის ამოღება რიგითობას არ
+        //ცვლის) და ჩემი წერტილიდან ლოკაციამდე დათვლილი მარშრუტი — დაუთვლელისთვის null. კოორდინატები
+        //ზუსტად დარდება, როგორც ზემოთ გზის დროის ფილტრში
+#pragma warning disable S1244
+        var placeLocationsWithRoutes = placeLocationsQuery.Select(s => new
+        {
+            PlaceByLocation = s,
+            AirDistanceSquare =
+                (s.LocationNavigation.Latitude - latitude) * (s.LocationNavigation.Latitude - latitude) +
+                (s.LocationNavigation.Longitude - longitude) * cosLatitude *
+                (s.LocationNavigation.Longitude - longitude) * cosLatitude,
+            Route = _context.RouteDistances.FirstOrDefault(rd =>
+                rd.StartLatitude == latitude && rd.StartLongitude == longitude &&
+                rd.EndLatitude == s.LocationNavigation.Latitude &&
+                rd.EndLongitude == s.LocationNavigation.Longitude)
+        });
+#pragma warning restore S1244
+
+        //პარამეტრებში არჩეული ნიშნით დალაგება. გზის დროით ან გზის მანძილით დალაგებისას დაუთვლელი
+        //მარშრუტის ლოკაციები სიის ბოლოში გადადის (სანამ Calculate Distances არ დაითვლის), თანაბარ
+        //მნიშვნელობებს კი საჰაერო მანძილი წყვეტს; დანარჩენი (AirDistance) საჰაერო მანძილით ლაგდება
+        var orderedQuery = orderVisitsBy switch
+        {
+            EOrderVisitsBy.RoadTime => placeLocationsWithRoutes.OrderBy(o => o.Route == null)
+                .ThenBy(o => o.Route!.RoadTime).ThenBy(o => o.AirDistanceSquare),
+            EOrderVisitsBy.RoadDistance => placeLocationsWithRoutes.OrderBy(o => o.Route == null)
+                .ThenBy(o => o.Route!.RoadDistance).ThenBy(o => o.AirDistanceSquare),
+            _ => placeLocationsWithRoutes.OrderBy(o => o.AirDistanceSquare)
+        };
+
         //სია პორციებად იტვირთება (Skip/Take → OFFSET/FETCH), ამიტომ დალაგება ცალსახა უნდა იყოს —
-        //თანაბარი მანძილებისას PlaceId+LocationId წყვეტს, თორემ ჩანაწერი ორ პორციაში მოხვდებოდა
+        //თანაბარი მნიშვნელობებისას PlaceId+LocationId წყვეტს, თორემ ჩანაწერი ორ პორციაში მოხვდებოდა
         //ან საერთოდ გამორჩებოდა
         return
         [
-            .. placeLocationsQuery
-                .OrderBy(o =>
-                    (o.LocationNavigation.Latitude - latitude) * (o.LocationNavigation.Latitude - latitude) +
-                    (o.LocationNavigation.Longitude - longitude) * cosLatitude *
-                    (o.LocationNavigation.Longitude - longitude) * cosLatitude)
-                .ThenBy(o => o.PlaceId)
-                .ThenBy(o => o.LocationId)
-                .Skip(skip)
-                .Take(take)
+            .. orderedQuery.ThenBy(o => o.PlaceByLocation.PlaceId).ThenBy(o => o.PlaceByLocation.LocationId).Skip(skip)
+                .Take(take).Select(s => s.PlaceByLocation)
         ];
     }
 
@@ -309,9 +339,9 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
 
     public MunicipalityModel GetOrCreateMunicipality(string municipalityName)
     {
-        MunicipalityModel? municipality = _context.Municipalities.Local.FirstOrDefault(f =>
-                                              f.Name == municipalityName) ??
-                                          _context.Municipalities.FirstOrDefault(f => f.Name == municipalityName);
+        MunicipalityModel? municipality =
+            _context.Municipalities.Local.FirstOrDefault(f => f.Name == municipalityName) ??
+            _context.Municipalities.FirstOrDefault(f => f.Name == municipalityName);
         return municipality ?? _context.Municipalities.Add(new MunicipalityModel { Name = municipalityName }).Entity;
     }
 
@@ -364,12 +394,11 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                     (v, p) => new { v.VisitId, v.VisitDate, PlaceName = p.Name ?? p.Url, v.MotorcycleId })
                 .Join(_context.Motorcycles, v => v.MotorcycleId, m => m.MotorcycleId,
                     (v, m) => new { v.VisitId, v.VisitDate, v.PlaceName, m.MotorcycleKey })
-                .OrderByDescending(o => o.VisitDate).ThenByDescending(o => o.VisitId)
-                .Take(count)
-                .Select(s => new VisitListItem
-                {
-                    VisitDate = s.VisitDate, PlaceName = s.PlaceName, MotorcycleKey = s.MotorcycleKey
-                })
+                .OrderByDescending(o => o.VisitDate).ThenByDescending(o => o.VisitId).Take(count).Select(s =>
+                    new VisitListItem
+                    {
+                        VisitDate = s.VisitDate, PlaceName = s.PlaceName, MotorcycleKey = s.MotorcycleKey
+                    })
         ];
     }
 
@@ -446,8 +475,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     {
 #pragma warning disable S1244
         return _context.RouteDistances.FirstOrDefault(f =>
-            f.StartLatitude == startLatitude && f.StartLongitude == startLongitude &&
-            f.EndLatitude == endLatitude && f.EndLongitude == endLongitude);
+            f.StartLatitude == startLatitude && f.StartLongitude == startLongitude && f.EndLatitude == endLatitude &&
+            f.EndLongitude == endLongitude);
 #pragma warning restore S1244
     }
 

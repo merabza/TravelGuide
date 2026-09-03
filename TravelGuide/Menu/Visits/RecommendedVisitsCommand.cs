@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AppCliTools.CliMenu;
 using AppCliTools.LibDataInput;
 using AppCliTools.LibMenuInput;
+using DoTravelGuide;
 using DoTravelGuide.Models;
 using ParametersManagement.LibParameters;
 using SystemTools.SystemToolsShared;
@@ -35,6 +36,7 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
     //მინიმალური გზის დრო ქვემენიუში შესვლისას ერთხელ ირჩევა და მენიუს ყოველ გადაწყობაზე
     //(მაგალითად ადგილიდან უკან დაბრუნებისას) ხელახლა აღარ იკითხება
     private TimeSpan _minRoadTime;
+    private TimeSpan _maxRoadTime;
 
     public RecommendedVisitsCommand(IParametersManager parametersManager,
         ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory,
@@ -54,11 +56,9 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
         //Enter უმცირესს ირჩევს. Escape-ის გამონაკლისს საბაზო Run იჭერს და ქვემენიუ არ იხსნება
         List<TimeSpan> minDistanceTimes =
             [.. parameters.MinDistanceTimes.DistinctBy(MinDistanceTimeCruder.GetKey).Order()];
-        if (minDistanceTimes.Count == 0)
-        {
-            _minRoadTime = TimeSpan.Zero;
-        }
-        else
+        _minRoadTime = TimeSpan.Zero;
+        _maxRoadTime = TimeSpan.MaxValue;
+        if (minDistanceTimes.Count > 0)
         {
             List<string> keys = [.. minDistanceTimes.Select(MinDistanceTimeCruder.GetKey)];
             var selectFromListInput = new SelectFromListInput("Minimal Road Time", keys, keys[0]);
@@ -68,6 +68,12 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
             }
 
             _minRoadTime = minDistanceTimes[keys.IndexOf(selectFromListInput.Text)];
+            var uplist = minDistanceTimes.Where(x => x > _minRoadTime).ToList();
+            if (uplist.Count > 0)
+            {
+                _maxRoadTime = uplist.Min(x => x);
+            }
+
         }
 
         //მაქსიმალური ვიზიტების რაოდენობა — სიაში დარჩება მხოლოდ ის ადგილები, რომლებზეც ვიზიტები ამდენჯერ
@@ -117,11 +123,13 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
 
                 //ბაზიდან ამოირჩევა ჩემს კოორდინატებთან ყველაზე ახლოს მდებარე ადგილი-ლოკაციის ბმულების
                 //მიმდინარე პორცია (რომლებამდე გზის დროც არჩეულ მინიმუმზე ნაკლები არ არის და რომლების
-                //ვიზიტების რაოდენობაც შეყვანილ მაქსიმუმს არ აღემატება). ერთით მეტი ჩანაწერი ითხოვება,
-                //რომ გაირკვეს, არსებობს თუ არა შემდეგი პორცია
+                //ვიზიტების რაოდენობაც შეყვანილ მაქსიმუმს არ აღემატება), დალაგებული პარამეტრებში არჩეული
+                //ნიშნით — გზის დროით, საჰაერო მანძილით ან გზის მანძილით; პარამეტრი ჯერ არჩეული რომ არ
+                //იყოს, რედაქტორის ნაგულისხმევის მსგავსად გზის დროით ლაგდება. ერთით მეტი ჩანაწერი
+                //ითხოვება, რომ გაირკვეს, არსებობს თუ არა შემდეგი პორცია
                 List<PlaceByLocation> nearestPlaceLocations = repository.GetNearestPlaces(myPlace.Latitude,
-                    myPlace.Longitude, _currentPortionNumber * portionSize, portionSize + 1, _minRoadTime,
-                    _maxVisitsCount);
+                    myPlace.Longitude, _currentPortionNumber * portionSize, portionSize + 1, _minRoadTime, _maxRoadTime,
+                    _maxVisitsCount, parameters.OrderVisitsBy ?? EOrderVisitsBy.RoadTime);
 
                 //პორციის ადგილებზე დაფიქსირებული ვიზიტების რაოდენობები ერთი მოთხოვნით იტვირთება —
                 //თითო პუნქტის სტატუსის თავში გამოსატანად

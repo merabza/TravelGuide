@@ -1,5 +1,6 @@
 //Created by RepositoryInterfaceCreator at 7/24/2025 11:44:10 PM
 
+using DoTravelGuide;
 using Microsoft.EntityFrameworkCore.Storage;
 using TravelGuideDbModels;
 
@@ -28,8 +29,10 @@ public interface ITravelGuideRepository
     List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed, bool includeDownloadErrors);
     bool HasAnalysedPlaces();
     bool HasDownloadErrorPlaces();
-    List<PlaceByLocation> GetNearestPlaces(double latitude, double longitude, int skip, int take,
-        TimeSpan minRoadTime, int maxVisitsCount);
+
+    List<PlaceByLocation> GetNearestPlaces(double latitude, double longitude, int skip, int take, TimeSpan minRoadTime,
+        TimeSpan maxRoadTime, int maxVisitsCount, EOrderVisitsBy orderVisitsBy);
+
     List<LocationModel> GetAllLocations();
 
     UrlGraphNode AddUrlGraphNode(UrlGraphNode newUrlGraphNode);
