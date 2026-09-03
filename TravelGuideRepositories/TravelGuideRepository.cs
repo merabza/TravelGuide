@@ -162,6 +162,44 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return _context.Places.Any(a => a.State == EState.DownloadError);
     }
 
+    public int GetPlacesCount()
+    {
+        return _context.Places.Count();
+    }
+
+    public List<PlaceModel> GetPlacesPortion(string? filter, int skip, int take)
+    {
+        //ადგილების რედაქტორის სიის პორცია: ცხრილი ათასობით ჩანაწერს შეიცავს, ამიტომ სია ფილტრით
+        //(დასახელების ან მისამართის ნაწილი) და პორციებად იტვირთება. დალაგება ცალსახაა (Skip/Take-ისთვის):
+        //დასახელებით, უსახელო ჩანაწერებისთვის მისამართით, თანაბრებს PlaceId წყვეტს.
+        //მოუბმელი ასლები ბრუნდება: ველების რედაქტორები მათ პირდაპირ ცვლიან და შეყვანის შეწყვეტისას
+        //ნახევრად შეცვლილი ჩანაწერი საზიარო კონტექსტში არ უნდა დარჩეს — შენახვისას ბმული ჩანაწერი
+        //GetPlaceById-ით ცალკე მოიძებნება
+        IQueryable<PlaceModel> placesQuery = _context.Places.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(filter))
+        {
+            placesQuery = placesQuery.Where(w =>
+                w.Name != null && w.Name.Contains(filter) || w.Url.Contains(filter));
+        }
+
+        return [.. placesQuery.OrderBy(o => o.Name ?? o.Url).ThenBy(o => o.PlaceId).Skip(skip).Take(take)];
+    }
+
+    public PlaceModel? GetPlaceById(int placeId)
+    {
+        return _context.Places.SingleOrDefault(w => w.PlaceId == placeId);
+    }
+
+    public PlaceModel UpdatePlace(PlaceModel place)
+    {
+        return _context.Update(place).Entity;
+    }
+
+    public PlaceModel DeletePlace(PlaceModel placeForDelete)
+    {
+        return _context.Places.Remove(placeForDelete).Entity;
+    }
+
     public List<LocationModel> GetAllLocations()
     {
         //ლოკაციები მხოლოდ კოორდინატების წასაკითხად იტვირთება და ენთითები კონტექსტს არ ებმება.
@@ -280,6 +318,15 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return [.. _context.UrlGraphNodes.AsNoTracking()];
     }
 
+    public void DeleteUrlGraphNodesByPlaceId(int placeId)
+    {
+        //ადგილის წაშლისას მისი გრაფის წიბოები წინასწარ უნდა წაიშალოს — ორივე FK Restrict-ია და ბაზა
+        //ადგილს კავშირებთან ერთად არ წაშლიდა. ჩანაწერები კონტექსტში იშლება და ადგილთან ერთად, ერთი
+        //SaveChanges-ით ინახება
+        _context.UrlGraphNodes.RemoveRange(_context.UrlGraphNodes.Where(w =>
+            w.FromUrlId == placeId || w.GotUrlId == placeId));
+    }
+
     #endregion
 
     #region Lookup cruder
@@ -343,6 +390,17 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
             _context.Municipalities.Local.FirstOrDefault(f => f.Name == municipalityName) ??
             _context.Municipalities.FirstOrDefault(f => f.Name == municipalityName);
         return municipality ?? _context.Municipalities.Add(new MunicipalityModel { Name = municipalityName }).Entity;
+    }
+
+    public List<RegionModel> GetRegionsList()
+    {
+        //ცნობარი მხოლოდ ასარჩევად იტვირთება და ენთითები კონტექსტს არ ებმება
+        return [.. _context.Regions.AsNoTracking().OrderBy(o => o.Name)];
+    }
+
+    public List<MunicipalityModel> GetMunicipalitiesList()
+    {
+        return [.. _context.Municipalities.AsNoTracking().OrderBy(o => o.Name)];
     }
 
     #endregion

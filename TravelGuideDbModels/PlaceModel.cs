@@ -1,8 +1,11 @@
 // ReSharper disable CollectionNeverUpdated.Global
 
+using SystemTools.SystemToolsShared;
+
 namespace TravelGuideDbModels;
 
-public sealed class PlaceModel
+//ItemData საჭიროა PlaceCruder-ისთვის — ჩანაწერი ველების რედაქტორებით იმართება
+public sealed class PlaceModel : ItemData
 {
     public int PlaceId { get; init; }
     public required string Url { get; init; }

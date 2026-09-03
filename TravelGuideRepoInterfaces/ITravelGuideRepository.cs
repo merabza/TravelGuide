@@ -29,6 +29,11 @@ public interface ITravelGuideRepository
     List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed, bool includeDownloadErrors);
     bool HasAnalysedPlaces();
     bool HasDownloadErrorPlaces();
+    int GetPlacesCount();
+    List<PlaceModel> GetPlacesPortion(string? filter, int skip, int take);
+    PlaceModel? GetPlaceById(int placeId);
+    PlaceModel UpdatePlace(PlaceModel place);
+    PlaceModel DeletePlace(PlaceModel placeForDelete);
 
     List<PlaceByLocation> GetNearestPlaces(double latitude, double longitude, int skip, int take, TimeSpan minRoadTime,
         TimeSpan maxRoadTime, int maxVisitsCount, EOrderVisitsBy orderVisitsBy);
@@ -37,6 +42,7 @@ public interface ITravelGuideRepository
 
     UrlGraphNode AddUrlGraphNode(UrlGraphNode newUrlGraphNode);
     List<UrlGraphNode> GetAllUrlGraphNodes();
+    void DeleteUrlGraphNodesByPlaceId(int placeId);
 
     List<MonthModel> GetMonths();
     MonthModel AddMonth(MonthModel newMonth);
@@ -46,6 +52,8 @@ public interface ITravelGuideRepository
     LocationModel GetOrCreateLocation(double latitude, double longitude);
     RegionModel GetOrCreateRegion(string regionName);
     MunicipalityModel GetOrCreateMunicipality(string municipalityName);
+    List<RegionModel> GetRegionsList();
+    List<MunicipalityModel> GetMunicipalitiesList();
 
     List<MotorcycleModel> GetMotorcyclesList();
     MotorcycleModel? GetMotorcycleByKey(string key);
