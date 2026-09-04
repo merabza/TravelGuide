@@ -29,6 +29,13 @@ public sealed class ListsSubMenuCommand : CliMenuCommand
             listsSubMenuSet.AddMenuItem(new CruderListCliMenuCommand(new MotorcycleCruder(repository)));
             //ადგილების (Places ცხრილის) რედაქტორი — ფილტრით და პორციებად ჩატვირთული სია
             listsSubMenuSet.AddMenuItem(new PlacesCommand(_travelGuideRepositoryCreatorFactory));
+            //რეგიონებისა და მუნიციპალიტეტების ცნობარების რედაქტორები
+            listsSubMenuSet.AddMenuItem(new CruderListCliMenuCommand(new RegionCruder(repository)));
+            listsSubMenuSet.AddMenuItem(new CruderListCliMenuCommand(new MunicipalityCruder(repository)));
+            //კატეგორიების, ტეგებისა და მანძილების საწყისი წერტილების ცნობარების რედაქტორები
+            listsSubMenuSet.AddMenuItem(new CruderListCliMenuCommand(new CategoryCruder(repository)));
+            listsSubMenuSet.AddMenuItem(new CruderListCliMenuCommand(new TagCruder(repository)));
+            listsSubMenuSet.AddMenuItem(new CruderListCliMenuCommand(new FromPointCruder(repository)));
         }
         catch (Exception e)
         {

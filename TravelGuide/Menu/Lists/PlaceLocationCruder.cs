@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AppCliTools.CliMenu;
 using AppCliTools.CliParameters.Cruders;
 using AppCliTools.CliParameters.FieldEditors;
 using SystemTools.SystemToolsShared;
@@ -14,10 +13,9 @@ using TravelGuideRepoInterfaces;
 namespace TravelGuide.Menu.Lists;
 
 //ერთი ადგილის ლოკაციების (PlacesByLocations ბმულების) რედაქტორი VisitImageCruder-ის ყაიდაზე. ჩანაწერის
-//გასაღები კოორდინატებია („განედი, გრძედი") და შეცვლისას თვითონაც იცვლება, ამიტომ ჩანაწერის მენიუში
-//ცალკეული ველების რედაქტორები არ ჩანს (FillDetailsSubMenu) — ველის შეცვლის შემდეგ მენიუ ძველი
-//გასაღებით გადაიწყობოდა და ჩანაწერს ვეღარ იპოვიდა; „Edit All fields in sequence" კი წარმატებისას
-//სიაზე ბრუნდება, რომელიც ბაზიდან თავიდან იტვირთება.
+//გასაღები კოორდინატებია („განედი, გრძედი") და შეცვლისას თვითონაც იცვლება — ველის რედაქტორი ამას ხედავს
+//(Cruder.CheckRecordKeyChanged) და „Edit All fields in sequence"-ის მსგავსად სიაზე ბრუნდება, რომელიც
+//ბაზიდან თავიდან იტვირთება.
 //ლოკაცია საზიარო ჩანაწერია (ერთი წყვილი რამდენიმე ადგილს შეიძლება ეკუთვნოდეს), ამიტომ ჩამატება
 //არსებულს იყენებს ან ახალს ქმნის (GetOrCreateLocation), წაშლა კი მხოლოდ ბმულს ხსნის — ობლად დარჩენილი
 //ლოკაცია განზრახ რჩება, როგორც ქროულერის PlaceLinksSynchronizer.SyncLocations-ში
@@ -62,11 +60,6 @@ public sealed class PlaceLocationCruder : Cruder
     protected override ItemData CreateNewItem(string? recordKey, ItemData? defaultItemData)
     {
         return new LocationItem();
-    }
-
-    public override void FillDetailsSubMenu(CliMenuSet itemSubMenuSet, string itemName)
-    {
-        //საბაზო რეალიზაცია განზრახ არ იძახება — ცალკეული ველის რედაქტორი გასაღებს შეცვლიდა (იხ. კლასის კომენტარი)
     }
 
     protected override ValueTask AddRecordWithKey(string recordKey, ItemData newRecord,

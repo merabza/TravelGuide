@@ -433,6 +433,151 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return [.. _context.Municipalities.AsNoTracking().OrderBy(o => o.Name)];
     }
 
+    public RegionModel? GetRegionByName(string regionName)
+    {
+        //სახელი ბაზის შედარებით (collation) მოწმდება, რომ რედაქტორის უნიკალურობის შემოწმება ინდექსს დაემთხვეს
+        return _context.Regions.AsNoTracking().FirstOrDefault(f => f.Name == regionName);
+    }
+
+    public RegionModel? GetRegionById(int regionId)
+    {
+        return _context.Regions.SingleOrDefault(w => w.RegionId == regionId);
+    }
+
+    public RegionModel UpdateRegion(RegionModel region)
+    {
+        return _context.Update(region).Entity;
+    }
+
+    public RegionModel DeleteRegion(RegionModel regionForDelete)
+    {
+        return _context.Regions.Remove(regionForDelete).Entity;
+    }
+
+    //რამდენი ადგილი ეყრდნობა რეგიონს — რედაქტორი გამოყენებულ ჩანაწერს არ შლის
+    public int GetPlacesCountByRegionId(int regionId)
+    {
+        return _context.Places.Count(c => c.RegionId == regionId);
+    }
+
+    public MunicipalityModel? GetMunicipalityByName(string municipalityName)
+    {
+        return _context.Municipalities.AsNoTracking().FirstOrDefault(f => f.Name == municipalityName);
+    }
+
+    public MunicipalityModel? GetMunicipalityById(int municipalityId)
+    {
+        return _context.Municipalities.SingleOrDefault(w => w.MunicipalityId == municipalityId);
+    }
+
+    public MunicipalityModel UpdateMunicipality(MunicipalityModel municipality)
+    {
+        return _context.Update(municipality).Entity;
+    }
+
+    public MunicipalityModel DeleteMunicipality(MunicipalityModel municipalityForDelete)
+    {
+        return _context.Municipalities.Remove(municipalityForDelete).Entity;
+    }
+
+    public int GetPlacesCountByMunicipalityId(int municipalityId)
+    {
+        return _context.Places.Count(c => c.MunicipalityId == municipalityId);
+    }
+
+    public List<CategoryModel> GetCategoriesList()
+    {
+        //ცნობარები რედაქტორისთვის მოუბმელად იტვირთება, როგორც GetRegionsList
+        return [.. _context.Categories.AsNoTracking().OrderBy(o => o.Name)];
+    }
+
+    public CategoryModel? GetCategoryByName(string categoryName)
+    {
+        return _context.Categories.AsNoTracking().FirstOrDefault(f => f.Name == categoryName);
+    }
+
+    public CategoryModel? GetCategoryById(int categoryId)
+    {
+        return _context.Categories.SingleOrDefault(w => w.CategoryId == categoryId);
+    }
+
+    public CategoryModel UpdateCategory(CategoryModel category)
+    {
+        return _context.Update(category).Entity;
+    }
+
+    public CategoryModel DeleteCategory(CategoryModel categoryForDelete)
+    {
+        return _context.Categories.Remove(categoryForDelete).Entity;
+    }
+
+    //რამდენი ადგილია კატეგორიაზე მიბმული — რედაქტორი გამოყენებულ ჩანაწერს არ შლის (ბმულები კასკადით წაიშლებოდა)
+    public int GetPlacesCountByCategoryId(int categoryId)
+    {
+        return _context.PlacesByCategories.Count(c => c.CategoryId == categoryId);
+    }
+
+    public List<TagModel> GetTagsList()
+    {
+        return [.. _context.Tags.AsNoTracking().OrderBy(o => o.Name)];
+    }
+
+    public TagModel? GetTagByName(string tagName)
+    {
+        return _context.Tags.AsNoTracking().FirstOrDefault(f => f.Name == tagName);
+    }
+
+    public TagModel? GetTagById(int tagId)
+    {
+        return _context.Tags.SingleOrDefault(w => w.TagId == tagId);
+    }
+
+    public TagModel UpdateTag(TagModel tag)
+    {
+        return _context.Update(tag).Entity;
+    }
+
+    public TagModel DeleteTag(TagModel tagForDelete)
+    {
+        return _context.Tags.Remove(tagForDelete).Entity;
+    }
+
+    public int GetPlacesCountByTagId(int tagId)
+    {
+        return _context.PlacesByTags.Count(c => c.TagId == tagId);
+    }
+
+    public List<FromPointModel> GetFromPointsList()
+    {
+        return [.. _context.FromPoints.AsNoTracking().OrderBy(o => o.Name)];
+    }
+
+    public FromPointModel? GetFromPointByName(string fromPointName)
+    {
+        return _context.FromPoints.AsNoTracking().FirstOrDefault(f => f.Name == fromPointName);
+    }
+
+    public FromPointModel? GetFromPointById(int fromPointId)
+    {
+        return _context.FromPoints.SingleOrDefault(w => w.FromPointId == fromPointId);
+    }
+
+    public FromPointModel UpdateFromPoint(FromPointModel fromPoint)
+    {
+        return _context.Update(fromPoint).Entity;
+    }
+
+    public FromPointModel DeleteFromPoint(FromPointModel fromPointForDelete)
+    {
+        return _context.FromPoints.Remove(fromPointForDelete).Entity;
+    }
+
+    //თითო ადგილს საწყისი წერტილიდან ერთი მანძილი აქვს (უნიკალური წყვილი), ამიტომ მანძილების რაოდენობა ადგილების რაოდენობაა
+    public int GetPlacesCountByFromPointId(int fromPointId)
+    {
+        return _context.DistanceByPlaces.Count(c => c.FromPointId == fromPointId);
+    }
+
     #endregion
 
     #region Motorcycle cruder
