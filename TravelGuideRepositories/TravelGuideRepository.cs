@@ -207,6 +207,36 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return [.. _context.Locations.AsNoTracking().OrderBy(o => o.LocationId)];
     }
 
+    public List<PlaceByLocation> GetPlaceLocations(int placeId)
+    {
+        //ერთი ადგილის ლოკაციების ბმულები კოორდინატებით — ადგილების რედაქტორის Locations ქვერედაქტორისთვის.
+        //მოუბმელი ასლები ბრუნდება (რედაქტორი კოორდინატების საკუთარ ასლებზე მუშაობს); შესაცვლელი ან
+        //წასაშლელი ბმული GetPlaceLocation-ით ცალკე მოიძებნება
+        return
+        [
+            .. _context.PlacesByLocations.AsNoTracking().Include(i => i.LocationNavigation)
+                .Where(w => w.PlaceId == placeId).OrderBy(o => o.LocationId)
+        ];
+    }
+
+    public PlaceByLocation? GetPlaceLocation(int placeId, int locationId)
+    {
+        return _context.PlacesByLocations.SingleOrDefault(w => w.PlaceId == placeId && w.LocationId == locationId);
+    }
+
+    public PlaceByLocation AddPlaceLocation(int placeId, LocationModel location)
+    {
+        //ლოკაცია შეიძლება ახალი, ჯერ შეუნახავი იყოს (GetOrCreateLocation) — ბმული ნავიგაციით იწერება და
+        //LocationId შენახვისას ივსება
+        return _context.PlacesByLocations.Add(new PlaceByLocation { PlaceId = placeId, LocationNavigation = location })
+            .Entity;
+    }
+
+    public PlaceByLocation DeletePlaceLocation(PlaceByLocation placeLocationForDelete)
+    {
+        return _context.PlacesByLocations.Remove(placeLocationForDelete).Entity;
+    }
+
     public List<PlaceByLocation> GetNearestPlaces(double latitude, double longitude, int skip, int take,
         TimeSpan minRoadTime, TimeSpan maxRoadTime, int maxVisitsCount, EOrderVisitsBy orderVisitsBy)
     {

@@ -41,6 +41,8 @@ public sealed class PlaceCruder : Cruder
         FieldEditors.Add(new LookupIdFieldEditor(nameof(PlaceModel.MunicipalityId), "Municipality",
             () => travelGuideRepository.GetMunicipalitiesList().ToDictionary(k => k.MunicipalityId, v => v.Name),
             true));
+        //ლოკაციები ქვერედაქტორით იმართება — შექმნისა და თანმიმდევრობით რედაქტირებისას არ იკითხება
+        FieldEditors.Add(new PlaceLocationsFieldEditor(nameof(PlaceModel.Locations), travelGuideRepository));
     }
 
     //სიის მიმდინარე პორციის ჩატვირთვა ფილტრით (დასახელების ან მისამართის ნაწილი). თითო ჩანაწერს მენიუს
@@ -150,6 +152,7 @@ public sealed class PlaceCruder : Cruder
         place.State = newPlace.State;
         place.RegionId = newPlace.RegionId;
         place.MunicipalityId = newPlace.MunicipalityId;
+        //ლოკაციები ცალკე ქვერედაქტორით (PlaceLocationCruder) იმართება და აქ არ კოპირდება
         _travelGuideRepository.UpdatePlace(place);
 
         _travelGuideRepository.SaveChanges();

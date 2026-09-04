@@ -40,6 +40,11 @@ public interface ITravelGuideRepository
 
     List<LocationModel> GetAllLocations();
 
+    List<PlaceByLocation> GetPlaceLocations(int placeId);
+    PlaceByLocation? GetPlaceLocation(int placeId, int locationId);
+    PlaceByLocation AddPlaceLocation(int placeId, LocationModel location);
+    PlaceByLocation DeletePlaceLocation(PlaceByLocation placeLocationForDelete);
+
     UrlGraphNode AddUrlGraphNode(UrlGraphNode newUrlGraphNode);
     List<UrlGraphNode> GetAllUrlGraphNodes();
     void DeleteUrlGraphNodesByPlaceId(int placeId);

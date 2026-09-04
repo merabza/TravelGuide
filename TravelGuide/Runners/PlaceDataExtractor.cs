@@ -100,7 +100,7 @@ public static partial class PlaceDataExtractor
     //დაშვება დამრგვალების სხვაობას ფარავს, რეალურად განსხვავებულ წერტილებს კი ვერ შეაწებებს
     private const double DuplicateToleranceDegrees = 1e-5;
 
-    private static bool IsValidCoordinatePair(double latitude, double longitude)
+    internal static bool IsValidCoordinatePair(double latitude, double longitude)
     {
         return latitude is >= MinValidLatitude and <= MaxValidLatitude &&
                longitude is >= MinValidLongitude and <= MaxValidLongitude;
