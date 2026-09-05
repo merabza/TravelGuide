@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using AppCliTools.CliMenu;
 using SystemTools.SystemToolsShared;
+using TravelGuide.Menu.Distances;
 using TravelGuideDbModels;
 using TravelGuideDbPersistence.Configurations;
 using TravelGuideRepoInterfaces;
@@ -12,12 +15,17 @@ namespace TravelGuide.Menu.Lists;
 //ჩანაწერებით ეყრდნობა. სახელები საიტიდან მოქაჩული ფორმითაა („თბილისიდან"). სახელის გარდა წერტილს
 //არასავალდებულო მდებარეობა აქვს — Locations ცხრილის საზიარო ჩანაწერი (ერთი წყვილი ადგილებსაც შეიძლება
 //ეკუთვნოდეს), ამიტომ შენახვისას არსებული წყვილი მეორდება ან ახალი იქმნება (GetOrCreateLocation), მოხსნისას
-//კი მხოლოდ ბმული სუფთავდება — ობლად დარჩენილი ლოკაცია განზრახ რჩება, როგორც ადგილების ლოკაციების რედაქტორში
+//კი მხოლოდ ბმული სუფთავდება — ობლად დარჩენილი ლოკაცია განზრახ რჩება, როგორც ადგილების ლოკაციების რედაქტორში.
+//ჩანაწერის მენიუში ველების შემდეგ Calculate Distances პუნქტია — წერტილის მდებარეობიდან ადგილების ლოკაციებამდე
+//მარშრუტების დათვლა RouteDistances ცხრილში (OSRM), ამიტომ რედაქტორს HttpClient-ის ქარხანა სჭირდება
 public sealed class FromPointCruder : LookupCruder
 {
-    public FromPointCruder(ITravelGuideRepository travelGuideRepository) : base(travelGuideRepository, "FromPoint",
-        "FromPoints", FromPointModelConfiguration.NameLength)
+    private readonly IHttpClientFactory _httpClientFactory;
+
+    public FromPointCruder(ITravelGuideRepository travelGuideRepository, IHttpClientFactory httpClientFactory) : base(
+        travelGuideRepository, "FromPoint", "FromPoints", FromPointModelConfiguration.NameLength)
     {
+        _httpClientFactory = httpClientFactory;
         FieldEditors.Add(new OptionalLocationFieldEditor(nameof(FromPointItem.Location), true));
     }
 
@@ -62,6 +70,28 @@ public sealed class FromPointCruder : LookupCruder
     protected override void Delete(int id)
     {
         TravelGuideRepository.DeleteFromPoint(GetFromPoint(id));
+    }
+
+    //ჩანაწერის მენიუში ველების რედაქტორების შემდეგ მანძილების გამოთვლის პუნქტი. მდებარეობა ჩანაწერის ასლიდან
+    //იღება — მენიუ ყოველ გახსნაზე ბაზიდან თავიდან იტვირთება, ამიტომ ის მიმდინარეა; მდებარეობის გარეშე წერტილს
+    //პუნქტი მაინც აქვს და გაშვებისას შეცდომას წერს
+    public override void FillDetailsSubMenu(CliMenuSet itemSubMenuSet, string itemName)
+    {
+        base.FillDetailsSubMenu(itemSubMenuSet, itemName);
+
+        if (GetItemByName(itemName, false) is not FromPointItem fromPointItem)
+        {
+            return;
+        }
+
+        LocationModel? startLocation = fromPointItem.Location is { } location
+            ? new LocationModel
+            {
+                LocationId = location.LocationId, Latitude = location.Latitude, Longitude = location.Longitude
+            }
+            : null;
+        itemSubMenuSet.AddMenuItem(new CalculateDistancesCommand(TravelGuideRepository, _httpClientFactory, itemName,
+            startLocation));
     }
 
     //მდებარეობის მიბმა ან მოხსნა. ბმა ნავიგაციით იწერება, რადგან ახლადშექმნილ ლოკაციას იდენტიფიკატორი ჯერ

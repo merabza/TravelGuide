@@ -8,15 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using AppCliTools.CliMenu;
 using AppCliTools.LibDataInput;
-using DoTravelGuide.Models;
-using ParametersManagement.LibParameters;
 using SystemTools.SystemToolsShared;
 using TravelGuideDbModels;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Distances;
 
-
+//საწყისი წერტილის (FromPoints ცნობარის ჩანაწერის) მდებარეობიდან ადგილებთან მიბმულ ყველა ლოკაციამდე მანძილების
+//გამოთვლა და RouteDistances ცხრილში შენახვა — საწყისი წერტილის რედაქტორის ჩანაწერის მენიუს პუნქტი. მარშრუტი
+//საწყისი წერტილის ლოკაციიდან (FromPoints.LocationId) ადგილის ლოკაციამდე (PlacesByLocations.LocationId) ინახება
 public sealed class CalculateDistancesCommand : CliMenuCommand
 {
     //ერთი წყვილის დამუშავების შედეგი
@@ -31,59 +31,50 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
     //OSRM-ის საჯარო სერვისს ზედიზედ მოთხოვნები შესვენებით უნდა გაეგზავნოს
     private static readonly TimeSpan RequestDelay = TimeSpan.FromMilliseconds(500);
 
+    private readonly string _fromPointName;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IParametersManager _parametersManager;
-    private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;
+    private readonly LocationModel? _startLocation;
+    private readonly ITravelGuideRepository _travelGuideRepository;
 
-    public CalculateDistancesCommand(IParametersManager parametersManager,
-        ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory,
-        IHttpClientFactory httpClientFactory) : base("Calculate Distances", EMenuAction.Reload)
+    //startLocation საწყისი წერტილის მდებარეობაა ბაზაში არსებული იდენტიფიკატორით; მდებარეობის გარეშე წერტილისთვის
+    //null — ბრძანება მაშინ შეცდომას წერს და არაფერს ითვლის
+    public CalculateDistancesCommand(ITravelGuideRepository travelGuideRepository,
+        IHttpClientFactory httpClientFactory, string fromPointName, LocationModel? startLocation) : base(
+        "Calculate Distances", EMenuAction.Reload)
     {
-        _parametersManager = parametersManager;
-        _travelGuideRepositoryCreatorFactory = travelGuideRepositoryCreatorFactory;
+        _travelGuideRepository = travelGuideRepository;
         _httpClientFactory = httpClientFactory;
+        _fromPointName = fromPointName;
+        _startLocation = startLocation;
     }
 
     protected override async ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
     {
         MenuAction = EMenuAction.Reload;
 
-        var parameters = (TravelGuideParameters)_parametersManager.Parameters;
-
-        //პარამეტრებში არჩეული უნდა იყოს მიმდინარე ადგილმდებარეობის სახელი
-        string? myCurrentPlaceName = parameters.MyCurrentPlaceName;
-        if (string.IsNullOrEmpty(myCurrentPlaceName))
+        //მანძილები საწყისი წერტილის მდებარეობიდან ითვლება — ის ჯერ Location ველით უნდა შეივსოს
+        if (_startLocation is not { } startLocation)
         {
-            StShared.WriteErrorLine("My Current Place Name is not set in parameters", true);
+            StShared.WriteErrorLine($"FromPoint {_fromPointName} has no Location", true);
             return false;
         }
 
-        //ამ სახელით ჩემს ადგილმდებარეობებში უნდა მოიძებნოს შესაბამისი კოორდინატები
-        if (!parameters.MyPlaces.TryGetValue(myCurrentPlaceName, out MyPlace? myPlace))
-        {
-            StShared.WriteErrorLine($"My Place with name {myCurrentPlaceName} not found in My Places", true);
-            return false;
-        }
-
-        ITravelGuideRepository repository = _travelGuideRepositoryCreatorFactory.GetTravelGuideRepository();
-
-        //არსებული ჩანაწერები წყვილის კოორდინატებით: უარყოფითი პასუხისას გამოსატოვებლად,
-        //დადებითი პასუხისას — სისწორის შესამოწმებლად და ჩასასწორებლად
-        Dictionary<(double StartLatitude, double StartLongitude, double EndLatitude, double EndLongitude),
-            RouteDistanceModel> existingByPair = repository.GetAllRouteDistances().ToDictionary(k =>
-            (k.StartLatitude, k.StartLongitude, k.EndLatitude, k.EndLongitude));
+        //ამ საწყისი ლოკაციიდან უკვე დათვლილი მარშრუტები საბოლოო ლოკაციის იდენტიფიკატორით: უარყოფითი პასუხისას
+        //გამოსატოვებლად, დადებითი პასუხისას — სისწორის შესამოწმებლად და ჩასასწორებლად
+        Dictionary<int, RouteDistanceModel> existingByEndLocationId = _travelGuideRepository
+            .GetRouteDistancesByStartLocationId(startLocation.LocationId).ToDictionary(k => k.EndLocationId);
 
         //თუ ბაზაში უკვე დათვლილი მანძილებია, მომხმარებელი ირჩევს: ყველა წყვილი თავიდან გადაითვალოს
         //და საჭიროებისას ჩასწორდეს, თუ მხოლოდ ჯერ დაუთვლელები დაითვალოს
         var reCalculate = false;
-        if (existingByPair.Count > 0)
+        if (existingByEndLocationId.Count > 0)
         {
             reCalculate = Inputer.InputBool("Re-calculate already counted distances?", false, false);
         }
 
-        //ბაზიდან იტვირთება Locations ცხრილის ყველა ჩანაწერი — მანძილი ყველა ლოკაციამდე ითვლება,
-        //ადგილებთან ბმულების მიუხედავად
-        List<LocationModel> locations = repository.GetAllLocations();
+        //ბაზიდან იტვირთება ადგილებთან მიბმული ლოკაციები (PlacesByLocations) — თითო ლოკაცია ერთხელ, რამდენი
+        //ადგილიც არ უნდა ეზიარებოდეს
+        List<LocationModel> locations = _travelGuideRepository.GetPlaceLinkedLocations();
         if (locations.Count == 0)
         {
             Console.WriteLine("No Locations found");
@@ -91,7 +82,7 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
         }
 
         Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
-            $"Calculate Distances started: from {myCurrentPlaceName} ({myPlace.Latitude}, {myPlace.Longitude}) to {locations.Count} locations"));
+            $"Calculate Distances started: from {_fromPointName} ({startLocation.Latitude}, {startLocation.Longitude}) to {locations.Count} locations"));
 
         var savedCount = 0;
         var updatedCount = 0;
@@ -110,10 +101,9 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
 
             LocationModel location = locations[index];
 
-            //ლოკაციები კოორდინატებით უნიკალურია და წყვილი განმეორებით ვერ შეგვხვდება;
+            //სიაში ლოკაცია არ მეორდება და წყვილი განმეორებით ვერ შეგვხვდება;
             //უკვე დათვლილი წყვილი მხოლოდ დადებითი პასუხისას გადაითვლება
-            bool pairExists = existingByPair.TryGetValue(
-                (myPlace.Latitude, myPlace.Longitude, location.Latitude, location.Longitude),
+            bool pairExists = existingByEndLocationId.TryGetValue(location.LocationId,
                 out RouteDistanceModel? existingRouteDistance);
             if (pairExists && !reCalculate)
             {
@@ -124,7 +114,7 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
             string progressPrefix = string.Create(CultureInfo.InvariantCulture,
                 $"{index + 1}/{locations.Count} Location {location.LocationId} ({location.Latitude:F6}, {location.Longitude:F6})");
 
-            EPairResult pairResult = CountAndPersistPair(repository, myPlace, location, existingRouteDistance,
+            EPairResult pairResult = CountAndPersistPair(startLocation, location, existingRouteDistance,
                 progressPrefix, cancellationToken);
 
             switch (pairResult)
@@ -155,15 +145,14 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
     }
 
     //ერთი წყვილის დამუშავება: მანძილების გამოთვლა და შედეგის ბაზაში შენახვა, ან არსებულის შემოწმება-ჩასწორება
-    private EPairResult CountAndPersistPair(ITravelGuideRepository repository, MyPlace myPlace,
-        LocationModel location, RouteDistanceModel? existingRouteDistance, string progressPrefix,
-        CancellationToken cancellationToken)
+    private EPairResult CountAndPersistPair(LocationModel startLocation, LocationModel location,
+        RouteDistanceModel? existingRouteDistance, string progressPrefix, CancellationToken cancellationToken)
     {
-        double airDistanceKm = DistanceCounter.CountAirDistanceKm(myPlace.Latitude, myPlace.Longitude,
+        double airDistanceKm = DistanceCounter.CountAirDistanceKm(startLocation.Latitude, startLocation.Longitude,
             location.Latitude, location.Longitude);
 
         (double DistanceKm, TimeSpan Duration)? roadRoute = DistanceCounter.TryGetRoadRoute(_httpClientFactory,
-            myPlace.Latitude, myPlace.Longitude, location.Latitude, location.Longitude, cancellationToken);
+            startLocation.Latitude, startLocation.Longitude, location.Latitude, location.Longitude, cancellationToken);
 
         //გზის მარშრუტი ვერ დადგინდა — წყვილი არ ინახება და შემდეგი გაშვება მას ხელახლა ცდის
         if (roadRoute is null)
@@ -177,19 +166,17 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
 
         if (existingRouteDistance is null)
         {
-            repository.AddRouteDistance(new RouteDistanceModel
+            _travelGuideRepository.AddRouteDistance(new RouteDistanceModel
             {
-                StartLatitude = myPlace.Latitude,
-                StartLongitude = myPlace.Longitude,
-                EndLatitude = location.Latitude,
-                EndLongitude = location.Longitude,
+                StartLocationId = startLocation.LocationId,
+                EndLocationId = location.LocationId,
                 AirDistance = airDistanceKm,
                 RoadDistance = roadRoute.Value.DistanceKm,
                 RoadTime = roadRoute.Value.Duration
             });
 
             //თითო წყვილი ცალკე ინახება, რომ შეწყვეტილმა გაშვებამ არაფერი დაკარგოს
-            repository.SaveChanges();
+            _travelGuideRepository.SaveChanges();
             Console.WriteLine($"{countedText} (saved)");
             return EPairResult.Saved;
         }
@@ -205,7 +192,7 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
         existingRouteDistance.AirDistance = airDistanceKm;
         existingRouteDistance.RoadDistance = roadRoute.Value.DistanceKm;
         existingRouteDistance.RoadTime = roadRoute.Value.Duration;
-        repository.SaveChanges();
+        _travelGuideRepository.SaveChanges();
         Console.WriteLine($"{countedText} (updated)");
         return EPairResult.Updated;
     }

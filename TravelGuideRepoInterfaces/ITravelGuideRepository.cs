@@ -35,10 +35,10 @@ public interface ITravelGuideRepository
     PlaceModel UpdatePlace(PlaceModel place);
     PlaceModel DeletePlace(PlaceModel placeForDelete);
 
-    List<PlaceByLocation> GetNearestPlaces(double latitude, double longitude, int skip, int take, TimeSpan minRoadTime,
+    List<PlaceByLocation> GetNearestPlaces(LocationModel startLocation, int skip, int take, TimeSpan minRoadTime,
         TimeSpan maxRoadTime, int maxVisitsCount, EOrderVisitsBy orderVisitsBy);
 
-    List<LocationModel> GetAllLocations();
+    List<LocationModel> GetPlaceLinkedLocations();
 
     List<PlaceByLocation> GetPlaceLocations(int placeId);
     PlaceByLocation? GetPlaceLocation(int placeId, int locationId);
@@ -108,9 +108,6 @@ public interface ITravelGuideRepository
     VisitImage DeleteVisitImage(VisitImage visitImageForDelete);
 
     RouteDistanceModel AddRouteDistance(RouteDistanceModel newRouteDistance);
-
-    RouteDistanceModel? GetRouteDistance(double startLatitude, double startLongitude, double endLatitude,
-        double endLongitude);
-
-    List<RouteDistanceModel> GetAllRouteDistances();
+    RouteDistanceModel? GetRouteDistance(int startLocationId, int endLocationId);
+    List<RouteDistanceModel> GetRouteDistancesByStartLocationId(int startLocationId);
 }

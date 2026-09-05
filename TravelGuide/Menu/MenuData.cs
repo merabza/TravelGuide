@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using TravelGuide.Menu.Distances;
 using TravelGuide.Menu.Lists;
 using TravelGuide.Menu.TravelGuideParametersEdit;
 using TravelGuide.Menu.Visits;
@@ -17,8 +16,6 @@ public static class MenuData
         nameof(ListsSubMenuCommandFactoryStrategy),
         //ვიზიტების ქვემენიუ
         nameof(VisitsSubMenuCommandFactoryStrategy),
-        //დისტანციების გამოთვლა
-        nameof(CalculateDistancesCommandFactoryStrategy),
         //ახალი ამოცანის შექმნა
         nameof(NewTaskCommandFactoryStrategy),
         //ამოცანების ჩამონათვალი

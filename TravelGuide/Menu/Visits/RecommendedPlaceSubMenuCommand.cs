@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net.Http;
 using AppCliTools.CliMenu;
 using AppCliTools.CliParameters.CliMenuCommands;
-using DoTravelGuide.Models;
 using ParametersManagement.LibParameters;
 using SystemTools.SystemToolsShared;
 using TravelGuide.Menu.Distances;
@@ -20,9 +19,9 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
     private readonly string _directionsUrl;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly LocationModel _location;
-    private readonly MyPlace _myPlace;
     private readonly IParametersManager _parametersManager;
     private readonly PlaceModel _place;
+    private readonly LocationModel _startLocation;
     private readonly string _status;
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;
 
@@ -31,24 +30,27 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
     private bool _roadRouteCounted;
 
     //მრავალლოკაციიანი ადგილი სიაში თითო ლოკაციაზე თითოჯერ გამოდის და ეს პუნქტი მხოლოდ ერთ,
-    //გადმოცემულ ლოკაციას წარმოადგენს — სტატუსში, დეტალებში, მარშრუტსა და მანძილებში ის გამოიყენება
+    //გადმოცემულ ლოკაციას წარმოადგენს — სტატუსში, დეტალებში, მარშრუტსა და მანძილებში ის გამოიყენება.
+    //startLocation არჩეული საწყისი წერტილის (FromPoint) ლოკაციაა (Locations ცხრილის ჩანაწერი) — მარშრუტები
+    //RouteDistances-ში მისი და ამ ლოკაციის იდენტიფიკატორებით ინახება
     public RecommendedPlaceSubMenuCommand(ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory,
-        IHttpClientFactory httpClientFactory, IParametersManager parametersManager, MyPlace myPlace, PlaceModel place,
-        LocationModel location, int visitsCount) : base(GetCaptionName(place, location), EMenuAction.LoadSubMenu)
+        IHttpClientFactory httpClientFactory, IParametersManager parametersManager, LocationModel startLocation,
+        PlaceModel place, LocationModel location, int visitsCount) : base(GetCaptionName(place, location),
+        EMenuAction.LoadSubMenu)
     {
         _travelGuideRepositoryCreatorFactory = travelGuideRepositoryCreatorFactory;
         _httpClientFactory = httpClientFactory;
         _parametersManager = parametersManager;
-        _myPlace = myPlace;
+        _startLocation = startLocation;
         _place = place;
         _location = location;
         //სტატუსის თავში ამ ადგილზე უკვე დაფიქსირებული ვიზიტების რაოდენობა გამოდის; კოორდინატები მძიმით
         //არის გამოყოფილი, რომ Google Maps-ის ძებნაში პირდაპირ ჩაკოპირება შეიძლებოდეს
         _status = string.Create(CultureInfo.InvariantCulture,
             $"{visitsCount} | {place.Url} | {location.Latitude}, {location.Longitude}");
-        //Google Maps-ის მარშრუტის ბმული: საწყისი წერტილი ჩემი მიმდინარე ადგილმდებარეობაა, საბოლოო — ეს ლოკაცია
+        //Google Maps-ის მარშრუტის ბმული: საწყისი წერტილი არჩეული FromPoint-ის ლოკაციაა, საბოლოო — ეს ლოკაცია
         _directionsUrl = string.Create(CultureInfo.InvariantCulture,
-            $"https://www.google.com/maps/dir/?api=1&origin={myPlace.Latitude},{myPlace.Longitude}&destination={location.Latitude},{location.Longitude}");
+            $"https://www.google.com/maps/dir/?api=1&origin={startLocation.Latitude},{startLocation.Longitude}&destination={location.Latitude},{location.Longitude}");
     }
 
     //ერთი ადგილის რამდენიმე პუნქტს განსხვავებული სახელი უნდა ჰქონდეს — CliMenuSet.GetMenuItemWithName
@@ -131,8 +133,8 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
                         string.Create(CultureInfo.InvariantCulture, $"{s.Distance}კმ {s.FromPointNavigation.Name}")))));
         }
 
-        //გამოთვლილი საჰაერო მანძილი ჩემი მიმდინარე ადგილმდებარეობიდან ამ პუნქტის ლოკაციამდე
-        double airDistanceKm = DistanceCounter.CountAirDistanceKm(_myPlace.Latitude, _myPlace.Longitude,
+        //გამოთვლილი საჰაერო მანძილი საწყისი წერტილიდან ამ პუნქტის ლოკაციამდე
+        double airDistanceKm = DistanceCounter.CountAirDistanceKm(_startLocation.Latitude, _startLocation.Longitude,
             _location.Latitude, _location.Longitude);
         placeSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Air Distance",
             string.Create(CultureInfo.InvariantCulture, $"{airDistanceKm:F1}კმ")));
@@ -185,8 +187,8 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
         try
         {
             ITravelGuideRepository repository = _travelGuideRepositoryCreatorFactory.GetTravelGuideRepository();
-            RouteDistanceModel? existingRouteDistance = repository.GetRouteDistance(_myPlace.Latitude,
-                _myPlace.Longitude, _location.Latitude, _location.Longitude);
+            RouteDistanceModel? existingRouteDistance =
+                repository.GetRouteDistance(_startLocation.LocationId, _location.LocationId);
             if (existingRouteDistance is not null)
             {
                 return (existingRouteDistance.RoadDistance, existingRouteDistance.RoadTime);
@@ -194,7 +196,7 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
 
             Console.WriteLine("Requesting road route from OSRM...");
             (double DistanceKm, TimeSpan Duration)? roadRoute = DistanceCounter.TryGetRoadRoute(_httpClientFactory,
-                _myPlace.Latitude, _myPlace.Longitude, _location.Latitude, _location.Longitude);
+                _startLocation.Latitude, _startLocation.Longitude, _location.Latitude, _location.Longitude);
             if (roadRoute is null)
             {
                 return null;
@@ -203,10 +205,8 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
             //Calculate Distances-ის ჩანაწერის იდენტური სტრუქტურა — საჰაერო მანძილიც წყვილთან ერთად ინახება
             repository.AddRouteDistance(new RouteDistanceModel
             {
-                StartLatitude = _myPlace.Latitude,
-                StartLongitude = _myPlace.Longitude,
-                EndLatitude = _location.Latitude,
-                EndLongitude = _location.Longitude,
+                StartLocationId = _startLocation.LocationId,
+                EndLocationId = _location.LocationId,
                 AirDistance = airDistanceKm,
                 RoadDistance = roadRoute.Value.DistanceKm,
                 RoadTime = roadRoute.Value.Duration

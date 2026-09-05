@@ -12,7 +12,7 @@ using TravelGuideDbPersistence;
 namespace TravelGuideDbMigration.Migrations
 {
     [DbContext(typeof(TravelGuideDbContext))]
-    [Migration("20260905053529_Initial")]
+    [Migration("20260905183633_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -331,11 +331,8 @@ namespace TravelGuideDbMigration.Migrations
                     b.Property<double>("AirDistance")
                         .HasColumnType("float");
 
-                    b.Property<double>("EndLatitude")
-                        .HasColumnType("float");
-
-                    b.Property<double>("EndLongitude")
-                        .HasColumnType("float");
+                    b.Property<int>("EndLocationId")
+                        .HasColumnType("int");
 
                     b.Property<double>("RoadDistance")
                         .HasColumnType("float");
@@ -343,15 +340,14 @@ namespace TravelGuideDbMigration.Migrations
                     b.Property<TimeSpan>("RoadTime")
                         .HasColumnType("time");
 
-                    b.Property<double>("StartLatitude")
-                        .HasColumnType("float");
-
-                    b.Property<double>("StartLongitude")
-                        .HasColumnType("float");
+                    b.Property<int>("StartLocationId")
+                        .HasColumnType("int");
 
                     b.HasKey("RouteDistanceId");
 
-                    b.HasIndex("StartLatitude", "StartLongitude", "EndLatitude", "EndLongitude")
+                    b.HasIndex("EndLocationId");
+
+                    b.HasIndex("StartLocationId", "EndLocationId")
                         .IsUnique();
 
                     b.ToTable("RouteDistances", (string)null);
@@ -617,6 +613,21 @@ namespace TravelGuideDbMigration.Migrations
                     b.Navigation("MunicipalityNavigation");
 
                     b.Navigation("RegionNavigation");
+                });
+
+            modelBuilder.Entity("TravelGuideDbModels.RouteDistanceModel", b =>
+                {
+                    b.HasOne("TravelGuideDbModels.LocationModel", null)
+                        .WithMany()
+                        .HasForeignKey("EndLocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TravelGuideDbModels.LocationModel", null)
+                        .WithMany()
+                        .HasForeignKey("StartLocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TravelGuideDbModels.TaskStartPoint", b =>

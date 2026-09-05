@@ -38,6 +38,10 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
     private TimeSpan _minRoadTime;
     private TimeSpan _maxRoadTime;
 
+    //საწყისი წერტილის (FromPoints ცნობარის ჩანაწერის) მდებარეობა — ქვემენიუში შესვლისას ერთხელ ირჩევა და მენიუს
+    //გადაწყობებზე ხელახლა აღარ იკითხება; RouteDistances მარშრუტებს ამ ლოკაციის იდენტიფიკატორით ინახავს
+    private LocationModel? _startLocation;
+
     public RecommendedVisitsCommand(IParametersManager parametersManager,
         ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory,
         IHttpClientFactory httpClientFactory) : base("Recommended Visits", EMenuAction.LoadSubMenu)
@@ -49,6 +53,27 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
 
     protected override ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
     {
+        //საწყისი წერტილი FromPoints ცნობარიდან ირჩევა. მხოლოდ მდებარეობის მქონე წერტილები გამოდგება — მანძილები
+        //და მარშრუტები მდებარეობიდან ითვლება (RouteDistances საწყის წერტილს მისი ლოკაციით ცნობს). სია სახელით
+        //არის დალაგებული და Enter პირველს ირჩევს; Escape-ის გამონაკლისს საბაზო Run იჭერს და ქვემენიუ არ იხსნება
+        ITravelGuideRepository repository = _travelGuideRepositoryCreatorFactory.GetTravelGuideRepository();
+        List<FromPointModel> fromPoints =
+            [.. repository.GetFromPointsList().Where(w => w.LocationNavigation is not null)];
+        if (fromPoints.Count == 0)
+        {
+            StShared.WriteErrorLine("No FromPoints with Location found", true);
+            return ValueTask.FromResult(false);
+        }
+
+        List<string> fromPointNames = [.. fromPoints.Select(s => s.Name)];
+        var startPointInput = new SelectFromListInput("Start Point", fromPointNames, fromPointNames[0]);
+        if (!startPointInput.DoInput() || startPointInput.Text is null)
+        {
+            return ValueTask.FromResult(false);
+        }
+
+        _startLocation = fromPoints[fromPointNames.IndexOf(startPointInput.Text)].LocationNavigation;
+
         var parameters = (TravelGuideParameters)_parametersManager.Parameters;
 
         //პარამეტრებში ჩაწერილი მინიმალური დროებიდან ერთ-ერთს მომხმარებელი ირჩევს; ცარიელი სიისას
@@ -97,21 +122,14 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
 
         try
         {
-            var parameters = (TravelGuideParameters)_parametersManager.Parameters;
-
-            //პარამეტრებში არჩეული უნდა იყოს მიმდინარე ადგილმდებარეობის სახელი
-            string? myCurrentPlaceName = parameters.MyCurrentPlaceName;
-            if (string.IsNullOrEmpty(myCurrentPlaceName))
+            //საწყისი წერტილი RunBody-მ უკვე აარჩია — მისი ლოკაციის გარეშე სია ვერ აიგება
+            if (_startLocation is not { } startLocation)
             {
-                StShared.WriteErrorLine("My Current Place Name is not set in parameters", true);
-            }
-            //ამ სახელით ჩემს ადგილმდებარეობებში უნდა მოიძებნოს შესაბამისი კოორდინატები
-            else if (!parameters.MyPlaces.TryGetValue(myCurrentPlaceName, out MyPlace? myPlace))
-            {
-                StShared.WriteErrorLine($"My Place with name {myCurrentPlaceName} not found in My Places", true);
+                StShared.WriteErrorLine("Start Point is not selected", true);
             }
             else
             {
+                var parameters = (TravelGuideParameters)_parametersManager.Parameters;
                 ITravelGuideRepository repository = _travelGuideRepositoryCreatorFactory.GetTravelGuideRepository();
 
                 //პორციის ზომა მიმდინარე კონსოლის ფანჯრის სიმაღლიდან ითვლება CliMenuSet.Show-ს ფორმულის
@@ -121,15 +139,15 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
                 //62-ზე მეტ პუნქტს მენიუს გასაღებები (0-9, a-z, A-Z) აღარ ჰყოფნის
                 int portionSize = Math.Clamp(Console.WindowHeight - 10, 1, 62);
 
-                //ბაზიდან ამოირჩევა ჩემს კოორდინატებთან ყველაზე ახლოს მდებარე ადგილი-ლოკაციის ბმულების
+                //ბაზიდან ამოირჩევა საწყის წერტილთან ყველაზე ახლოს მდებარე ადგილი-ლოკაციის ბმულების
                 //მიმდინარე პორცია (რომლებამდე გზის დროც არჩეულ მინიმუმზე ნაკლები არ არის და რომლების
                 //ვიზიტების რაოდენობაც შეყვანილ მაქსიმუმს არ აღემატება), დალაგებული პარამეტრებში არჩეული
                 //ნიშნით — გზის დროით, საჰაერო მანძილით ან გზის მანძილით; პარამეტრი ჯერ არჩეული რომ არ
                 //იყოს, რედაქტორის ნაგულისხმევის მსგავსად გზის დროით ლაგდება. ერთით მეტი ჩანაწერი
                 //ითხოვება, რომ გაირკვეს, არსებობს თუ არა შემდეგი პორცია
-                List<PlaceByLocation> nearestPlaceLocations = repository.GetNearestPlaces(myPlace.Latitude,
-                    myPlace.Longitude, _currentPortionNumber * portionSize, portionSize + 1, _minRoadTime, _maxRoadTime,
-                    _maxVisitsCount, parameters.OrderVisitsBy ?? EOrderVisitsBy.RoadTime);
+                List<PlaceByLocation> nearestPlaceLocations = repository.GetNearestPlaces(startLocation,
+                    _currentPortionNumber * portionSize, portionSize + 1, _minRoadTime, _maxRoadTime, _maxVisitsCount,
+                    parameters.OrderVisitsBy ?? EOrderVisitsBy.RoadTime);
 
                 //პორციის ადგილებზე დაფიქსირებული ვიზიტების რაოდენობები ერთი მოთხოვნით იტვირთება —
                 //თითო პუნქტის სტატუსის თავში გამოსატანად
@@ -142,7 +160,7 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
                 foreach (PlaceByLocation placeByLocation in nearestPlaceLocations.Take(portionSize))
                 {
                     recommendedVisitsMenuSet.AddMenuItem(new RecommendedPlaceSubMenuCommand(
-                        _travelGuideRepositoryCreatorFactory, _httpClientFactory, _parametersManager, myPlace,
+                        _travelGuideRepositoryCreatorFactory, _httpClientFactory, _parametersManager, startLocation,
                         placeByLocation.PlaceNavigation, placeByLocation.LocationNavigation,
                         visitCounts.GetValueOrDefault(placeByLocation.PlaceId)));
                 }

@@ -200,11 +200,17 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return _context.Places.Remove(placeForDelete).Entity;
     }
 
-    public List<LocationModel> GetAllLocations()
+    public List<LocationModel> GetPlaceLinkedLocations()
     {
         //ლოკაციები მხოლოდ კოორდინატების წასაკითხად იტვირთება და ენთითები კონტექსტს არ ებმება.
-        //ბაზაში არსებული ყველა ლოკაცია ბრუნდება — ადგილებთან ბმულების მიუხედავად
-        return [.. _context.Locations.AsNoTracking().OrderBy(o => o.LocationId)];
+        //მხოლოდ ადგილებთან მიბმული ლოკაციები ბრუნდება (PlacesByLocations) — თითო ერთხელ, რამდენი ადგილიც არ
+        //უნდა ეზიარებოდეს; ბმულის გარეშე დარჩენილი ლოკაციები არ ბრუნდება
+        return
+        [
+            .. _context.Locations.AsNoTracking()
+                .Where(w => _context.PlacesByLocations.Any(a => a.LocationId == w.LocationId))
+                .OrderBy(o => o.LocationId)
+        ];
     }
 
     public List<PlaceByLocation> GetPlaceLocations(int placeId)
@@ -237,9 +243,15 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return _context.PlacesByLocations.Remove(placeLocationForDelete).Entity;
     }
 
-    public List<PlaceByLocation> GetNearestPlaces(double latitude, double longitude, int skip, int take,
+    public List<PlaceByLocation> GetNearestPlaces(LocationModel startLocation, int skip, int take,
         TimeSpan minRoadTime, TimeSpan maxRoadTime, int maxVisitsCount, EOrderVisitsBy orderVisitsBy)
     {
+        //საწყისი წერტილი Locations ცხრილის ჩანაწერია: კოორდინატები საჰაერო მანძილს სჭირდება, იდენტიფიკატორი —
+        //RouteDistances-ში დათვლილი მარშრუტების მოსაძებნად
+        int startLocationId = startLocation.LocationId;
+        double latitude = startLocation.Latitude;
+        double longitude = startLocation.Longitude;
+
         //გრძედის გრადუსი განედის გრადუსზე მოკლეა, ამიტომ გრძედის სხვაობა განედის კოსინუსით სწორდება
         double cosLatitude = Math.Cos(latitude * Math.PI / 180);
 
@@ -261,30 +273,21 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
             .Where(w => w.PlaceNavigation.State != EState.Duplicate);
 
         //მინიმალური გზის დროის მოთხოვნისას რჩება მხოლოდ ის ლოკაციები, რომლებამდეც დათვლილი გზის დრო
-        //ზღვარს აღწევს. კოორდინატები ზუსტად დარდება — RouteDistances-ში ზუსტად Locations-ისა და
-        //პარამეტრების მნიშვნელობები იწერება. დაუთვლელ ლოკაციას შესაბამისი ჩანაწერი არ აქვს და განზრახ
-        //გამოირიცხება, სანამ Calculate Distances არ დაითვლის
-        const double tolerance = 0.000001;
+        //ზღვარს აღწევს. მარშრუტი საწყისი და საბოლოო ლოკაციების იდენტიფიკატორებით იძებნება — RouteDistances
+        //ორივე ბოლოს Locations ცხრილის ჩანაწერით ინახავს. დაუთვლელ ლოკაციას შესაბამისი ჩანაწერი არ აქვს და
+        //განზრახ გამოირიცხება, სანამ საწყისი წერტილის რედაქტორის Calculate Distances არ დაითვლის
         if (minRoadTime > TimeSpan.Zero)
         {
-#pragma warning disable S1244
             placeLocationsQuery = placeLocationsQuery.Where(w => _context.RouteDistances.Any(rd =>
-                Math.Abs(rd.StartLatitude - latitude) < tolerance &&
-                Math.Abs(rd.StartLongitude - longitude) < tolerance &&
-                Math.Abs(rd.EndLatitude - w.LocationNavigation.Latitude) < tolerance &&
-                Math.Abs(rd.EndLongitude - w.LocationNavigation.Longitude) < tolerance && rd.RoadTime >= minRoadTime));
-#pragma warning restore S1244
+                rd.StartLocationId == startLocationId && rd.EndLocationId == w.LocationId &&
+                rd.RoadTime >= minRoadTime));
         }
 
         if (maxRoadTime < TimeSpan.MaxValue)
         {
-#pragma warning disable S1244
             placeLocationsQuery = placeLocationsQuery.Where(w => _context.RouteDistances.Any(rd =>
-                Math.Abs(rd.StartLatitude - latitude) < tolerance &&
-                Math.Abs(rd.StartLongitude - longitude) < tolerance &&
-                Math.Abs(rd.EndLatitude - w.LocationNavigation.Latitude) < tolerance &&
-                Math.Abs(rd.EndLongitude - w.LocationNavigation.Longitude) < tolerance && rd.RoadTime <= maxRoadTime));
-#pragma warning restore S1244
+                rd.StartLocationId == startLocationId && rd.EndLocationId == w.LocationId &&
+                rd.RoadTime <= maxRoadTime));
         }
 
         //რჩება მხოლოდ ის ადგილები, რომლებზეც დაფიქსირებული ვიზიტების რაოდენობა მოთხოვნილ მაქსიმუმს
@@ -294,9 +297,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
             placeLocationsQuery.Where(w => _context.Visits.Count(c => c.PlaceId == w.PlaceId) <= maxVisitsCount);
 
         //თითო ბმულს დალაგების ნიშნები ერთვის: საჰაერო მანძილის კვადრატი (ფესვის ამოღება რიგითობას არ
-        //ცვლის) და ჩემი წერტილიდან ლოკაციამდე დათვლილი მარშრუტი — დაუთვლელისთვის null. კოორდინატები
-        //ზუსტად დარდება, როგორც ზემოთ გზის დროის ფილტრში
-#pragma warning disable S1244
+        //ცვლის) და საწყისი ლოკაციიდან ამ ლოკაციამდე დათვლილი მარშრუტი — დაუთვლელისთვის null. მარშრუტი
+        //ლოკაციების იდენტიფიკატორებით იძებნება, როგორც ზემოთ გზის დროის ფილტრში
         var placeLocationsWithRoutes = placeLocationsQuery.Select(s => new
         {
             PlaceByLocation = s,
@@ -305,11 +307,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                 (s.LocationNavigation.Longitude - longitude) * cosLatitude *
                 (s.LocationNavigation.Longitude - longitude) * cosLatitude,
             Route = _context.RouteDistances.FirstOrDefault(rd =>
-                rd.StartLatitude == latitude && rd.StartLongitude == longitude &&
-                rd.EndLatitude == s.LocationNavigation.Latitude &&
-                rd.EndLongitude == s.LocationNavigation.Longitude)
+                rd.StartLocationId == startLocationId && rd.EndLocationId == s.LocationId)
         });
-#pragma warning restore S1244
 
         //პარამეტრებში არჩეული ნიშნით დალაგება. გზის დროით ან გზის მანძილით დალაგებისას დაუთვლელი
         //მარშრუტის ლოკაციები სიის ბოლოში გადადის (სანამ Calculate Distances არ დაითვლის), თანაბარ
@@ -702,22 +701,18 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return _context.RouteDistances.Add(newRouteDistance).Entity;
     }
 
-    //წყვილი ზუსტი კოორდინატებით იძებნება — RouteDistances-ში ზუსტად პარამეტრებისა და Locations-ის
-    //მნიშვნელობები იწერება და უნიკალური ინდექსიც ზუსტ ტოლობას ამოწმებს
-    public RouteDistanceModel? GetRouteDistance(double startLatitude, double startLongitude, double endLatitude,
-        double endLongitude)
+    //წყვილი საწყისი და საბოლოო ლოკაციების იდენტიფიკატორებით იძებნება — უნიკალური ინდექსიც ამ წყვილზეა
+    public RouteDistanceModel? GetRouteDistance(int startLocationId, int endLocationId)
     {
-#pragma warning disable S1244
         return _context.RouteDistances.FirstOrDefault(f =>
-            f.StartLatitude == startLatitude && f.StartLongitude == startLongitude && f.EndLatitude == endLatitude &&
-            f.EndLongitude == endLongitude);
-#pragma warning restore S1244
+            f.StartLocationId == startLocationId && f.EndLocationId == endLocationId);
     }
 
-    public List<RouteDistanceModel> GetAllRouteDistances()
+    public List<RouteDistanceModel> GetRouteDistancesByStartLocationId(int startLocationId)
     {
-        //ჩანაწერები კონტექსტს ებმება, რადგან ხელახალი გამოთვლისას მნიშვნელობები ადგილზე სწორდება
-        return [.. _context.RouteDistances];
+        //ერთი საწყისი ლოკაციიდან დათვლილი ყველა მარშრუტი. ჩანაწერები კონტექსტს ებმება, რადგან ხელახალი
+        //გამოთვლისას მნიშვნელობები ადგილზე სწორდება
+        return [.. _context.RouteDistances.Where(w => w.StartLocationId == startLocationId)];
     }
 
     #endregion

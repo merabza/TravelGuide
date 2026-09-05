@@ -94,25 +94,6 @@ namespace TravelGuideDbMigration.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RouteDistances",
-                columns: table => new
-                {
-                    RouteDistanceId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    StartLatitude = table.Column<double>(type: "float", nullable: false),
-                    StartLongitude = table.Column<double>(type: "float", nullable: false),
-                    EndLatitude = table.Column<double>(type: "float", nullable: false),
-                    EndLongitude = table.Column<double>(type: "float", nullable: false),
-                    AirDistance = table.Column<double>(type: "float", nullable: false),
-                    RoadDistance = table.Column<double>(type: "float", nullable: false),
-                    RoadTime = table.Column<TimeSpan>(type: "time", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RouteDistances", x => x.RouteDistanceId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Tags",
                 columns: table => new
                 {
@@ -155,6 +136,35 @@ namespace TravelGuideDbMigration.Migrations
                         column: x => x.LocationId,
                         principalTable: "Locations",
                         principalColumn: "LocationId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RouteDistances",
+                columns: table => new
+                {
+                    RouteDistanceId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    StartLocationId = table.Column<int>(type: "int", nullable: false),
+                    EndLocationId = table.Column<int>(type: "int", nullable: false),
+                    AirDistance = table.Column<double>(type: "float", nullable: false),
+                    RoadDistance = table.Column<double>(type: "float", nullable: false),
+                    RoadTime = table.Column<TimeSpan>(type: "time", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RouteDistances", x => x.RouteDistanceId);
+                    table.ForeignKey(
+                        name: "FK_RouteDistances_Locations_EndLocationId",
+                        column: x => x.EndLocationId,
+                        principalTable: "Locations",
+                        principalColumn: "LocationId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_RouteDistances_Locations_StartLocationId",
+                        column: x => x.StartLocationId,
+                        principalTable: "Locations",
+                        principalColumn: "LocationId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -497,9 +507,14 @@ namespace TravelGuideDbMigration.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_RouteDistances_StartLatitude_StartLongitude_EndLatitude_EndLongitude",
+                name: "IX_RouteDistances_EndLocationId",
                 table: "RouteDistances",
-                columns: new[] { "StartLatitude", "StartLongitude", "EndLatitude", "EndLongitude" },
+                column: "EndLocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RouteDistances_StartLocationId_EndLocationId",
+                table: "RouteDistances",
+                columns: new[] { "StartLocationId", "EndLocationId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

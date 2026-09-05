@@ -17,10 +17,7 @@ public sealed class TravelGuideParameters : IParametersWithApiClients, IParamete
 
     public DatabaseParameters? DatabaseParameters { get; init; }
 
-    public Dictionary<string, MyPlace> MyPlaces { get; init; } = [];
-
     public EOrderVisitsBy? OrderVisitsBy { get; set; }
-    public string? MyCurrentPlaceName { get; set; }
 
     public List<TimeSpan> MinDistanceTimes { get; init; } = [];
 

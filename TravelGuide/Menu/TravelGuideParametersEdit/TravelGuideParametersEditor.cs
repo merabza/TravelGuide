@@ -32,12 +32,6 @@ public sealed class TravelGuideParametersEditor : ParametersEditor
         FieldEditors.Add(new DictionaryFieldEditor<SmartSchemaCruder, SmartSchema>(
             nameof(TravelGuideParameters.SmartSchemas), x => new SmartSchemaCruder(parametersManager, x)));
 
-        FieldEditors.Add(new DictionaryFieldEditor<MyPlaceCruder, MyPlace>(nameof(TravelGuideParameters.MyPlaces),
-            x => new MyPlaceCruder(parametersManager, x)));
-
-        FieldEditors.Add(
-            new MyPlaceNameFieldEditor(nameof(TravelGuideParameters.MyCurrentPlaceName), parametersManager));
-
         FieldEditors.Add(new EnumFieldEditor<EOrderVisitsBy>(nameof(TravelGuideParameters.OrderVisitsBy),
             EOrderVisitsBy.RoadTime));
 

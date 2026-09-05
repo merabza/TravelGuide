@@ -13,7 +13,13 @@ public sealed class RouteDistanceModelConfiguration : IEntityTypeConfiguration<R
 
         builder.HasKey(e => e.RouteDistanceId);
 
-        //ერთი და იგივე წერტილთა წყვილისთვის მანძილები მხოლოდ ერთხელ უნდა შეინახოს
-        builder.HasIndex(e => new { e.StartLatitude, e.StartLongitude, e.EndLatitude, e.EndLongitude }).IsUnique();
+        //ერთი და იგივე ლოკაციათა წყვილისთვის მანძილები მხოლოდ ერთხელ უნდა შეინახოს
+        builder.HasIndex(e => new { e.StartLocationId, e.EndLocationId }).IsUnique();
+
+        //ორივე სვეტი Locations-ზე მიუთითებს — ორმაგი კასკადური წაშლა SQL Server-ს გზების გამრავლების გამო არ შეუძლია
+        builder.HasOne<LocationModel>().WithMany().HasForeignKey(d => d.StartLocationId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<LocationModel>().WithMany().HasForeignKey(d => d.EndLocationId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

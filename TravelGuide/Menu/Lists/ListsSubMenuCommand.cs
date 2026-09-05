@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using AppCliTools.CliMenu;
 using AppCliTools.CliParameters.CliMenuCommands;
 using SystemTools.SystemToolsShared;
@@ -9,12 +10,14 @@ namespace TravelGuide.Menu.Lists;
 
 public sealed class ListsSubMenuCommand : CliMenuCommand
 {
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;
 
-    public ListsSubMenuCommand(ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory) : base("Lists",
-        EMenuAction.LoadSubMenu)
+    public ListsSubMenuCommand(ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory,
+        IHttpClientFactory httpClientFactory) : base("Lists", EMenuAction.LoadSubMenu)
     {
         _travelGuideRepositoryCreatorFactory = travelGuideRepositoryCreatorFactory;
+        _httpClientFactory = httpClientFactory;
     }
 
     public override CliMenuSet GetSubMenu()
@@ -35,7 +38,9 @@ public sealed class ListsSubMenuCommand : CliMenuCommand
             //კატეგორიების, ტეგებისა და მანძილების საწყისი წერტილების ცნობარების რედაქტორები
             listsSubMenuSet.AddMenuItem(new CruderListCliMenuCommand(new CategoryCruder(repository)));
             listsSubMenuSet.AddMenuItem(new CruderListCliMenuCommand(new TagCruder(repository)));
-            listsSubMenuSet.AddMenuItem(new CruderListCliMenuCommand(new FromPointCruder(repository)));
+            //საწყისი წერტილის ჩანაწერის მენიუდან მარშრუტები ითვლება (OSRM), ამიტომ მას HttpClient-ის ქარხანა სჭირდება
+            listsSubMenuSet.AddMenuItem(
+                new CruderListCliMenuCommand(new FromPointCruder(repository, _httpClientFactory)));
         }
         catch (Exception e)
         {
