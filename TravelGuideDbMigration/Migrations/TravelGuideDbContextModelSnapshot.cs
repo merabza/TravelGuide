@@ -78,12 +78,17 @@ namespace TravelGuideDbMigration.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FromPointId"));
 
+                    b.Property<int?>("LocationId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("FromPointId");
+
+                    b.HasIndex("LocationId");
 
                     b.HasIndex("Name")
                         .IsUnique();
@@ -509,6 +514,15 @@ namespace TravelGuideDbMigration.Migrations
                     b.Navigation("FromPointNavigation");
 
                     b.Navigation("PlaceNavigation");
+                });
+
+            modelBuilder.Entity("TravelGuideDbModels.FromPointModel", b =>
+                {
+                    b.HasOne("TravelGuideDbModels.LocationModel", "LocationNavigation")
+                        .WithMany()
+                        .HasForeignKey("LocationId");
+
+                    b.Navigation("LocationNavigation");
                 });
 
             modelBuilder.Entity("TravelGuideDbModels.PlaceByBestSeason", b =>

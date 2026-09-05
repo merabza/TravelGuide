@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SystemTools.SystemToolsShared;
 using TravelGuideDbModels;
 using TravelGuideDbPersistence.Configurations;
 using TravelGuideRepoInterfaces;
@@ -8,17 +9,25 @@ using TravelGuideRepoInterfaces;
 namespace TravelGuide.Menu.Lists;
 
 //მანძილების საწყისი წერტილების ცნობარის (FromPoints ცხრილის) რედაქტორი — ჩანაწერებს ადგილები DistanceByPlaces
-//ჩანაწერებით ეყრდნობა. სახელები საიტიდან მოქაჩული ფორმითაა („თბილისიდან")
+//ჩანაწერებით ეყრდნობა. სახელები საიტიდან მოქაჩული ფორმითაა („თბილისიდან"). სახელის გარდა წერტილს
+//არასავალდებულო მდებარეობა აქვს — Locations ცხრილის საზიარო ჩანაწერი (ერთი წყვილი ადგილებსაც შეიძლება
+//ეკუთვნოდეს), ამიტომ შენახვისას არსებული წყვილი მეორდება ან ახალი იქმნება (GetOrCreateLocation), მოხსნისას
+//კი მხოლოდ ბმული სუფთავდება — ობლად დარჩენილი ლოკაცია განზრახ რჩება, როგორც ადგილების ლოკაციების რედაქტორში
 public sealed class FromPointCruder : LookupCruder
 {
     public FromPointCruder(ITravelGuideRepository travelGuideRepository) : base(travelGuideRepository, "FromPoint",
         "FromPoints", FromPointModelConfiguration.NameLength)
     {
+        FieldEditors.Add(new OptionalLocationFieldEditor(nameof(FromPointItem.Location), true));
     }
 
     protected override List<LookupItem> LoadItems()
     {
-        return [.. TravelGuideRepository.GetFromPointsList().Select(s => new LookupItem(s.FromPointId, s.Name))];
+        return
+        [
+            .. TravelGuideRepository.GetFromPointsList()
+                .Select(s => new FromPointItem(s.FromPointId, s.Name, s.LocationNavigation))
+        ];
     }
 
     protected override int? FindIdByName(string name)
@@ -26,16 +35,22 @@ public sealed class FromPointCruder : LookupCruder
         return TravelGuideRepository.GetFromPointByName(name)?.FromPointId;
     }
 
-    protected override void Create(string name)
+    protected override ItemData CreateNewItem(string? recordKey, ItemData? defaultItemData)
     {
-        //ქროულერის GetOrCreate გამოიყენება — სახელის უნიკალურობა უკვე შემოწმებულია და ახალი ჩანაწერი იქმნება
-        TravelGuideRepository.GetOrCreateFromPoint(name);
+        return new FromPointItem(0, string.Empty, null);
     }
 
-    protected override void Rename(int id, string name)
+    protected override void Create(LookupItem item, string name)
     {
-        FromPointModel fromPoint = GetFromPoint(id);
+        //ქროულერის GetOrCreate გამოიყენება — სახელის უნიკალურობა უკვე შემოწმებულია და ახალი ჩანაწერი იქმნება
+        SetLocation(TravelGuideRepository.GetOrCreateFromPoint(name), item);
+    }
+
+    protected override void Update(LookupItem item, string name)
+    {
+        FromPointModel fromPoint = GetFromPoint(item.Id);
         fromPoint.Name = name;
+        SetLocation(fromPoint, item);
         TravelGuideRepository.UpdateFromPoint(fromPoint);
     }
 
@@ -47,6 +62,22 @@ public sealed class FromPointCruder : LookupCruder
     protected override void Delete(int id)
     {
         TravelGuideRepository.DeleteFromPoint(GetFromPoint(id));
+    }
+
+    //მდებარეობის მიბმა ან მოხსნა. ბმა ნავიგაციით იწერება, რადგან ახლადშექმნილ ლოკაციას იდენტიფიკატორი ჯერ
+    //არ აქვს; მოხსნისას იდენტიფიკატორიც სუფთავდება, რადგან ბმული ლოკაცია კონტექსტში ჩატვირთული შეიძლება
+    //არ იყოს და მარტო ნავიგაციის განულებას ცვლილებად ვერ დაინახავდა
+    private void SetLocation(FromPointModel fromPoint, LookupItem item)
+    {
+        if (item is FromPointItem { Location: { } location })
+        {
+            fromPoint.LocationNavigation =
+                TravelGuideRepository.GetOrCreateLocation(location.Latitude, location.Longitude);
+            return;
+        }
+
+        fromPoint.LocationId = null;
+        fromPoint.LocationNavigation = null;
     }
 
     //ბმული ჩანაწერი იდენტიფიკატორით — რედაქტორი მოუბმელ ასლებზე მუშაობს

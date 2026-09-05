@@ -25,15 +25,15 @@ public sealed class RegionCruder : LookupCruder
         return TravelGuideRepository.GetRegionByName(name)?.RegionId;
     }
 
-    protected override void Create(string name)
+    protected override void Create(LookupItem item, string name)
     {
         //ქროულერის GetOrCreate გამოიყენება — სახელის უნიკალურობა უკვე შემოწმებულია და ახალი ჩანაწერი იქმნება
         TravelGuideRepository.GetOrCreateRegion(name);
     }
 
-    protected override void Rename(int id, string name)
+    protected override void Update(LookupItem item, string name)
     {
-        RegionModel region = GetRegion(id);
+        RegionModel region = GetRegion(item.Id);
         region.Name = name;
         TravelGuideRepository.UpdateRegion(region);
     }

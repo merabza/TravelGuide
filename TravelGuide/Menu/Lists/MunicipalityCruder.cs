@@ -30,15 +30,15 @@ public sealed class MunicipalityCruder : LookupCruder
         return TravelGuideRepository.GetMunicipalityByName(name)?.MunicipalityId;
     }
 
-    protected override void Create(string name)
+    protected override void Create(LookupItem item, string name)
     {
         //ქროულერის GetOrCreate გამოიყენება — სახელის უნიკალურობა უკვე შემოწმებულია და ახალი ჩანაწერი იქმნება
         TravelGuideRepository.GetOrCreateMunicipality(name);
     }
 
-    protected override void Rename(int id, string name)
+    protected override void Update(LookupItem item, string name)
     {
-        MunicipalityModel municipality = GetMunicipality(id);
+        MunicipalityModel municipality = GetMunicipality(item.Id);
         municipality.Name = name;
         TravelGuideRepository.UpdateMunicipality(municipality);
     }

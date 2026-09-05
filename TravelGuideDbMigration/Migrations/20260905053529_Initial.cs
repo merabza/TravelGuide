@@ -25,19 +25,6 @@ namespace TravelGuideDbMigration.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FromPoints",
-                columns: table => new
-                {
-                    FromPointId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_FromPoints", x => x.FromPointId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Locations",
                 columns: table => new
                 {
@@ -149,6 +136,25 @@ namespace TravelGuideDbMigration.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tasks", x => x.TaskId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FromPoints",
+                columns: table => new
+                {
+                    FromPointId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    LocationId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FromPoints", x => x.FromPointId);
+                    table.ForeignKey(
+                        name: "FK_FromPoints_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
+                        principalColumn: "LocationId");
                 });
 
             migrationBuilder.CreateTable(
@@ -415,6 +421,11 @@ namespace TravelGuideDbMigration.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_FromPoints_LocationId",
+                table: "FromPoints",
+                column: "LocationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_FromPoints_Name",
                 table: "FromPoints",
                 column: "Name",
@@ -576,9 +587,6 @@ namespace TravelGuideDbMigration.Migrations
                 name: "Categories");
 
             migrationBuilder.DropTable(
-                name: "Locations");
-
-            migrationBuilder.DropTable(
                 name: "Tags");
 
             migrationBuilder.DropTable(
@@ -586,6 +594,9 @@ namespace TravelGuideDbMigration.Migrations
 
             migrationBuilder.DropTable(
                 name: "Visits");
+
+            migrationBuilder.DropTable(
+                name: "Locations");
 
             migrationBuilder.DropTable(
                 name: "Motorcycles");

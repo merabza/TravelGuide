@@ -11,10 +11,11 @@ using TravelGuideRepoInterfaces;
 namespace TravelGuide.Menu.Lists;
 
 //ცნობარის ცხრილის (Regions, Municipalities, Categories, Tags, FromPoints) რედაქტორის საერთო ნაწილი.
-//ჩანაწერს მხოლოდ სახელი აქვს და ისვე გასაღებია (fieldKeyFromItem=true — ცალკე Record Name ველი არ
-//სჭირდება). ცნობარის ჩანაწერს ადგილები იდენტიფიკატორით ეყრდნობა, ამიტომ სახელის შეცვლა ჩანაწერის
-//წაშლა-ხელახლა შექმნა კი არა, ადგილზე გადარქმევაა (UpdateRecordWithKey) — ეს „Edit All fields in
-//sequence" ბრძანებით და ჩანაწერის მენიუს Name ველითაც კეთდება — ჩარჩოს ველის რედაქტორი გასაღების ცვლილებას
+//ჩანაწერს სახელი აქვს და ისვე გასაღებია (fieldKeyFromItem=true — ცალკე Record Name ველი არ სჭირდება);
+//სხვა ველების მქონე ცნობარი (FromPoints — მდებარეობა) ჩანაწერის ტიპსა და ველების რედაქტორებს ქვეკლასში
+//ამატებს. ცნობარის ჩანაწერს ადგილები იდენტიფიკატორით ეყრდნობა, ამიტომ სახელის შეცვლა ჩანაწერის
+//წაშლა-ხელახლა შექმნა კი არა, ადგილზე განახლებაა (UpdateRecordWithKey) — ეს „Edit All fields in
+//sequence" ბრძანებით და ჩანაწერის მენიუს ველებითაც კეთდება — ჩარჩოს ველის რედაქტორი გასაღების ცვლილებას
 //ხედავს (Cruder.CheckRecordKeyChanged): სიის მენიუს თავიდან აწყობინებს და წარმატებისას ერთი დონით ზევით
 //ბრუნდება, რადგან ჩანაწერის მენიუ ძველი სახელით უსარგებლოა.
 //გამოყენებული ჩანაწერი არ იშლება — რეგიონი/მუნიციპალიტეტი ადგილების რედაქტორით გადაება შეიძლება,
@@ -40,9 +41,12 @@ public abstract class LookupCruder : Cruder
     //დაემთხვეს
     protected abstract int? FindIdByName(string name);
 
-    protected abstract void Create(string name);
+    //ახალი ჩანაწერის შენახვა — სახელი უკვე შემოწმებული და ზედმეტი ჰარებისგან გაწმენდილია; დანარჩენ ველებს
+    //ქვეკლასი ჩანაწერიდან იღებს
+    protected abstract void Create(LookupItem item, string name);
 
-    protected abstract void Rename(int id, string name);
+    //ბმული ჩანაწერის ადგილზე განახლება item.Id იდენტიფიკატორით
+    protected abstract void Update(LookupItem item, string name);
 
     //რამდენი ადგილი ეყრდნობა ჩანაწერს
     protected abstract int GetUsageCount(int id);
@@ -88,7 +92,7 @@ public abstract class LookupCruder : Cruder
             return ValueTask.CompletedTask;
         }
 
-        Create(name);
+        Create(newItem, name);
 
         TravelGuideRepository.SaveChanges();
         return ValueTask.CompletedTask;
@@ -97,13 +101,14 @@ public abstract class LookupCruder : Cruder
     public override ValueTask UpdateRecordWithKey(string recordKey, ItemData newRecord,
         CancellationToken cancellationToken = default)
     {
-        //სახელი არ შეცვლილა — გასაღები იგივე დარჩა და შესანახი არაფერია
-        if (newRecord is not LookupItem newItem || !TryGetValidName(newItem, out string name) || name == recordKey)
+        //ველის რედაქტორი ამას ყოველი ველის შემდეგ იძახებს — სახელის გარდა სხვა ველიც შეიძლება შეცვლილიყო,
+        //ამიტომ ჩანაწერი უცვლელი სახელითაც ინახება
+        if (newRecord is not LookupItem newItem || !TryGetValidName(newItem, out string name))
         {
             return ValueTask.CompletedTask;
         }
 
-        Rename(newItem.Id, name);
+        Update(newItem, name);
 
         TravelGuideRepository.SaveChanges();
         return ValueTask.CompletedTask;

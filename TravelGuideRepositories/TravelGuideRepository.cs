@@ -549,7 +549,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
 
     public List<FromPointModel> GetFromPointsList()
     {
-        return [.. _context.FromPoints.AsNoTracking().OrderBy(o => o.Name)];
+        //მდებარეობა ცნობარის რედაქტორისთვის იტვირთება
+        return [.. _context.FromPoints.AsNoTracking().Include(i => i.LocationNavigation).OrderBy(o => o.Name)];
     }
 
     public FromPointModel? GetFromPointByName(string fromPointName)

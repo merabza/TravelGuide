@@ -17,5 +17,7 @@ public sealed class FromPointModelConfiguration : IEntityTypeConfiguration<FromP
         builder.HasIndex(e => e.Name).IsUnique();
 
         builder.Property(e => e.Name).HasMaxLength(NameLength);
+
+        builder.HasOne(d => d.LocationNavigation).WithMany().HasForeignKey(d => d.LocationId);
     }
 }

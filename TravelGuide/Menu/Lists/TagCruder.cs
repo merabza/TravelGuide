@@ -25,15 +25,15 @@ public sealed class TagCruder : LookupCruder
         return TravelGuideRepository.GetTagByName(name)?.TagId;
     }
 
-    protected override void Create(string name)
+    protected override void Create(LookupItem item, string name)
     {
         //ქროულერის GetOrCreate გამოიყენება — სახელის უნიკალურობა უკვე შემოწმებულია და ახალი ჩანაწერი იქმნება
         TravelGuideRepository.GetOrCreateTag(name);
     }
 
-    protected override void Rename(int id, string name)
+    protected override void Update(LookupItem item, string name)
     {
-        TagModel tag = GetTag(id);
+        TagModel tag = GetTag(item.Id);
         tag.Name = name;
         TravelGuideRepository.UpdateTag(tag);
     }

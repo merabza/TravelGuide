@@ -26,15 +26,15 @@ public sealed class CategoryCruder : LookupCruder
         return TravelGuideRepository.GetCategoryByName(name)?.CategoryId;
     }
 
-    protected override void Create(string name)
+    protected override void Create(LookupItem item, string name)
     {
         //ქროულერის GetOrCreate გამოიყენება — სახელის უნიკალურობა უკვე შემოწმებულია და ახალი ჩანაწერი იქმნება
         TravelGuideRepository.GetOrCreateCategory(name);
     }
 
-    protected override void Rename(int id, string name)
+    protected override void Update(LookupItem item, string name)
     {
-        CategoryModel category = GetCategory(id);
+        CategoryModel category = GetCategory(item.Id);
         category.Name = name;
         TravelGuideRepository.UpdateCategory(category);
     }
