@@ -15,7 +15,7 @@ public sealed class TravelGuideDbDesignTimeDbContextFactory : SqlServerDesignTim
     //DataProvider მოდის FakeHost პროექტის appsettings.json ფაილიდან,
     //ხოლო ConnectionStringSeed, როგორც დაცული ინფორმაცია, FakeHost-ის User Secrets-იდან (UserSecretsId წერია FakeHost.csproj-ში).
     //კონსტრუქტორი აუცილებლად უპარამეტრო უნდა იყოს, რადგან dotnet ef ამ კლასს თვითონ ქმნის რეფლექსიით
-    
+
     public TravelGuideDbDesignTimeDbContextFactory() : base(AssemblyReference.Assembly.GetName().Name!,
         "ConnectionString", true)
     {

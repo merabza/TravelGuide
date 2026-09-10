@@ -87,8 +87,7 @@ public sealed class PlaceLocationCruder : Cruder
         CancellationToken cancellationToken = default)
     {
         //კოორდინატები არ შეცვლილა — გასაღები იგივე დარჩა და შესანახი არაფერია
-        if (newRecord is not LocationItem newItem || newItem.GetItemKey() == recordKey ||
-            !CheckCoordinates(newItem))
+        if (newRecord is not LocationItem newItem || newItem.GetItemKey() == recordKey || !CheckCoordinates(newItem))
         {
             return ValueTask.CompletedTask;
         }
@@ -114,8 +113,7 @@ public sealed class PlaceLocationCruder : Cruder
 
     protected override ValueTask RemoveRecordWithKey(string recordKey, CancellationToken cancellationToken = default)
     {
-        if (!GetCrudersDictionary().TryGetValue(recordKey, out ItemData? itemData) ||
-            itemData is not LocationItem item)
+        if (!GetCrudersDictionary().TryGetValue(recordKey, out ItemData? itemData) || itemData is not LocationItem item)
         {
             throw new InvalidOperationException($"Location with key {recordKey} not found");
         }
@@ -148,8 +146,7 @@ public sealed class PlaceLocationCruder : Cruder
     private LocationModel? GetOrCreateUnlinkedLocation(LocationItem item)
     {
         LocationModel location = _travelGuideRepository.GetOrCreateLocation(item.Latitude, item.Longitude);
-        if (location.LocationId == 0 ||
-            _travelGuideRepository.GetPlaceLocation(_placeId, location.LocationId) is null)
+        if (location.LocationId == 0 || _travelGuideRepository.GetPlaceLocation(_placeId, location.LocationId) is null)
         {
             return location;
         }

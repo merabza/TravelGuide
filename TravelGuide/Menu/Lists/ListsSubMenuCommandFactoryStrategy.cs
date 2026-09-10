@@ -4,7 +4,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Lists;
 
-
 public sealed class ListsSubMenuCommandFactoryStrategy : IMenuCommandFactoryStrategy
 {
     private readonly IHttpClientFactory _httpClientFactory;

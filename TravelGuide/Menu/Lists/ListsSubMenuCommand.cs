@@ -7,7 +7,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Lists;
 
-
 public sealed class ListsSubMenuCommand : CliMenuCommand
 {
     private readonly IHttpClientFactory _httpClientFactory;

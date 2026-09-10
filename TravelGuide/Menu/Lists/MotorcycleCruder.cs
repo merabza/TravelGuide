@@ -16,7 +16,6 @@ public sealed class MotorcycleCruder : Cruder
 {
     private readonly ITravelGuideRepository _travelGuideRepository;
 
-    
     public MotorcycleCruder(ITravelGuideRepository travelGuideRepository) : base("Motorcycle", "Motorcycles")
     {
         _travelGuideRepository = travelGuideRepository;

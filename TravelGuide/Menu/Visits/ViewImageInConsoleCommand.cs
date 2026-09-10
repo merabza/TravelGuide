@@ -12,7 +12,6 @@ public sealed class ViewImageInConsoleCommand : CliMenuCommand
 {
     private readonly string _imageFullPath;
 
-    
     public ViewImageInConsoleCommand(string imageFullPath) : base("View Image (Console)", EMenuAction.Reload)
     {
         _imageFullPath = imageFullPath;

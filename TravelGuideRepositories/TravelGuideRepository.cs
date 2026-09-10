@@ -178,8 +178,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         IQueryable<PlaceModel> placesQuery = _context.Places.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(filter))
         {
-            placesQuery = placesQuery.Where(w =>
-                w.Name != null && w.Name.Contains(filter) || w.Url.Contains(filter));
+            placesQuery = placesQuery.Where(w => w.Name != null && w.Name.Contains(filter) || w.Url.Contains(filter));
         }
 
         return [.. placesQuery.OrderBy(o => o.Name ?? o.Url).ThenBy(o => o.PlaceId).Skip(skip).Take(take)];
@@ -243,8 +242,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return _context.PlacesByLocations.Remove(placeLocationForDelete).Entity;
     }
 
-    public List<PlaceByLocation> GetNearestPlaces(LocationModel startLocation, int skip, int take,
-        TimeSpan minRoadTime, TimeSpan maxRoadTime, int maxVisitsCount, EOrderVisitsBy orderVisitsBy)
+    public List<PlaceByLocation> GetNearestPlaces(LocationModel startLocation, int skip, int take, TimeSpan minRoadTime,
+        TimeSpan maxRoadTime, int maxVisitsCount, EOrderVisitsBy orderVisitsBy)
     {
         //საწყისი წერტილი Locations ცხრილის ჩანაწერია: კოორდინატები საჰაერო მანძილს სჭირდება, იდენტიფიკატორი —
         //RouteDistances-ში დათვლილი მარშრუტების მოსაძებნად

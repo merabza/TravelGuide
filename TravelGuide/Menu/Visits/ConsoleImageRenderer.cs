@@ -111,8 +111,7 @@ internal static class ConsoleImageRenderer
                 return false;
             }
 
-            string[] attributes = reply.Substring(questionMarkIndex + 1, finalIndex - questionMarkIndex - 1)
-                .Split(';');
+            string[] attributes = reply.Substring(questionMarkIndex + 1, finalIndex - questionMarkIndex - 1).Split(';');
             return Array.Exists(attributes, static attribute => attribute == "4");
         }
         catch (Exception e) when (e is InvalidOperationException or IOException)

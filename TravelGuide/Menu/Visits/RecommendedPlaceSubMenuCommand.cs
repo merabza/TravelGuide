@@ -13,7 +13,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;
 
-
 public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
 {
     private readonly string _directionsUrl;

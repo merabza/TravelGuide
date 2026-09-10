@@ -19,15 +19,6 @@ namespace TravelGuide.Menu.Distances;
 //საწყისი წერტილის ლოკაციიდან (FromPoints.LocationId) ადგილის ლოკაციამდე (PlacesByLocations.LocationId) ინახება
 public sealed class CalculateDistancesCommand : CliMenuCommand
 {
-    //ერთი წყვილის დამუშავების შედეგი
-    private enum EPairResult
-    {
-        Saved,
-        Updated,
-        Unchanged,
-        Failed
-    }
-
     //OSRM-ის საჯარო სერვისს ზედიზედ მოთხოვნები შესვენებით უნდა გაეგზავნოს
     private static readonly TimeSpan RequestDelay = TimeSpan.FromMilliseconds(500);
 
@@ -38,9 +29,8 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
 
     //startLocation საწყისი წერტილის მდებარეობაა ბაზაში არსებული იდენტიფიკატორით; მდებარეობის გარეშე წერტილისთვის
     //null — ბრძანება მაშინ შეცდომას წერს და არაფერს ითვლის
-    public CalculateDistancesCommand(ITravelGuideRepository travelGuideRepository,
-        IHttpClientFactory httpClientFactory, string fromPointName, LocationModel? startLocation) : base(
-        "Calculate Distances", EMenuAction.Reload)
+    public CalculateDistancesCommand(ITravelGuideRepository travelGuideRepository, IHttpClientFactory httpClientFactory,
+        string fromPointName, LocationModel? startLocation) : base("Calculate Distances", EMenuAction.Reload)
     {
         _travelGuideRepository = travelGuideRepository;
         _httpClientFactory = httpClientFactory;
@@ -114,8 +104,8 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
             string progressPrefix = string.Create(CultureInfo.InvariantCulture,
                 $"{index + 1}/{locations.Count} Location {location.LocationId} ({location.Latitude:F6}, {location.Longitude:F6})");
 
-            EPairResult pairResult = CountAndPersistPair(startLocation, location, existingRouteDistance,
-                progressPrefix, cancellationToken);
+            EPairResult pairResult = CountAndPersistPair(startLocation, location, existingRouteDistance, progressPrefix,
+                cancellationToken);
 
             switch (pairResult)
             {
@@ -206,5 +196,14 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
         return Math.Abs(routeDistance.AirDistance - airDistanceKm) > toleranceKm ||
                Math.Abs(routeDistance.RoadDistance - roadRoute.DistanceKm) > toleranceKm ||
                routeDistance.RoadTime != roadRoute.Duration;
+    }
+
+    //ერთი წყვილის დამუშავების შედეგი
+    private enum EPairResult
+    {
+        Saved,
+        Updated,
+        Unchanged,
+        Failed
     }
 }

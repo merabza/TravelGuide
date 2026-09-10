@@ -12,7 +12,6 @@ public sealed class DescriptionSubMenuCommand : CliMenuCommand
     private readonly string _description;
     private readonly string _oneLineStatus;
 
-    
     public DescriptionSubMenuCommand(string description) : base("Description", EMenuAction.LoadSubMenu)
     {
         _description = description;

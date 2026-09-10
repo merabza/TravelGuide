@@ -14,8 +14,8 @@ namespace TravelGuide.Menu.TravelGuideParametersEdit;
 
 public sealed class MinDistanceTimeCruder : Cruder
 {
-    private readonly IParametersManager _parametersManager;
     private readonly List<TimeSpan> _currentValuesList;
+    private readonly IParametersManager _parametersManager;
 
     //ჩანაწერის გასაღები თვითონ დროა hh:mm ფორმატით, ამიტომ ცალკე სახელი არ სჭირდება
     public MinDistanceTimeCruder(IParametersManager parametersManager, List<TimeSpan> currentValuesList) : base(

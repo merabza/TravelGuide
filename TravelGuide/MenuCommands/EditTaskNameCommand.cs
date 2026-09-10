@@ -8,7 +8,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;
 
-
 public sealed class EditTaskNameCommand : CliMenuCommand
 {
     private readonly string _taskName;

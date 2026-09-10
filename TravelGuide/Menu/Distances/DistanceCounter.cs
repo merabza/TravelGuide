@@ -43,8 +43,7 @@ public static class DistanceCounter
 
             //საჯარო სერვისმა შეიძლება არ უპასუხოს — ლოდინი 10 წამით იზღუდება
             // ReSharper disable once using
-            using CancellationTokenSource cancellationTokenSource =
-                CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(10));
             // ReSharper disable once using
             using HttpResponseMessage response = httpClient.Send(request, cancellationTokenSource.Token);

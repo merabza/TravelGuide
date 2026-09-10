@@ -7,13 +7,12 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;
 
-
 public sealed class TaskSubMenuCommand : CliMenuCommand
 {
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;
 
-    public TaskSubMenuCommand(ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory,
-        string taskName) : base(taskName, EMenuAction.LoadSubMenu)
+    public TaskSubMenuCommand(ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory, string taskName)
+        : base(taskName, EMenuAction.LoadSubMenu)
     {
         _travelGuideRepositoryCreatorFactory = travelGuideRepositoryCreatorFactory;
     }

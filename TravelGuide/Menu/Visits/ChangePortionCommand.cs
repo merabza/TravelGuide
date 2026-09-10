@@ -13,7 +13,6 @@ public sealed class ChangePortionCommand : CliMenuCommand
 {
     private readonly Action _changePortion;
 
-    
     public ChangePortionCommand(string name, Action changePortion) : base(name, EMenuAction.ReloadWithoutPause,
         EMenuAction.ReloadWithoutPause)
     {

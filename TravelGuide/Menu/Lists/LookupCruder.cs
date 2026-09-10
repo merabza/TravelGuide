@@ -116,8 +116,7 @@ public abstract class LookupCruder : Cruder
 
     protected override ValueTask RemoveRecordWithKey(string recordKey, CancellationToken cancellationToken = default)
     {
-        if (!GetCrudersDictionary().TryGetValue(recordKey, out ItemData? itemData) ||
-            itemData is not LookupItem item)
+        if (!GetCrudersDictionary().TryGetValue(recordKey, out ItemData? itemData) || itemData is not LookupItem item)
         {
             throw new InvalidOperationException($"{CrudName} with key {recordKey} not found");
         }

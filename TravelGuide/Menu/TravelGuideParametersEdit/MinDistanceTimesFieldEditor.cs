@@ -11,7 +11,6 @@ public sealed class MinDistanceTimesFieldEditor : FieldEditor<List<TimeSpan>>
 {
     private readonly IParametersManager _parametersManager;
 
-    
     public MinDistanceTimesFieldEditor(string propertyName, IParametersManager parametersManager) : base(propertyName,
         false, null, false, null, true)
     {

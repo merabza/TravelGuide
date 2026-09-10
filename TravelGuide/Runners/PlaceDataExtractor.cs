@@ -14,10 +14,34 @@ namespace TravelGuide.Runners;
 
 public static partial class PlaceDataExtractor
 {
+    //გეოგრაფიულად დასაშვები ზღვრები: ამათ გარეთ მოხვედრილი წყვილი (მაგ. UTM-ის მეტრული
+    //მნიშვნელობები, როგორც 297267, 4768381) მცდარია და არ ინახება
+    private const double MinValidLatitude = -90;
+    private const double MaxValidLatitude = 90;
+    private const double MinValidLongitude = -180;
+    private const double MaxValidLongitude = 180;
+
+    //ხილულ სიაში კოორდინატები 6 ნიშნამდეა დამრგვალებული (მაქს. ცდომილება 5e-7), ამიტომ 1e-5
+    //დაშვება დამრგვალების სხვაობას ფარავს, რეალურად განსხვავებულ წერტილებს კი ვერ შეაწებებს
+    private const double DuplicateToleranceDegrees = 1e-5;
+
     //აღწერის ტექსტში ამ ელემენტების დახურვისას ახალი ხაზი ჩაისმის, რომ აბზაცები ერთმანეთს არ შეეწებოს
     private static readonly HashSet<string> BlockTagNames = new(StringComparer.OrdinalIgnoreCase)
     {
-        "p", "div", "li", "ul", "ol", "h1", "h2", "h3", "h4", "h5", "h6", "table", "tr", "blockquote"
+        "p",
+        "div",
+        "li",
+        "ul",
+        "ol",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "table",
+        "tr",
+        "blockquote"
     };
 
     //სერვერი სრულად დარენდერებულ HTML-ს აბრუნებს, ამიტომ ბრაუზერი საჭირო არ არის — საკმარისია მოქაჩული ტექსტის გაპარსვა.
@@ -89,17 +113,6 @@ public static partial class PlaceDataExtractor
         return (parts.Length > 0 ? parts[0] : null, parts.Length > 1 ? parts[1] : null);
     }
 
-    //გეოგრაფიულად დასაშვები ზღვრები: ამათ გარეთ მოხვედრილი წყვილი (მაგ. UTM-ის მეტრული
-    //მნიშვნელობები, როგორც 297267, 4768381) მცდარია და არ ინახება
-    private const double MinValidLatitude = -90;
-    private const double MaxValidLatitude = 90;
-    private const double MinValidLongitude = -180;
-    private const double MaxValidLongitude = 180;
-
-    //ხილულ სიაში კოორდინატები 6 ნიშნამდეა დამრგვალებული (მაქს. ცდომილება 5e-7), ამიტომ 1e-5
-    //დაშვება დამრგვალების სხვაობას ფარავს, რეალურად განსხვავებულ წერტილებს კი ვერ შეაწებებს
-    private const double DuplicateToleranceDegrees = 1e-5;
-
     internal static bool IsValidCoordinatePair(double latitude, double longitude)
     {
         return latitude is >= MinValidLatitude and <= MaxValidLatitude &&
@@ -114,15 +127,13 @@ public static partial class PlaceDataExtractor
         List<PlaceLocationItem> domLocations)
     {
         List<PlaceLocationItem> locations = [];
-        foreach (PlaceLocationItem item in jsonLdLocations
-                     .Where(w => IsValidCoordinatePair(w.Latitude, w.Longitude))
+        foreach (PlaceLocationItem item in jsonLdLocations.Where(w => IsValidCoordinatePair(w.Latitude, w.Longitude))
                      .Where(w => !locations.Contains(w)))
         {
             locations.Add(item);
         }
 
-        foreach (PlaceLocationItem item in domLocations
-                     .Where(w => IsValidCoordinatePair(w.Latitude, w.Longitude))
+        foreach (PlaceLocationItem item in domLocations.Where(w => IsValidCoordinatePair(w.Latitude, w.Longitude))
                      .Where(w => !locations.Any(a =>
                          Math.Abs(a.Latitude - w.Latitude) <= DuplicateToleranceDegrees &&
                          Math.Abs(a.Longitude - w.Longitude) <= DuplicateToleranceDegrees)))
@@ -156,7 +167,8 @@ public static partial class PlaceDataExtractor
             return locations;
         }
 
-        foreach (PlaceLocationItem pair in subItems.Select(s => TryParsePair(s.TextContent)).OfType<PlaceLocationItem>())
+        foreach (PlaceLocationItem pair in
+                 subItems.Select(s => TryParsePair(s.TextContent)).OfType<PlaceLocationItem>())
         {
             locations.Add(pair);
         }
@@ -392,8 +404,7 @@ public static partial class PlaceDataExtractor
             }
             else if (geo.ValueKind == JsonValueKind.Array)
             {
-                foreach (JsonElement geoItem in geo.EnumerateArray()
-                             .Where(w => w.ValueKind == JsonValueKind.Object))
+                foreach (JsonElement geoItem in geo.EnumerateArray().Where(w => w.ValueKind == JsonValueKind.Object))
                 {
                     TryAddGeoPair(geoItem);
                 }

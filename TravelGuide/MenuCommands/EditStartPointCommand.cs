@@ -8,7 +8,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;
 
-
 public sealed class EditStartPointCommand : CliMenuCommand
 {
     private readonly string _startPoint;

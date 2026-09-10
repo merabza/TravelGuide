@@ -10,8 +10,8 @@ namespace TravelGuide.Menu.Lists;
 //რეგიონების ცნობარის (Regions ცხრილის) რედაქტორი — ჩანაწერებს ადგილები RegionId-ით ეყრდნობა
 public sealed class RegionCruder : LookupCruder
 {
-    public RegionCruder(ITravelGuideRepository travelGuideRepository) : base(travelGuideRepository, "Region",
-        "Regions", RegionModelConfiguration.NameLength)
+    public RegionCruder(ITravelGuideRepository travelGuideRepository) : base(travelGuideRepository, "Region", "Regions",
+        RegionModelConfiguration.NameLength)
     {
     }
 

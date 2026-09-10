@@ -3,7 +3,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;
 
-
 public sealed class NewTaskCommandFactoryStrategy : IMenuCommandFactoryStrategy
 {
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;

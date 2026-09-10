@@ -17,7 +17,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;
 
-
 public sealed class RecommendedVisitsCommand : CliMenuCommand
 {
     private readonly IHttpClientFactory _httpClientFactory;
@@ -28,6 +27,7 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
     //(მაგალითად ადგილიდან უკან დაბრუნებისას იგივე პორცია რჩება); ქვემენიუში თავიდან შესვლისას
     //ბრძანება ახლიდან იქმნება და სია ისევ პირველი პორციიდან იწყება
     private int _currentPortionNumber;
+    private TimeSpan _maxRoadTime;
 
     //მაქსიმალური ვიზიტების რაოდენობაც ქვემენიუში შესვლისას ერთხელ შეჰყავს მომხმარებელს და მენიუს
     //გადაწყობებზე ხელახლა აღარ იკითხება
@@ -36,7 +36,6 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
     //მინიმალური გზის დრო ქვემენიუში შესვლისას ერთხელ ირჩევა და მენიუს ყოველ გადაწყობაზე
     //(მაგალითად ადგილიდან უკან დაბრუნებისას) ხელახლა აღარ იკითხება
     private TimeSpan _minRoadTime;
-    private TimeSpan _maxRoadTime;
 
     //საწყისი წერტილის (FromPoints ცნობარის ჩანაწერის) მდებარეობა — ქვემენიუში შესვლისას ერთხელ ირჩევა და მენიუს
     //გადაწყობებზე ხელახლა აღარ იკითხება; RouteDistances მარშრუტებს ამ ლოკაციის იდენტიფიკატორით ინახავს
@@ -98,7 +97,6 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
             {
                 _maxRoadTime = uplist.Min(x => x);
             }
-
         }
 
         //მაქსიმალური ვიზიტების რაოდენობა — სიაში დარჩება მხოლოდ ის ადგილები, რომლებზეც ვიზიტები ამდენჯერ

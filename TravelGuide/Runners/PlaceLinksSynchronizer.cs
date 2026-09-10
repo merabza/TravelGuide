@@ -7,7 +7,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Runners;
 
-
 public sealed class PlaceLinksSynchronizer
 {
     private readonly ITravelGuideRepository _repository;

@@ -13,11 +13,11 @@ namespace TravelGuide.Runners;
 //მსგავსი მისამართები: ზუსტად საწყისი წერტილი ან მისი ქვეგვერდი
 public sealed class HarvestedUrlPersister
 {
-    //ამ გაშვებაში უკვე ნანახი მისამართები — თითო მისამართი ბაზაში ხეშ-კოდით მხოლოდ ერთხელ შემოწმდეს
-    private readonly HashSet<string> _knownUrls = new(StringComparer.Ordinal);
-
     //ბაზაში უკვე არსებული (FromUrlId, GotUrlId) წყვილები — ერთი და იგივე კავშირი მეორედ არ შეინახოს
     private readonly HashSet<(int FromUrlId, int GotUrlId)> _knownUrlPairs;
+
+    //ამ გაშვებაში უკვე ნანახი მისამართები — თითო მისამართი ბაზაში ხეშ-კოდით მხოლოდ ერთხელ შემოწმდეს
+    private readonly HashSet<string> _knownUrls = new(StringComparer.Ordinal);
 
     private readonly ITravelGuideRepository _repository;
 

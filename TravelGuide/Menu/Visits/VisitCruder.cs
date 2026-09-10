@@ -24,16 +24,16 @@ public sealed class VisitCruder : Cruder
     private readonly ITravelGuideRepository _travelGuideRepository;
 
     //fieldKeyFromItem=true — ვიზიტს რედაქტირებადი სახელი არ აქვს და Record Name ველი არ სჭირდება
-    public VisitCruder(ITravelGuideRepository travelGuideRepository, int placeId,
-        IParametersManager parametersManager) : base("Visit", "Visits", true)
+    public VisitCruder(ITravelGuideRepository travelGuideRepository, int placeId, IParametersManager parametersManager)
+        : base("Visit", "Visits", true)
     {
         _travelGuideRepository = travelGuideRepository;
         _placeId = placeId;
         FieldEditors.Add(new DateFieldEditor(nameof(VisitModel.VisitDate), DateTime.Today, true));
         FieldEditors.Add(new MotorcycleIdFieldEditor(nameof(VisitModel.MotorcycleId), travelGuideRepository, true));
         FieldEditors.Add(new OptionalTextFieldEditor(nameof(VisitModel.Comment), true));
-        FieldEditors.Add(new VisitImagesFieldEditor(nameof(VisitModel.Images), travelGuideRepository,
-            parametersManager));
+        FieldEditors.Add(
+            new VisitImagesFieldEditor(nameof(VisitModel.Images), travelGuideRepository, parametersManager));
     }
 
     //ერთი ადგილის ვიზიტები წარწერა-გასაღებებით თარიღის კლებადობით. ვიზიტს ნავიგაციები არ აქვს,
@@ -45,8 +45,8 @@ public sealed class VisitCruder : Cruder
         try
         {
             List<VisitModel> visits = _travelGuideRepository.GetVisitsByPlaceId(_placeId);
-            Dictionary<int, string> motorcycleKeys =
-                _travelGuideRepository.GetMotorcyclesList().ToDictionary(k => k.MotorcycleId, v => v.MotorcycleKey);
+            Dictionary<int, string> motorcycleKeys = _travelGuideRepository.GetMotorcyclesList()
+                .ToDictionary(k => k.MotorcycleId, v => v.MotorcycleKey);
 
             var captionCounts = new Dictionary<string, int>(StringComparer.Ordinal);
             List<KeyValuePair<string, VisitModel>> keyedVisits = [];

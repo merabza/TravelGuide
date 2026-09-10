@@ -10,7 +10,6 @@ public sealed class TravelGuideMenuBuilder : IMenuBuilder
 {
     private readonly IServiceProvider _serviceProvider;
 
-    
     public TravelGuideMenuBuilder(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
@@ -19,6 +18,7 @@ public sealed class TravelGuideMenuBuilder : IMenuBuilder
     public Task<CliMenuSet?> BuildMainMenu()
     {
         //მთავარი მენიუს ჩატვირთვა
-        return Task.FromResult(CliMenuSetFactory.CreateMenuSet("Main Menu", MenuData.MenuCommandNames, _serviceProvider, true));
+        return Task.FromResult(CliMenuSetFactory.CreateMenuSet("Main Menu", MenuData.MenuCommandNames, _serviceProvider,
+            true));
     }
 }

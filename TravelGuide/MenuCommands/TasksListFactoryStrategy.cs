@@ -7,7 +7,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;
 
-
 public sealed class TasksListFactoryStrategy : IMenuCommandListFactoryStrategy
 {
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;

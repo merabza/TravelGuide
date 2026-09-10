@@ -15,7 +15,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;
 
-
 public sealed class RunTaskCommand : CliMenuCommand
 {
     private readonly string _taskName;
@@ -75,10 +74,9 @@ public sealed class RunTaskCommand : CliMenuCommand
         //გვერდები ბრაუზერის გარეშე, პირდაპირ HTTP-ით მოიქაჩება — Chrome მხოლოდ Selenium-რეჟიმის სიის გვერდს სჭირდება
         using var httpClientHandler = new HttpClientHandler
         {
-            AutomaticDecompression = DecompressionMethods.All,
-            CheckCertificateRevocationList = true
+            AutomaticDecompression = DecompressionMethods.All, CheckCertificateRevocationList = true
         };
-        using var httpClient = new HttpClient(httpClientHandler, disposeHandler: false);
+        using var httpClient = new HttpClient(httpClientHandler, false);
         httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("TravelGuideBot", "1.0"));
 
         //ფაზა 1: მისამართები ბაზაში ჩამოსატვირთი (New) სტატუსით ინახება — მხოლოდ საწყისი წერტილების მსგავსი.
@@ -129,8 +127,7 @@ public sealed class RunTaskCommand : CliMenuCommand
 
         //ფაზა 2: ჩამოსატვირთი გვერდების ჩატვირთვა ბაზიდან და სათითაოდ ჩამოტვირთვა-გაანალიზება;
         //გვერდებზე ნაპოვნი ახალი მისამართებიც რიგში ემატება, სანამ დასამუშავებელი აღარაფერი დარჩება
-        var analyser = new PlaceAnalyser(httpClient, repository, urlPersister, reProcessAnalysed,
-            retryDownloadErrors);
+        var analyser = new PlaceAnalyser(httpClient, repository, urlPersister, reProcessAnalysed, retryDownloadErrors);
         await analyser.RunAsync(cancellationToken).ConfigureAwait(false);
 
         //ამოცანის გაშვების პროცესი დასრულდა

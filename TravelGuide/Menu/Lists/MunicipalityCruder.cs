@@ -20,8 +20,7 @@ public sealed class MunicipalityCruder : LookupCruder
     {
         return
         [
-            .. TravelGuideRepository.GetMunicipalitiesList()
-                .Select(s => new LookupItem(s.MunicipalityId, s.Name))
+            .. TravelGuideRepository.GetMunicipalitiesList().Select(s => new LookupItem(s.MunicipalityId, s.Name))
         ];
     }
 

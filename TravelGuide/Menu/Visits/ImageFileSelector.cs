@@ -19,7 +19,16 @@ internal static class ImageFileSelector
     //CA1861 — მუდმივი მასივი არგუმენტად არ გამოდგება, ამიტომ ცალკე ველია.
     //რეგისტრის უგულებელმყოფელი შედარება: .JPG და .jpg ერთი და იგივეა
     private static readonly HashSet<string> ImageExtensions =
-        new(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".heic" };
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".gif",
+            ".bmp",
+            ".webp",
+            ".heic"
+        };
 
     //აბრუნებს არჩეული ფაილის სახელს. თუ ასარჩევი არაფერია, ListIsEmptyException იგზავნება —
     //მას CliMenuCommand.Run იჭერს და მენიუში მკაფიო შეტყობინებას აჩვენებს

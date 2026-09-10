@@ -9,7 +9,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;
 
-
 public sealed class NewStartPointCommand : CliMenuCommand
 {
     private readonly string _taskName;

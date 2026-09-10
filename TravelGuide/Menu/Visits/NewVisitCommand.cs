@@ -13,7 +13,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;
 
-
 public sealed class NewVisitCommand : CliMenuCommand
 {
     private readonly int _placeId;

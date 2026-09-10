@@ -3,7 +3,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;
 
-
 public sealed class StartPointSubMenuCommand : CliMenuCommand
 {
     private readonly string _taskName;
@@ -20,10 +19,10 @@ public sealed class StartPointSubMenuCommand : CliMenuCommand
     {
         //საწყისი წერტილის ქვემენიუს აგება
         var startPointSubMenuSet = new CliMenuSet($" Task => {_taskName},  Start Point => {Name}");
-        startPointSubMenuSet.AddMenuItem(
-            new DeleteStartPointCommand(_travelGuideRepositoryCreatorFactory, _taskName, Name));
-        startPointSubMenuSet.AddMenuItem(
-            new EditStartPointCommand(_travelGuideRepositoryCreatorFactory, _taskName, Name));
+        startPointSubMenuSet.AddMenuItem(new DeleteStartPointCommand(_travelGuideRepositoryCreatorFactory, _taskName,
+            Name));
+        startPointSubMenuSet.AddMenuItem(new EditStartPointCommand(_travelGuideRepositoryCreatorFactory, _taskName,
+            Name));
         startPointSubMenuSet.AddEscapeCommand();
         return startPointSubMenuSet;
     }

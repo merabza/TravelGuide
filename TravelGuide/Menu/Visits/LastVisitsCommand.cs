@@ -9,7 +9,6 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;
 
-
 public sealed class LastVisitsCommand : CliMenuCommand
 {
     //ბოლო ვიზიტების მაქსიმალური რაოდენობა

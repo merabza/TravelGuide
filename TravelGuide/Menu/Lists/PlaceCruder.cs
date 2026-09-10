@@ -167,8 +167,8 @@ public sealed class PlaceCruder : Cruder
         }
 
         //ვიზიტებიანი ადგილი არ იშლება — კასკადი ვიზიტების ისტორიასაც წაშლიდა; ჯერ ვიზიტები უნდა წაიშალოს
-        if (_travelGuideRepository.GetVisitCountsByPlaceIds([placeCopy.PlaceId])
-                .GetValueOrDefault(placeCopy.PlaceId) > 0)
+        if (_travelGuideRepository.GetVisitCountsByPlaceIds([placeCopy.PlaceId]).GetValueOrDefault(placeCopy.PlaceId) >
+            0)
         {
             StShared.WriteErrorLine($"Place {recordKey} has Visits and cannot be deleted. Delete its Visits first",
                 true);

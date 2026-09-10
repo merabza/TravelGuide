@@ -3,7 +3,6 @@ using AppCliTools.CliParameters.CliMenuCommands;
 
 namespace TravelGuide.Menu.Visits;
 
-
 public sealed class VisitSubMenuCommand : CliMenuCommand
 {
     private readonly VisitCruder _visitCruder;

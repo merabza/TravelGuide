@@ -43,9 +43,7 @@ public sealed class LookupIdFieldEditor : FieldEditor<int?>
         }
 
         int? currentId = GetValue(recordForUpdate);
-        string currentName = currentId is int id && lookupItems.TryGetValue(id, out string? name)
-            ? name
-            : NoneCaption;
+        string currentName = currentId is int id && lookupItems.TryGetValue(id, out string? name) ? name : NoneCaption;
         int selectedId = MenuInputer.InputIdFromMenuList(FieldName, lookupMenuSet, currentName);
         if (selectedId == -1)
         {

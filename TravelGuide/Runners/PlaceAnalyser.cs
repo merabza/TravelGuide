@@ -107,8 +107,8 @@ public sealed class PlaceAnalyser
             if (!response.IsSuccessStatusCode)
             {
                 //წარუმატებელი პასუხისას false ბრუნდება და გამომძახებელი ჩანაწერს შეცდომის სტატუსით მონიშნავს
-                StShared.WriteErrorLine($"Request failed with status {(int)response.StatusCode} for {place.Url}",
-                    true, null, false);
+                StShared.WriteErrorLine($"Request failed with status {(int)response.StatusCode} for {place.Url}", true,
+                    null, false);
                 return false;
             }
 

@@ -8,14 +8,13 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;
 
-
 public sealed class DeleteTaskCommand : CliMenuCommand
 {
     private readonly string _taskName;
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;
 
-    public DeleteTaskCommand(ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory,
-        string taskName) : base("Delete Task", EMenuAction.LevelUp)
+    public DeleteTaskCommand(ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory, string taskName)
+        : base("Delete Task", EMenuAction.LevelUp)
     {
         _travelGuideRepositoryCreatorFactory = travelGuideRepositoryCreatorFactory;
         _taskName = taskName;
