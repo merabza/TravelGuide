@@ -43,7 +43,7 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
         _startLocation = startLocation;
         _place = place;
         _location = location;
-        //სტატუსის თავში ამ ადგილზე უკვე დაფიქსირებული ვიზიტების რაოდენობა გამოდის; კოორდინატები მძიმით
+        //სტატუსის თავში ამ ლოკაციაზე უკვე დაფიქსირებული ვიზიტების რაოდენობა გამოდის; კოორდინატები მძიმით
         //არის გამოყოფილი, რომ Google Maps-ის ძებნაში პირდაპირ ჩაკოპირება შეიძლებოდეს
         _status = string.Create(CultureInfo.InvariantCulture,
             $"{visitsCount} | {place.Url} | {location.Latitude}, {location.Longitude}");
@@ -154,14 +154,15 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
 
         placeSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Directions", _directionsUrl));
 
-        //ამ ადგილზე ახალი ვიზიტის დაფიქსირება
-        placeSubMenuSet.AddMenuItem(new NewVisitCommand(_travelGuideRepositoryCreatorFactory, _place.PlaceId));
+        //ამ ლოკაციაზე ახალი ვიზიტის დაფიქსირება — ვიზიტი ლოკაციას ებმება და არა ადგილს, რომ მრავალლოკაციიანი
+        //ადგილის ერთი ლოკაციის მონახულებამ დანარჩენები ნამყოფად არ აქციოს
+        placeSubMenuSet.AddMenuItem(new NewVisitCommand(_travelGuideRepositoryCreatorFactory, _location.LocationId));
 
         try
         {
-            //ამ ადგილზე უკვე დაფიქსირებული ვიზიტების ჩამონათვალი — ვიზიტის არჩევა რედაქტირების ქვემენიუს ხსნის
+            //ამ ლოკაციაზე უკვე დაფიქსირებული ვიზიტების ჩამონათვალი — ვიზიტის არჩევა რედაქტირების ქვემენიუს ხსნის
             ITravelGuideRepository repository = _travelGuideRepositoryCreatorFactory.GetTravelGuideRepository();
-            var visitCruder = new VisitCruder(repository, _place.PlaceId, _parametersManager);
+            var visitCruder = new VisitCruder(repository, _location.LocationId, _parametersManager);
             foreach (KeyValuePair<string, VisitModel> keyedVisit in visitCruder.GetKeyedVisits())
             {
                 placeSubMenuSet.AddMenuItem(new VisitSubMenuCommand(visitCruder, keyedVisit.Value.VisitId,

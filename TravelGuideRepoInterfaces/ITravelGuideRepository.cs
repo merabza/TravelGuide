@@ -96,8 +96,8 @@ public interface ITravelGuideRepository
 
     VisitModel CreateVisit(VisitModel newVisit);
     List<VisitListItem> GetLastVisits(int count);
-    List<VisitModel> GetVisitsByPlaceId(int placeId);
-    Dictionary<int, int> GetVisitCountsByPlaceIds(List<int> placeIds);
+    List<VisitModel> GetVisitsByLocationId(int locationId);
+    Dictionary<int, int> GetVisitCountsByLocationIds(List<int> locationIds);
     VisitModel? GetVisitById(int visitId);
     VisitModel UpdateVisit(VisitModel visit);
     VisitModel DeleteVisit(VisitModel visitForDelete);

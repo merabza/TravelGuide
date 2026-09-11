@@ -15,14 +15,16 @@ namespace TravelGuide.Menu.Visits;
 
 public sealed class NewVisitCommand : CliMenuCommand
 {
-    private readonly int _placeId;
+    private readonly int _locationId;
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;
 
-    public NewVisitCommand(ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory, int placeId) :
-        base("New Visit", EMenuAction.Reload)
+    //ვიზიტი ადგილის კონკრეტულ ლოკაციაზე ფიქსირდება — მრავალლოკაციიანი ადგილის თითო ლოკაცია
+    //Recommended Visits სიაში ცალკე პუნქტია და თითოეულს საკუთარი ვიზიტები აქვს
+    public NewVisitCommand(ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory,
+        int locationId) : base("New Visit", EMenuAction.Reload)
     {
         _travelGuideRepositoryCreatorFactory = travelGuideRepositoryCreatorFactory;
-        _placeId = placeId;
+        _locationId = locationId;
     }
 
     protected override ValueTask<bool> RunBody(CancellationToken cancellationToken = default)
@@ -77,7 +79,7 @@ public sealed class NewVisitCommand : CliMenuCommand
         //ვიზიტის ჩანაწერის შექმნა და ბაზაში შენახვა
         repository.CreateVisit(new VisitModel
         {
-            PlaceId = _placeId,
+            LocationId = _locationId,
             MotorcycleId = motorcycles[selectedId].MotorcycleId,
             VisitDate = visitDate,
             Comment = comment

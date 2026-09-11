@@ -17,8 +17,9 @@ public sealed class VisitModelConfiguration : IEntityTypeConfiguration<VisitMode
 
         builder.Property(e => e.Comment).HasMaxLength(CommentLength);
 
-        //ნავიგაციები საჭირო არ არის — ჩანაწერები პირდაპირ იდენტიფიკატორებით იქმნება
-        builder.HasOne<PlaceModel>().WithMany().HasForeignKey(e => e.PlaceId);
+        //ნავიგაციები საჭირო არ არის — ჩანაწერები პირდაპირ იდენტიფიკატორებით იქმნება.
+        //ვიზიტი ლოკაციას ებმება და არა ადგილს (Locations საზიარო ჩანაწერებია — PlacesByLocations)
+        builder.HasOne<LocationModel>().WithMany().HasForeignKey(e => e.LocationId);
         builder.HasOne<MotorcycleModel>().WithMany().HasForeignKey(e => e.MotorcycleId);
     }
 }

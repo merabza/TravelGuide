@@ -39,11 +39,13 @@ public sealed class LastVisitsCommand : CliMenuCommand
 
         Console.WriteLine($"Last {lastVisits.Count} Visits:");
 
-        //თითო ვიზიტი თითო სტრიქონზე: თარიღი, ადგილი და მოტოციკლი
+        //თითო ვიზიტი თითო სტრიქონზე: თარიღი, ადგილი, ლოკაციის კოორდინატები და მოტოციკლი. ვიზიტი ლოკაციაზეა,
+        //ამიტომ მრავალლოკაციიანი ადგილის ვიზიტს კოორდინატები განასხვავებს; ადგილს აღარ მიბმული ლოკაციისას
+        //სახელის ადგილას ტირე იწერება
         foreach (VisitListItem visit in lastVisits)
         {
             Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
-                $"{visit.VisitDate:yyyy-MM-dd} | {visit.PlaceName} | {visit.MotorcycleKey}"));
+                $"{visit.VisitDate:yyyy-MM-dd} | {visit.PlaceName ?? "-"} | {visit.Latitude}, {visit.Longitude} | {visit.MotorcycleKey}"));
         }
 
         return ValueTask.FromResult(true);

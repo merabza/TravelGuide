@@ -166,12 +166,14 @@ public sealed class PlaceCruder : Cruder
             throw new InvalidOperationException($"Place with key {recordKey} not found");
         }
 
-        //ვიზიტებიანი ადგილი არ იშლება — კასკადი ვიზიტების ისტორიასაც წაშლიდა; ჯერ ვიზიტები უნდა წაიშალოს
-        if (_travelGuideRepository.GetVisitCountsByPlaceIds([placeCopy.PlaceId]).GetValueOrDefault(placeCopy.PlaceId) >
-            0)
+        //ვიზიტებიანი ადგილი არ იშლება — ვიზიტები ადგილის ლოკაციებზეა და ადგილის წაშლისას (ბმულების კასკადით
+        //წაშლის შემდეგ) ისინი უსახელო ლოკაციაზე დარჩებოდა; ჯერ ვიზიტები უნდა წაიშალოს
+        List<int> locationIds =
+            [.. _travelGuideRepository.GetPlaceLocations(placeCopy.PlaceId).Select(s => s.LocationId)];
+        if (locationIds.Count > 0 && _travelGuideRepository.GetVisitCountsByLocationIds(locationIds).Count > 0)
         {
-            StShared.WriteErrorLine($"Place {recordKey} has Visits and cannot be deleted. Delete its Visits first",
-                true);
+            StShared.WriteErrorLine(
+                $"Place {recordKey} has Visits on its Locations and cannot be deleted. Delete its Visits first", true);
             return ValueTask.CompletedTask;
         }
 

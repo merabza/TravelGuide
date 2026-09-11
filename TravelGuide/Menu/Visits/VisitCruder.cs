@@ -14,21 +14,21 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;
 
-//ერთი ადგილის ვიზიტების რედაქტორი My Places-ის ყაიდაზე: ვიზიტის მენიუში ველები მიმდინარე
+//ერთი ლოკაციის ვიზიტების რედაქტორი My Places-ის ყაიდაზე: ვიზიტის მენიუში ველები მიმდინარე
 //მნიშვნელობებით ჩანს და შეიძლება როგორც თითო ველის, ისე ყველა ველის თანმიმდევრობით შეცვლა.
 //ჩანაწერის გასაღები წარწერაა (თარიღი + მოტოციკლი) და რედაქტირებისას თვითონაც იცვლება —
 //ამიტომ გასაღები ყოველ გამოყენებამდე ვიზიტის იდენტიფიკატორით თავიდან დგინდება
 public sealed class VisitCruder : Cruder
 {
-    private readonly int _placeId;
+    private readonly int _locationId;
     private readonly ITravelGuideRepository _travelGuideRepository;
 
     //fieldKeyFromItem=true — ვიზიტს რედაქტირებადი სახელი არ აქვს და Record Name ველი არ სჭირდება
-    public VisitCruder(ITravelGuideRepository travelGuideRepository, int placeId, IParametersManager parametersManager)
-        : base("Visit", "Visits", true)
+    public VisitCruder(ITravelGuideRepository travelGuideRepository, int locationId,
+        IParametersManager parametersManager) : base("Visit", "Visits", true)
     {
         _travelGuideRepository = travelGuideRepository;
-        _placeId = placeId;
+        _locationId = locationId;
         FieldEditors.Add(new DateFieldEditor(nameof(VisitModel.VisitDate), DateTime.Today, true));
         FieldEditors.Add(new MotorcycleIdFieldEditor(nameof(VisitModel.MotorcycleId), travelGuideRepository, true));
         FieldEditors.Add(new OptionalTextFieldEditor(nameof(VisitModel.Comment), true));
@@ -36,7 +36,7 @@ public sealed class VisitCruder : Cruder
             new VisitImagesFieldEditor(nameof(VisitModel.Images), travelGuideRepository, parametersManager));
     }
 
-    //ერთი ადგილის ვიზიტები წარწერა-გასაღებებით თარიღის კლებადობით. ვიზიტს ნავიგაციები არ აქვს,
+    //ერთი ლოკაციის ვიზიტები წარწერა-გასაღებებით თარიღის კლებადობით. ვიზიტს ნავიგაციები არ აქვს,
     //ამიტომ წარწერისთვის მოტოციკლის სახელები ცალკე მოიპოვება; გამეორებული წარწერა რიგითი ნომრით
     //განსხვავდება — CliMenuSet.GetMenuItemWithName SingleOrDefault-ს იყენებს და გამეორებული სახელი
     //ბოლო ბრძანების გამეორებისას გამონაკლისს ისვრის
@@ -44,7 +44,7 @@ public sealed class VisitCruder : Cruder
     {
         try
         {
-            List<VisitModel> visits = _travelGuideRepository.GetVisitsByPlaceId(_placeId);
+            List<VisitModel> visits = _travelGuideRepository.GetVisitsByLocationId(_locationId);
             Dictionary<int, string> motorcycleKeys = _travelGuideRepository.GetMotorcyclesList()
                 .ToDictionary(k => k.MotorcycleId, v => v.MotorcycleKey);
 

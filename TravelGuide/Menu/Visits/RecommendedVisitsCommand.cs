@@ -147,10 +147,11 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
                     _currentPortionNumber * portionSize, portionSize + 1, _minRoadTime, _maxRoadTime, _maxVisitsCount,
                     parameters.OrderVisitsBy ?? EOrderVisitsBy.RoadTime);
 
-                //პორციის ადგილებზე დაფიქსირებული ვიზიტების რაოდენობები ერთი მოთხოვნით იტვირთება —
-                //თითო პუნქტის სტატუსის თავში გამოსატანად
-                List<int> placeIds = [.. nearestPlaceLocations.Take(portionSize).Select(s => s.PlaceId).Distinct()];
-                Dictionary<int, int> visitCounts = repository.GetVisitCountsByPlaceIds(placeIds);
+                //პორციის ლოკაციებზე დაფიქსირებული ვიზიტების რაოდენობები ერთი მოთხოვნით იტვირთება —
+                //თითო პუნქტის სტატუსის თავში გამოსატანად (ვიზიტი ლოკაციაზეა და არა ადგილზე)
+                List<int> locationIds =
+                    [.. nearestPlaceLocations.Take(portionSize).Select(s => s.LocationId).Distinct()];
+                Dictionary<int, int> visitCounts = repository.GetVisitCountsByLocationIds(locationIds);
 
                 //თითო ადგილი-ლოკაციის წყვილი თითო მენიუს პუნქტად — მრავალლოკაციიანი ადგილი იმდენჯერ გამოდის,
                 //რამდენი ლოკაციაც აქვს. სახელად დასახელება, ხოლო ვიზიტების რაოდენობა, ბმული და კოორდინატები
@@ -160,7 +161,7 @@ public sealed class RecommendedVisitsCommand : CliMenuCommand
                     recommendedVisitsMenuSet.AddMenuItem(new RecommendedPlaceSubMenuCommand(
                         _travelGuideRepositoryCreatorFactory, _httpClientFactory, _parametersManager, startLocation,
                         placeByLocation.PlaceNavigation, placeByLocation.LocationNavigation,
-                        visitCounts.GetValueOrDefault(placeByLocation.PlaceId)));
+                        visitCounts.GetValueOrDefault(placeByLocation.LocationId)));
                 }
 
                 //გადაფურცვლის ღილაკები ფიზიკურ PageUp/PageDown კლავიშებზეა მიბმული ისევე, როგორც

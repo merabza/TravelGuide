@@ -289,11 +289,12 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                 rd.RoadTime <= maxRoadTime));
         }
 
-        //რჩება მხოლოდ ის ადგილები, რომლებზეც დაფიქსირებული ვიზიტების რაოდენობა მოთხოვნილ მაქსიმუმს
-        //არ აღემატება — ფილტრი ადგილზეა და არა ლოკაციაზე, ამიტომ მრავალლოკაციიანი ადგილი ან მთლიანად
-        //რჩება, ან მთლიანად ვარდება. 0-ის მოთხოვნისას მხოლოდ მოუნახულებელი ადგილები რჩება
-        placeLocationsQuery =
-            placeLocationsQuery.Where(w => _context.Visits.Count(c => c.PlaceId == w.PlaceId) <= maxVisitsCount);
+        //რჩება მხოლოდ ის ლოკაციები, რომლებზეც დაფიქსირებული ვიზიტების რაოდენობა მოთხოვნილ მაქსიმუმს
+        //არ აღემატება — ვიზიტი ლოკაციაზეა და ფილტრიც ლოკაციაზეა, ამიტომ მრავალლოკაციიანი ადგილის
+        //მოუნახულებელი ლოკაციები სიაში რჩება მაშინაც, როცა მისი სხვა ლოკაცია უკვე ნანახია.
+        //0-ის მოთხოვნისას მხოლოდ მოუნახულებელი ლოკაციები რჩება
+        placeLocationsQuery = placeLocationsQuery.Where(w =>
+            _context.Visits.Count(c => c.LocationId == w.LocationId) <= maxVisitsCount);
 
         //თითო ბმულს დალაგების ნიშნები ერთვის: საჰაერო მანძილის კვადრატი (ფესვის ამოღება რიგითობას არ
         //ცვლის) და საწყისი ლოკაციიდან ამ ლოკაციამდე დათვლილი მარშრუტი — დაუთვლელისთვის null. მარშრუტი
@@ -617,43 +618,59 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
 
     public List<VisitListItem> GetLastVisits(int count)
     {
-        //ვიზიტს ნავიგაციები არ აქვს, ამიტომ ადგილისა და მოტოციკლის სახელები შეერთებით მოიპოვება.
+        //ვიზიტს ნავიგაციები არ აქვს, ამიტომ ლოკაციის კოორდინატები და მოტოციკლის სახელი შეერთებით მოიპოვება.
+        //ადგილის სახელი ლოკაციაზე მიბმული ადგილიდან მოდის (PlacesByLocations): საზიარო ლოკაციისას პირველი
+        //არადუბლიკატი ადგილი აიღება, ხოლო არცერთ ადგილს რომ არ ებმებოდეს — null.
         //დალაგება და შეზღუდვა შეერთებების შემდეგ კეთდება, რომ ერთი მოწესრიგებული მოთხოვნა შესრულდეს
         return
         [
             .. _context.Visits
-                .Join(_context.Places, v => v.PlaceId, p => p.PlaceId,
-                    (v, p) => new { v.VisitId, v.VisitDate, PlaceName = p.Name ?? p.Url, v.MotorcycleId })
+                .Join(_context.Locations, v => v.LocationId, l => l.LocationId,
+                    (v, l) => new
+                    {
+                        v.VisitId, v.VisitDate, v.LocationId, l.Latitude, l.Longitude, v.MotorcycleId
+                    })
                 .Join(_context.Motorcycles, v => v.MotorcycleId, m => m.MotorcycleId,
-                    (v, m) => new { v.VisitId, v.VisitDate, v.PlaceName, m.MotorcycleKey })
+                    (v, m) => new
+                    {
+                        v.VisitId, v.VisitDate, v.LocationId, v.Latitude, v.Longitude, m.MotorcycleKey
+                    })
                 .OrderByDescending(o => o.VisitDate).ThenByDescending(o => o.VisitId).Take(count).Select(s =>
                     new VisitListItem
                     {
-                        VisitDate = s.VisitDate, PlaceName = s.PlaceName, MotorcycleKey = s.MotorcycleKey
+                        VisitDate = s.VisitDate,
+                        PlaceName = _context.PlacesByLocations
+                            .Where(w => w.LocationId == s.LocationId && w.PlaceNavigation.State != EState.Duplicate)
+                            .OrderBy(o => o.PlaceId).Select(p => p.PlaceNavigation.Name ?? p.PlaceNavigation.Url)
+                            .FirstOrDefault(),
+                        Latitude = s.Latitude,
+                        Longitude = s.Longitude,
+                        MotorcycleKey = s.MotorcycleKey
                     })
         ];
     }
 
-    public List<VisitModel> GetVisitsByPlaceId(int placeId)
+    public List<VisitModel> GetVisitsByLocationId(int locationId)
     {
-        //ერთი ადგილის ვიზიტები თარიღის კლებადობით — ბოლო ვიზიტი სიის თავშია.
+        //ერთი ლოკაციის ვიზიტები თარიღის კლებადობით — ბოლო ვიზიტი სიის თავშია.
         //მოუბმელი ასლები ბრუნდება: ველების რედაქტორები მათ პირდაპირ ცვლიან და შეყვანის შეწყვეტისას
         //ნახევრად შეცვლილი ჩანაწერი საზიარო კონტექსტში არ უნდა დარჩეს — შენახვისას ბმული ჩანაწერი
         //GetVisitById-ით ცალკე მოიძებნება.
         //სურათები ვიზიტთან ერთად იტვირთება — მათი რაოდენობა ველის რედაქტორის სტატუსში ჩანს
         return
         [
-            .. _context.Visits.AsNoTracking().Include(i => i.Images).Where(w => w.PlaceId == placeId)
+            .. _context.Visits.AsNoTracking().Include(i => i.Images).Where(w => w.LocationId == locationId)
                 .OrderByDescending(o => o.VisitDate).ThenByDescending(o => o.VisitId)
         ];
     }
 
-    public Dictionary<int, int> GetVisitCountsByPlaceIds(List<int> placeIds)
+    public Dictionary<int, int> GetVisitCountsByLocationIds(List<int> locationIds)
     {
-        //ერთი მოთხოვნით ითვლება, თითო ადგილზე რამდენი ვიზიტია დაფიქსირებული — უვიზიტო ადგილი
+        //ერთი მოთხოვნით ითვლება, თითო ლოკაციაზე რამდენი ვიზიტია დაფიქსირებული — უვიზიტო ლოკაცია
         //ლექსიკონში საერთოდ არ ჩნდება და გამომძახებელმა ნულად უნდა აღიქვას
-        return _context.Visits.Where(w => placeIds.Contains(w.PlaceId)).GroupBy(g => g.PlaceId)
-            .Select(s => new { PlaceId = s.Key, Count = s.Count() }).ToDictionary(k => k.PlaceId, v => v.Count);
+        return _context.Visits.Where(w => locationIds.Contains(w.LocationId)).GroupBy(g => g.LocationId)
+            .Select(s => new { LocationId = s.Key, Count = s.Count() })
+            .ToDictionary(k => k.LocationId, v => v.Count);
     }
 
     public VisitModel? GetVisitById(int visitId)
