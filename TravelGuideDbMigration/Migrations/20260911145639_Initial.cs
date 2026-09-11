@@ -168,6 +168,34 @@ namespace TravelGuideDbMigration.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Visits",
+                columns: table => new
+                {
+                    VisitId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    LocationId = table.Column<int>(type: "int", nullable: false),
+                    MotorcycleId = table.Column<int>(type: "int", nullable: false),
+                    VisitDate = table.Column<DateTime>(type: "datetime", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Visits", x => x.VisitId);
+                    table.ForeignKey(
+                        name: "FK_Visits_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
+                        principalColumn: "LocationId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Visits_Motorcycles_MotorcycleId",
+                        column: x => x.MotorcycleId,
+                        principalTable: "Motorcycles",
+                        principalColumn: "MotorcycleId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Places",
                 columns: table => new
                 {
@@ -213,6 +241,26 @@ namespace TravelGuideDbMigration.Migrations
                         column: x => x.TaskId,
                         principalTable: "Tasks",
                         principalColumn: "TaskId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "VisitImages",
+                columns: table => new
+                {
+                    VisitImageId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    VisitId = table.Column<int>(type: "int", nullable: false),
+                    FileName = table.Column<string>(type: "nvarchar(260)", maxLength: 260, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VisitImages", x => x.VisitImageId);
+                    table.ForeignKey(
+                        name: "FK_VisitImages_Visits_VisitId",
+                        column: x => x.VisitId,
+                        principalTable: "Visits",
+                        principalColumn: "VisitId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -365,54 +413,6 @@ namespace TravelGuideDbMigration.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Visits",
-                columns: table => new
-                {
-                    VisitId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PlaceId = table.Column<int>(type: "int", nullable: false),
-                    MotorcycleId = table.Column<int>(type: "int", nullable: false),
-                    VisitDate = table.Column<DateTime>(type: "datetime", nullable: false),
-                    Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Visits", x => x.VisitId);
-                    table.ForeignKey(
-                        name: "FK_Visits_Motorcycles_MotorcycleId",
-                        column: x => x.MotorcycleId,
-                        principalTable: "Motorcycles",
-                        principalColumn: "MotorcycleId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Visits_Places_PlaceId",
-                        column: x => x.PlaceId,
-                        principalTable: "Places",
-                        principalColumn: "PlaceId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "VisitImages",
-                columns: table => new
-                {
-                    VisitImageId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    VisitId = table.Column<int>(type: "int", nullable: false),
-                    FileName = table.Column<string>(type: "nvarchar(260)", maxLength: 260, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VisitImages", x => x.VisitImageId);
-                    table.ForeignKey(
-                        name: "FK_VisitImages_Visits_VisitId",
-                        column: x => x.VisitId,
-                        principalTable: "Visits",
-                        principalColumn: "VisitId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Categories_Name",
                 table: "Categories",
@@ -552,14 +552,14 @@ namespace TravelGuideDbMigration.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Visits_LocationId",
+                table: "Visits",
+                column: "LocationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Visits_MotorcycleId",
                 table: "Visits",
                 column: "MotorcycleId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Visits_PlaceId",
-                table: "Visits",
-                column: "PlaceId");
         }
 
         /// <inheritdoc />
@@ -608,22 +608,22 @@ namespace TravelGuideDbMigration.Migrations
                 name: "Tasks");
 
             migrationBuilder.DropTable(
-                name: "Visits");
-
-            migrationBuilder.DropTable(
-                name: "Locations");
-
-            migrationBuilder.DropTable(
-                name: "Motorcycles");
-
-            migrationBuilder.DropTable(
                 name: "Places");
+
+            migrationBuilder.DropTable(
+                name: "Visits");
 
             migrationBuilder.DropTable(
                 name: "Municipalities");
 
             migrationBuilder.DropTable(
                 name: "Regions");
+
+            migrationBuilder.DropTable(
+                name: "Locations");
+
+            migrationBuilder.DropTable(
+                name: "Motorcycles");
         }
     }
 }

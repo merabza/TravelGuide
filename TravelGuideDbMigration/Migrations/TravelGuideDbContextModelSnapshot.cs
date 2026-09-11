@@ -17,7 +17,7 @@ namespace TravelGuideDbMigration.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -475,10 +475,10 @@ namespace TravelGuideDbMigration.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int>("MotorcycleId")
+                    b.Property<int>("LocationId")
                         .HasColumnType("int");
 
-                    b.Property<int>("PlaceId")
+                    b.Property<int>("MotorcycleId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("VisitDate")
@@ -486,9 +486,9 @@ namespace TravelGuideDbMigration.Migrations
 
                     b.HasKey("VisitId");
 
-                    b.HasIndex("MotorcycleId");
+                    b.HasIndex("LocationId");
 
-                    b.HasIndex("PlaceId");
+                    b.HasIndex("MotorcycleId");
 
                     b.ToTable("Visits", (string)null);
                 });
@@ -666,15 +666,15 @@ namespace TravelGuideDbMigration.Migrations
 
             modelBuilder.Entity("TravelGuideDbModels.VisitModel", b =>
                 {
-                    b.HasOne("TravelGuideDbModels.MotorcycleModel", null)
+                    b.HasOne("TravelGuideDbModels.LocationModel", null)
                         .WithMany()
-                        .HasForeignKey("MotorcycleId")
+                        .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TravelGuideDbModels.PlaceModel", null)
+                    b.HasOne("TravelGuideDbModels.MotorcycleModel", null)
                         .WithMany()
-                        .HasForeignKey("PlaceId")
+                        .HasForeignKey("MotorcycleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
