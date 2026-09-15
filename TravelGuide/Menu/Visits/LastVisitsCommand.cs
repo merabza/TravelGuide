@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using AppCliTools.CliMenu;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.VisitListItems;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;

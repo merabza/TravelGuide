@@ -7,7 +7,8 @@ using AppCliTools.CliParameters.Cruders;
 using AppCliTools.CliParameters.FieldEditors;
 using SystemTools.SystemToolsShared;
 using TravelGuide.Runners;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.LocationModels;
+using TravelGuideCore.Domain.PlacesByLocations;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Lists;

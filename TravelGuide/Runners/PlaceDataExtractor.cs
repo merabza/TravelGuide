@@ -7,8 +7,8 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
-using TravelGuideDbModels;
-using TravelGuideDbPersistence.Configurations;
+using TravelGuideCore.Domain.PlaceModels;
+using TravelGuideDbPart.Db.Configurations;
 
 namespace TravelGuide.Runners;
 

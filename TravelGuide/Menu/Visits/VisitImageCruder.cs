@@ -9,7 +9,7 @@ using AppCliTools.CliParameters;
 using AppCliTools.CliParameters.Cruders;
 using AppCliTools.LibDataInput;
 using SystemTools.SystemToolsShared;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.VisitImages;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;

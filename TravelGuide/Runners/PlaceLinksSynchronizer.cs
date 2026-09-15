@@ -1,8 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TravelGuideDbModels;
-using TravelGuideDbPersistence.Configurations;
+using TravelGuideCore.Domain.CategoryModels;
+using TravelGuideCore.Domain.DistancesByPlaces;
+using TravelGuideCore.Domain.FromPointModels;
+using TravelGuideCore.Domain.LocationModels;
+using TravelGuideCore.Domain.MonthModels;
+using TravelGuideCore.Domain.MunicipalityModels;
+using TravelGuideCore.Domain.PlaceModels;
+using TravelGuideCore.Domain.PlacesByBestSeasons;
+using TravelGuideCore.Domain.PlacesByCategories;
+using TravelGuideCore.Domain.PlacesByLocations;
+using TravelGuideCore.Domain.PlacesByTags;
+using TravelGuideCore.Domain.RegionModels;
+using TravelGuideCore.Domain.TagModels;
+using TravelGuideDbPart.Db.Configurations;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Runners;

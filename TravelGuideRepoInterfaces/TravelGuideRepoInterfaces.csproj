@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DoTravelGuide\DoTravelGuide.csproj" />
-    <ProjectReference Include="..\TravelGuideDbModels\TravelGuideDbModels.csproj" />
+    <ProjectReference Include="..\..\TravelGuideCore\TravelGuideCore.Domain\TravelGuideCore.Domain.csproj" />
   </ItemGroup>
 
 </Project>

@@ -12,7 +12,9 @@ using DoTravelGuide.Models;
 using ParametersManagement.LibParameters;
 using SystemTools.SystemToolsShared;
 using TravelGuide.Menu.TravelGuideParametersEdit;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.FromPointModels;
+using TravelGuideCore.Domain.LocationModels;
+using TravelGuideCore.Domain.PlacesByLocations;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;

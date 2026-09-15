@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AppCliTools.CliMenu;
 using AppCliTools.LibDataInput;
 using SystemTools.SystemToolsShared;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.TaskModels;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;

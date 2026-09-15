@@ -2,7 +2,23 @@
 
 using DoTravelGuide;
 using Microsoft.EntityFrameworkCore.Storage;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.CategoryModels;
+using TravelGuideCore.Domain.FromPointModels;
+using TravelGuideCore.Domain.LocationModels;
+using TravelGuideCore.Domain.MonthModels;
+using TravelGuideCore.Domain.MotorcycleModels;
+using TravelGuideCore.Domain.MunicipalityModels;
+using TravelGuideCore.Domain.PlaceModels;
+using TravelGuideCore.Domain.PlacesByLocations;
+using TravelGuideCore.Domain.RegionModels;
+using TravelGuideCore.Domain.RouteDistanceModels;
+using TravelGuideCore.Domain.TagModels;
+using TravelGuideCore.Domain.TaskModels;
+using TravelGuideCore.Domain.TaskStartPoints;
+using TravelGuideCore.Domain.UrlGraphNodes;
+using TravelGuideCore.Domain.VisitImages;
+using TravelGuideCore.Domain.VisitListItems;
+using TravelGuideCore.Domain.VisitModels;
 
 namespace TravelGuideRepoInterfaces;
 

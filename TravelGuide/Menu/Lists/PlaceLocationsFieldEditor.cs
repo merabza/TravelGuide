@@ -4,7 +4,8 @@ using System.Globalization;
 using AppCliTools.CliMenu;
 using AppCliTools.CliParameters.FieldEditors;
 using SystemTools.SystemToolsShared;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.PlaceModels;
+using TravelGuideCore.Domain.PlacesByLocations;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Lists;

@@ -5,7 +5,8 @@ using AppCliTools.CliParameters.FieldEditors;
 using DoTravelGuide.Models;
 using ParametersManagement.LibParameters;
 using SystemTools.SystemToolsShared;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.VisitImages;
+using TravelGuideCore.Domain.VisitModels;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;

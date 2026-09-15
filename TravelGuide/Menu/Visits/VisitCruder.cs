@@ -9,7 +9,7 @@ using AppCliTools.CliParameters.FieldEditors;
 using ParametersManagement.LibParameters;
 using SystemTools.SystemToolsShared;
 using TravelGuide.FieldEditors;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.VisitModels;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;

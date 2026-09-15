@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using SystemTools.SystemToolsShared;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.PlaceModels;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Runners;

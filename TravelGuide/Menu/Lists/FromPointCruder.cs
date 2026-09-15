@@ -5,8 +5,9 @@ using System.Net.Http;
 using AppCliTools.CliMenu;
 using SystemTools.SystemToolsShared;
 using TravelGuide.Menu.Distances;
-using TravelGuideDbModels;
-using TravelGuideDbPersistence.Configurations;
+using TravelGuideCore.Domain.FromPointModels;
+using TravelGuideCore.Domain.LocationModels;
+using TravelGuideDbPart.Db.Configurations;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Lists;

@@ -7,11 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TravelGuideDbPersistence\TravelGuideDbPersistence.csproj" />
+    <ProjectReference Include="..\..\TravelGuideCore\TravelGuideCore.Application.Abstractions\TravelGuideCore.Application.Abstractions.csproj" />
     <ProjectReference Include="..\TravelGuideRepoInterfaces\TravelGuideRepoInterfaces.csproj" />
   </ItemGroup>
 

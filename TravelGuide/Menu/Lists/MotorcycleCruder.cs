@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using AppCliTools.CliParameters.Cruders;
 using AppCliTools.CliParameters.FieldEditors;
 using SystemTools.SystemToolsShared;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.MotorcycleModels;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Lists;

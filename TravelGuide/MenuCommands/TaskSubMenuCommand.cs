@@ -2,7 +2,8 @@ using System;
 using System.Linq;
 using AppCliTools.CliMenu;
 using SystemTools.SystemToolsShared;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.TaskModels;
+using TravelGuideCore.Domain.TaskStartPoints;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;

@@ -1,6 +1,6 @@
 using System.Globalization;
 using SystemTools.SystemToolsShared;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.LocationModels;
 
 namespace TravelGuide.Menu.Lists;
 

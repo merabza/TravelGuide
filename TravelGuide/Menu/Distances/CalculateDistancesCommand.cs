@@ -9,7 +9,8 @@ using System.Threading.Tasks;
 using AppCliTools.CliMenu;
 using AppCliTools.LibDataInput;
 using SystemTools.SystemToolsShared;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.LocationModels;
+using TravelGuideCore.Domain.RouteDistanceModels;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Distances;

@@ -1,6 +1,6 @@
 using AppCliTools.CliMenu;
 using AppCliTools.CliParameters.CliMenuCommands;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.PlaceModels;
 
 namespace TravelGuide.Menu.Lists;
 

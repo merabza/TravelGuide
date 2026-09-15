@@ -8,7 +8,8 @@ using AppCliTools.CliParameters.CliMenuCommands;
 using AppCliTools.LibDataInput;
 using AppCliTools.LibMenuInput;
 using SystemTools.SystemToolsShared;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.MotorcycleModels;
+using TravelGuideCore.Domain.VisitModels;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;

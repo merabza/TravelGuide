@@ -10,7 +10,8 @@ using AppCliTools.LibDataInput;
 using OpenQA.Selenium.Chrome;
 using SystemTools.SystemToolsShared;
 using TravelGuide.Runners;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.TaskModels;
+using TravelGuideCore.Domain.TaskStartPoints;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.MenuCommands;

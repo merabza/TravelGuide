@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SystemTools.SystemToolsShared;
-using TravelGuideDbModels;
-using TravelGuideDbPersistence.Configurations;
+using TravelGuideCore.Domain;
+using TravelGuideCore.Domain.PlaceModels;
+using TravelGuideCore.Domain.UrlGraphNodes;
+using TravelGuideDbPart.Db.Configurations;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Runners;

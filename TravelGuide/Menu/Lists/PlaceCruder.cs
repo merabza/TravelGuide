@@ -11,8 +11,9 @@ using AppCliTools.CliParameters.FieldEditors;
 using AppCliTools.LibDataInput;
 using SystemTools.SystemToolsShared;
 using TravelGuide.FieldEditors;
-using TravelGuideDbModels;
-using TravelGuideDbPersistence.Configurations;
+using TravelGuideCore.Domain;
+using TravelGuideCore.Domain.PlaceModels;
+using TravelGuideDbPart.Db.Configurations;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Lists;

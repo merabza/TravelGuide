@@ -13,7 +13,8 @@ using SystemTools.SerilogStuff.DependencyInjection;
 using SystemTools.SystemToolsShared;
 using SystemTools.SystemToolsShared.DependencyInjection;
 using TravelGuide.Menu.TravelGuideParametersEdit;
-using TravelGuideDbPersistence;
+using TravelGuideCore.Application.Abstractions;
+using TravelGuideDbPart.Db;
 using TravelGuideRepoInterfaces;
 using TravelGuideRepositories;
 
@@ -66,6 +67,8 @@ public static class TravelGuideServices
             case EDatabaseProvider.SqlServer:
                 services.AddDbContext<TravelGuideDbContext>(options =>
                     options.UseSqlServer(connectionString, con => con.CommandTimeout(timeOut)));
+                services.AddScoped<ITravelGuideApplicationDbContext>(sp =>
+                    sp.GetRequiredService<TravelGuideDbContext>());
                 break;
             case EDatabaseProvider.None:
             case EDatabaseProvider.SqLite:

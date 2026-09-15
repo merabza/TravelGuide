@@ -1,4 +1,4 @@
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.LocationModels;
 
 namespace TravelGuide.Menu.Lists;
 

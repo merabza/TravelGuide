@@ -8,7 +8,10 @@ using AppCliTools.CliParameters.CliMenuCommands;
 using ParametersManagement.LibParameters;
 using SystemTools.SystemToolsShared;
 using TravelGuide.Menu.Distances;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.LocationModels;
+using TravelGuideCore.Domain.PlaceModels;
+using TravelGuideCore.Domain.RouteDistanceModels;
+using TravelGuideCore.Domain.VisitModels;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Visits;

@@ -9,7 +9,7 @@ using AppCliTools.CliParameters.FieldEditors;
 using AppCliTools.LibDataInput;
 using AppCliTools.LibMenuInput;
 using SystemTools.SystemToolsShared;
-using TravelGuideDbModels;
+using TravelGuideCore.Domain.MotorcycleModels;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.FieldEditors;

@@ -4,8 +4,24 @@ using DoTravelGuide;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
-using TravelGuideDbModels;
-using TravelGuideDbPersistence;
+using TravelGuideCore.Application.Abstractions;
+using TravelGuideCore.Domain.CategoryModels;
+using TravelGuideCore.Domain.FromPointModels;
+using TravelGuideCore.Domain.LocationModels;
+using TravelGuideCore.Domain.MonthModels;
+using TravelGuideCore.Domain.MotorcycleModels;
+using TravelGuideCore.Domain.MunicipalityModels;
+using TravelGuideCore.Domain.PlaceModels;
+using TravelGuideCore.Domain.PlacesByLocations;
+using TravelGuideCore.Domain.RegionModels;
+using TravelGuideCore.Domain.RouteDistanceModels;
+using TravelGuideCore.Domain.TagModels;
+using TravelGuideCore.Domain.TaskModels;
+using TravelGuideCore.Domain.TaskStartPoints;
+using TravelGuideCore.Domain.UrlGraphNodes;
+using TravelGuideCore.Domain.VisitImages;
+using TravelGuideCore.Domain.VisitListItems;
+using TravelGuideCore.Domain.VisitModels;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuideRepositories;
@@ -13,12 +29,12 @@ namespace TravelGuideRepositories;
 public sealed class TravelGuideRepository : ITravelGuideRepository
 {
     private const int MaxChangesCount = 100000;
-    private readonly TravelGuideDbContext _context;
+    private readonly ITravelGuideApplicationDbContext _context;
     private readonly ILogger<TravelGuideRepository> _logger;
 
     private int _changesCount;
 
-    public TravelGuideRepository(TravelGuideDbContext ctx, ILogger<TravelGuideRepository> logger)
+    public TravelGuideRepository(ITravelGuideApplicationDbContext ctx, ILogger<TravelGuideRepository> logger)
     {
         _context = ctx;
         _logger = logger;
@@ -63,7 +79,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
 
     public IDbContextTransaction GetTransaction()
     {
-        return _context.Database.BeginTransaction();
+        return _context.BeginTransaction();
     }
 
     #region Task cruder
