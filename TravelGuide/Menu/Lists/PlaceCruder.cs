@@ -40,7 +40,9 @@ public sealed class PlaceCruder : Cruder
         _travelGuideRepository = travelGuideRepository;
         FieldEditors.Add(new OptionalTextFieldEditor(nameof(PlaceModel.Name), true));
         FieldEditors.Add(new DescriptionFieldEditor(nameof(PlaceModel.Description), true));
-        FieldEditors.Add(new PlaceStateFieldEditor(nameof(PlaceModel.State), true));
+        //სტატუსი მისამართისაა (UrlModel.State) — რედაქტორი ჩანაწერის UrlNavigation-ზე მუშაობს და უმისამართო
+        //ადგილს არ ეკითხება
+        FieldEditors.Add(new PlaceStateFieldEditor(nameof(UrlModel.State), true));
         FieldEditors.Add(new LookupIdFieldEditor(nameof(PlaceModel.RegionId), "Region",
             () => travelGuideRepository.GetRegionsList().ToDictionary(k => k.RegionId, v => v.Name), true));
         FieldEditors.Add(new LookupIdFieldEditor(nameof(PlaceModel.MunicipalityId), "Municipality",
@@ -162,9 +164,14 @@ public sealed class PlaceCruder : Cruder
                            throw new InvalidOperationException($"Place with id {newPlace.PlaceId} not found");
         place.Name = newPlace.Name;
         place.Description = newPlace.Description;
-        place.State = newPlace.State;
         place.RegionId = newPlace.RegionId;
         place.MunicipalityId = newPlace.MunicipalityId;
+        //სტატუსი მისამართისაა და მხოლოდ მისამართიან ადგილს აქვს — ბმული მისამართი GetPlaceById-ს აქვს ჩატვირთული
+        if (place.UrlNavigation is not null && newPlace.UrlNavigation is not null)
+        {
+            place.UrlNavigation.State = newPlace.UrlNavigation.State;
+        }
+
         //ლოკაციები ცალკე ქვერედაქტორით (PlaceLocationCruder) იმართება და აქ არ კოპირდება
         _travelGuideRepository.UpdatePlace(place);
 

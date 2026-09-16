@@ -146,8 +146,9 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         //NotAttraction გვერდები ხელახლა დამუშავებისასაც გამოტოვებულია — ისინი ღირსშესანიშნაობის გვერდები არ არის
         //Duplicate გვერდებიც სამუდამოდ გამოტოვებულია — მათ შიგთავსს კანონიკური მისამართის ჩანაწერი ფარავს
         //DownloadError გვერდები მხოლოდ მაშინ იტვირთება, როცა მომხმარებელმა მათი ხელახლა ცდა მოითხოვა
-        //უმისამართო (ხელით შეყვანილი) ადგილები ჩამოსატვირთი არ არის — ქროულერი მათ სტატუსის მიუხედავად არ ეხება;
-        //მისამართი (UrlNavigation) ჩამოსატვირთი გვერდის მისამართისთვის იტვირთება
+        //სტატუსი მისამართისაა (UrlModel.State) და ფილტრიც მისამართზეა; უმისამართო (ხელით შეყვანილი) ადგილები
+        //ჩამოსატვირთი არ არის — მათ სტატუსი არ აქვთ და ქროულერი მათ არ ეხება; მისამართი (UrlNavigation)
+        //ჩამოსატვირთი გვერდის მისამართისა და სტატუსის შესაცვლელად იტვირთება
         //AsSplitQuery: რამდენიმე კოლექციის ერთ SQL-ში ჩატვირთვა მწკრივებს კარტეზიულად ამრავლებს —
         //თითო კოლექცია ცალკე მოთხოვნით იტვირთება (დალაგება PlaceId-ით ცალსახაა, პორციები არ ირევა)
         return
@@ -157,20 +158,22 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                 .Include(i => i.Distances).ThenInclude(t => t.FromPointNavigation).Include(i => i.Locations)
                 .ThenInclude(t => t.LocationNavigation).Include(i => i.RegionNavigation)
                 .Include(i => i.MunicipalityNavigation).Include(i => i.UrlNavigation).AsSplitQuery().Where(w =>
-                    w.UrlId != null && w.State != EState.NotAttraction && w.State != EState.Duplicate &&
-                    (includeAnalysed || w.State != EState.Analysed) &&
-                    (includeDownloadErrors || w.State != EState.DownloadError)).OrderBy(o => o.PlaceId)
+                    w.UrlNavigation != null && w.UrlNavigation.State != EState.NotAttraction &&
+                    w.UrlNavigation.State != EState.Duplicate &&
+                    (includeAnalysed || w.UrlNavigation.State != EState.Analysed) &&
+                    (includeDownloadErrors || w.UrlNavigation.State != EState.DownloadError)).OrderBy(o => o.PlaceId)
         ];
     }
 
+    //სტატუსი მისამართისაა — Urls ცხრილი მოწმდება: მისამართიანი ადგილი გაანალიზებულია, როცა მისი მისამართია გაანალიზებული
     public bool HasAnalysedPlaces()
     {
-        return _context.Places.Any(a => a.State == EState.Analysed);
+        return _context.Urls.Any(a => a.State == EState.Analysed);
     }
 
     public bool HasDownloadErrorPlaces()
     {
-        return _context.Places.Any(a => a.State == EState.DownloadError);
+        return _context.Urls.Any(a => a.State == EState.DownloadError);
     }
 
     public int GetPlacesCount()
@@ -275,8 +278,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         //ლოკაციაც აქვს (ულოკაციო ადგილი ბმულების გარეშე თავისთავად გამოირიცხება). ადგილის ნავიგაციები
         //ქვემენიუს საინფორმაციო პუნქტებისთვის იტვირთება, Locations — პუნქტის სახელში ლოკაციის რიგითი
         //ნომრის დასათვლელად (მხოლოდ ბმულები, სხვა ლოკაციების კოორდინატები საჭირო არ არის).
-        //დუბლიკატად მონიშნული ადგილების ბმულები გამოირიცხება — იგივე ადგილი კანონიკური მისამართის
-        //ჩანაწერით არის წარმოდგენილი და მენიუში ორჯერ არ უნდა გამოჩნდეს.
+        //მისამართის სტატუსი (UrlModel.State) განზრახ არ მოწმდება — ლოკაციიანი ყველა ადგილი მონაწილეობს.
         //AsSplitQuery: რამდენიმე კოლექციის ერთ SQL-ში ჩატვირთვა მწკრივებს კარტეზიულად ამრავლებს —
         //თითო კოლექცია ცალკე მოთხოვნით იტვირთება (Skip/Take-ისთვის საჭირო ცალსახა დალაგება ქვემოთ უკვე დგას)
         IQueryable<PlaceByLocation> placeLocationsQuery = _context.PlacesByLocations.Include(i => i.LocationNavigation)
@@ -286,8 +288,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.Locations).Include(i => i.PlaceNavigation)
             .ThenInclude(t => t.RegionNavigation).Include(i => i.PlaceNavigation)
             .ThenInclude(t => t.MunicipalityNavigation).Include(i => i.PlaceNavigation)
-            .ThenInclude(t => t.UrlNavigation).AsSplitQuery()
-            .Where(w => w.PlaceNavigation.State != EState.Duplicate);
+            .ThenInclude(t => t.UrlNavigation).AsSplitQuery();
 
         //მინიმალური გზის დროის მოთხოვნისას რჩება მხოლოდ ის ლოკაციები, რომლებამდეც დათვლილი გზის დრო
         //ზღვარს აღწევს. მარშრუტი საწყისი და საბოლოო ლოკაციების იდენტიფიკატორებით იძებნება — RouteDistances
@@ -654,8 +655,9 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     public List<VisitListItem> GetLastVisits(int count)
     {
         //ვიზიტს ნავიგაციები არ აქვს, ამიტომ ლოკაციის კოორდინატები და მოტოციკლის სახელი შეერთებით მოიპოვება.
-        //ადგილის სახელი ლოკაციაზე მიბმული ადგილიდან მოდის (PlacesByLocations): საზიარო ლოკაციისას პირველი
-        //არადუბლიკატი ადგილი აიღება, ხოლო არცერთ ადგილს რომ არ ებმებოდეს — null.
+        //ადგილის სახელი ლოკაციაზე მიბმული ადგილიდან მოდის (PlacesByLocations): საზიარო ლოკაციისას პირველი ისეთი
+        //ადგილი აიღება, რომლის მისამართიც დუბლიკატად არ არის მონიშნული (უმისამართოს სტატუსი არ აქვს), ხოლო
+        //არცერთ ადგილს რომ არ ებმებოდეს — null.
         //დალაგება და შეზღუდვა შეერთებების შემდეგ კეთდება, რომ ერთი მოწესრიგებული მოთხოვნა შესრულდეს
         return
         [
@@ -675,7 +677,9 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                     {
                         VisitDate = s.VisitDate,
                         PlaceName = _context.PlacesByLocations
-                            .Where(w => w.LocationId == s.LocationId && w.PlaceNavigation.State != EState.Duplicate)
+                            .Where(w => w.LocationId == s.LocationId &&
+                                        (w.PlaceNavigation.UrlNavigation == null ||
+                                         w.PlaceNavigation.UrlNavigation.State != EState.Duplicate))
                             .OrderBy(o => o.PlaceId)
                             .Select(p => p.PlaceNavigation.Name ?? p.PlaceNavigation.UrlNavigation!.Url)
                             .FirstOrDefault(),

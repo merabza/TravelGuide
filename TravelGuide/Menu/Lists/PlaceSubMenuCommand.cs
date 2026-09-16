@@ -5,20 +5,21 @@ using TravelGuideCore.Domain.PlaceModels;
 namespace TravelGuide.Menu.Lists;
 
 //ადგილის ჩანაწერის მენიუს პუნქტი: სახელი წარწერაა (მშობელი სიის აგებისას დადგენილი, პორციაში უნიკალური),
-//რომელიც რედაქტორის გასაღებიც არის; სტატუსში ჩანაწერის სტატუსი და, თუ აქვს, მისამართი ჩანს
+//რომელიც რედაქტორის გასაღებიც არის; სტატუსში, თუ ადგილს მისამართი აქვს, მისამართის სტატუსი და თავად მისამართი ჩანს
 public sealed class PlaceSubMenuCommand : CliMenuCommand
 {
     private readonly PlaceCruder _placeCruder;
-    private readonly string _status;
+    private readonly string? _status;
 
     public PlaceSubMenuCommand(PlaceCruder placeCruder, PlaceModel place, string caption) : base(caption,
         EMenuAction.LoadSubMenu)
     {
         _placeCruder = placeCruder;
-        _status = place.UrlNavigation is null ? place.State.ToString() : $"{place.State} | {place.UrlNavigation.Url}";
+        //სტატუსი მისამართისაა (UrlModel.State) — უმისამართო (ხელით შეყვანილ) ადგილს სტატუსი არ აქვს
+        _status = place.UrlNavigation is null ? null : $"{place.UrlNavigation.State} | {place.UrlNavigation.Url}";
     }
 
-    protected override string GetStatus()
+    protected override string? GetStatus()
     {
         return _status;
     }

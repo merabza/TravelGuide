@@ -8,6 +8,7 @@ using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using SystemTools.SystemToolsShared;
 using TravelGuideCore.Domain.PlaceModels;
+using TravelGuideCore.Domain.UrlModels;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Runners;
@@ -76,8 +77,13 @@ public sealed class PlaceAnalyser
 
                 counter++;
                 attemptedIds.Add(place.PlaceId);
-                Console.WriteLine($"({counter}/{places.Count}) {place.UrlNavigation?.Url}");
-                if (!await TryAnalysePlaceAsync(place, cancellationToken).ConfigureAwait(false))
+
+                //სტატუსი მისამართისაა (UrlModel.State); უმისამართო (ხელით შეყვანილ) ადგილს GetPlacesForAnalysis
+                //არ აბრუნებს — აქ მოხვედრა პროგრამის შეცდომაა
+                UrlModel urlModel = place.UrlNavigation ??
+                                    throw new InvalidOperationException($"Place {place.PlaceId} has no Url");
+                Console.WriteLine($"({counter}/{places.Count}) {urlModel.Url}");
+                if (!await TryAnalysePlaceAsync(place, urlModel, cancellationToken).ConfigureAwait(false))
                 {
                     //შეჩერების მოთხოვნით გამოწვეული ჩავარდნა შეცდომა არ არის — ჩანაწერი უცვლელი რჩება
                     //და მომდევნო გაშვება ჩვეულებრივ დაამუშავებს
@@ -86,24 +92,24 @@ public sealed class PlaceAnalyser
                         return;
                     }
 
-                    StShared.WriteErrorLine($"Failed to analyse {place.UrlNavigation?.Url}", true, null, false);
+                    StShared.WriteErrorLine($"Failed to analyse {urlModel.Url}", true, null, false);
 
                     //ჩავარდნილი გვერდი შეცდომის სტატუსით ინიშნება — ხელახლა ცდა მომდევნო გაშვებისას
                     //მომხმარებლის დასტურზეა დამოკიდებული
-                    place.State = EState.DownloadError;
+                    urlModel.State = EState.DownloadError;
                     _repository.SaveChanges();
                 }
             }
         }
     }
 
-    private async Task<bool> TryAnalysePlaceAsync(PlaceModel place, CancellationToken cancellationToken)
+    //urlModel ადგილის მისამართია (place.UrlNavigation) — გვერდის მისამართიც და სტატუსიც მისია
+    private async Task<bool> TryAnalysePlaceAsync(PlaceModel place, UrlModel urlModel,
+        CancellationToken cancellationToken)
     {
         try
         {
-            //უმისამართო (ხელით შეყვანილ) ადგილს GetPlacesForAnalysis არ აბრუნებს — აქ მოხვედრა პროგრამის შეცდომაა
-            string url = place.UrlNavigation?.Url ??
-                         throw new InvalidOperationException($"Place {place.PlaceId} has no Url");
+            string url = urlModel.Url;
             var pageUri = new Uri(url);
             using HttpResponseMessage response =
                 await _httpClient.GetAsync(pageUri, cancellationToken).ConfigureAwait(false);
@@ -126,7 +132,7 @@ public sealed class PlaceAnalyser
             if (!finalUrl.Equals(pageUri.AbsoluteUri.TrimEnd('/'), StringComparison.Ordinal))
             {
                 _urlPersister.PersistNewUrls([finalUrl], url);
-                place.State = EState.Duplicate;
+                urlModel.State = EState.Duplicate;
                 _repository.SaveChanges();
                 Console.WriteLine($"Duplicate page (redirected to {finalUrl}): {url}");
                 return true;
@@ -147,7 +153,7 @@ public sealed class PlaceAnalyser
             //ისინი ერთხელ ინიშნება და ანალიზში აღარ ბრუნდება
             if (!extract.IsTouristAttraction)
             {
-                place.State = EState.NotAttraction;
+                urlModel.State = EState.NotAttraction;
                 _repository.SaveChanges();
                 Console.WriteLine($"Not a tourist attraction page: {url}");
                 return true;
@@ -162,7 +168,7 @@ public sealed class PlaceAnalyser
             //SyncPlaceLinks-იც ჯერ საჭირო ჩანაწერებს ეძებს/ქმნის და place-ს მხოლოდ ბოლოს ცვლის
             _placeLinksSynchronizer.SyncPlaceLinks(extract, place);
             PlaceDataExtractor.Apply(extract, place);
-            place.State = EState.Analysed;
+            urlModel.State = EState.Analysed;
             _repository.SaveChanges();
             return true;
         }

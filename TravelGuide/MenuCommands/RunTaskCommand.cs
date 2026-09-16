@@ -73,10 +73,13 @@ public sealed class RunTaskCommand : CliMenuCommand
         }
 
         //გვერდები ბრაუზერის გარეშე, პირდაპირ HTTP-ით მოიქაჩება — Chrome მხოლოდ Selenium-რეჟიმის სიის გვერდს სჭირდება
-        using var httpClientHandler = new HttpClientHandler
-        {
-            AutomaticDecompression = DecompressionMethods.All, CheckCertificateRevocationList = true
-        };
+        // ReSharper disable once DisposableConstructor
+        // ReSharper disable once using
+        using var httpClientHandler = new HttpClientHandler();
+        httpClientHandler.AutomaticDecompression = DecompressionMethods.All;
+        httpClientHandler.CheckCertificateRevocationList = true;
+        // ReSharper disable once using
+        // ReSharper disable once DisposableConstructor
         using var httpClient = new HttpClient(httpClientHandler, false);
         httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("TravelGuideBot", "1.0"));
 
@@ -111,7 +114,7 @@ public sealed class RunTaskCommand : CliMenuCommand
                 chromeOptions.AddExcludedArgument("enable-logging");
                 // ReSharper disable once using
                 // ReSharper disable once DisposableConstructor
-                using var driver = new ChromeDriver(chromeOptions);
+                await using var driver = new ChromeDriver(chromeOptions);
                 var runner = new GeorgianTravelGuideRunner(driver, startPoint.StartPoint, urlPersister);
                 bool success = runner.Run();
                 driver.Quit();

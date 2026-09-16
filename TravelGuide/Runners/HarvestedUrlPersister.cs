@@ -11,8 +11,8 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Runners;
 
-//შეგროვებული მისამართების ბაზაში შენახვა: თითო ახალი მისამართი Urls ცხრილის ჩანაწერია და მასზე მიბმული
-//ჩამოსატვირთი (New) სტატუსის ადგილი — საერთოა Selenium-ით, sitemap-ით და გვერდების გაანალიზებისას ბმულების
+//შეგროვებული მისამართების ბაზაში შენახვა: თითო ახალი მისამართი Urls ცხრილის ჩამოსატვირთი (New) სტატუსის
+//ჩანაწერია და მასზე მიბმული ადგილი — საერთოა Selenium-ით, sitemap-ით და გვერდების გაანალიზებისას ბმულების
 //ამოკრებით შეგროვებისთვის. ინახება მხოლოდ საწყისი წერტილების მსგავსი მისამართები: ზუსტად საწყისი წერტილი
 //ან მისი ქვეგვერდი
 public sealed class HarvestedUrlPersister
@@ -65,10 +65,10 @@ public sealed class HarvestedUrlPersister
                 continue;
             }
 
-            //ახალი მისამართი და მასზე მიბმული ჩამოსატვირთი ადგილი ერთად იქმნება — Urls-ის ჩანაწერი ადგილის
-            //ნავიგაციით იწერება და შენახვისას UrlId ივსება
-            var newUrl = new UrlModel { Url = url, UrlHashCode = urlHashCode };
-            _repository.AddPlace(new PlaceModel { UrlNavigation = newUrl, State = EState.New });
+            //ახალი მისამართი ჩამოსატვირთი (New) სტატუსით და მასზე მიბმული ადგილი ერთად იქმნება — Urls-ის ჩანაწერი
+            //ადგილის ნავიგაციით იწერება და შენახვისას UrlId ივსება
+            var newUrl = new UrlModel { Url = url, UrlHashCode = urlHashCode, State = EState.New };
+            _repository.AddPlace(new PlaceModel { UrlNavigation = newUrl });
             addedUrls.Add((url, newUrl));
             newCount++;
         }
