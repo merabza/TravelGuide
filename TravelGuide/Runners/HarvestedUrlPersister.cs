@@ -42,7 +42,7 @@ public sealed class HarvestedUrlPersister
     public int PersistNewUrls(IReadOnlyCollection<string> urlList, string? fromUrl = null)
     {
         var newCount = 0;
-        List<PlaceModel> addedPlaces = [];
+        List<(string Url, PlaceModel Place)> addedPlaces = [];
 
         //ბოლო „/" იჭრება, რომ ერთი და იგივე გვერდი ორი ფორმით არ შეინახოს; HashSet გამეორებებსაც ფილტრავს
         foreach (string url in urlList.Select(s => s.TrimEnd('/')).Where(IsLikeStartPoint).Where(_knownUrls.Add))
@@ -63,10 +63,10 @@ public sealed class HarvestedUrlPersister
                 continue;
             }
 
-            addedPlaces.Add(_repository.AddPlace(new PlaceModel
+            addedPlaces.Add((url, _repository.AddPlace(new PlaceModel
             {
                 Url = url, UrlHashCode = urlHashCode, State = EState.New
-            }));
+            })));
             newCount++;
         }
 
@@ -76,9 +76,9 @@ public sealed class HarvestedUrlPersister
             Console.WriteLine($"Checked {urlList.Count} urls, new: {newCount}");
 
             //SaveChanges-ის შემდეგ ახალ ჩანაწერებს იდენტიფიკატორები აქვს მინიჭებული და კავშირებში გამოყენებადია
-            foreach (PlaceModel place in addedPlaces)
+            foreach ((string addedUrl, PlaceModel place) in addedPlaces)
             {
-                _urlIds[place.Url] = place.PlaceId;
+                _urlIds[addedUrl] = place.PlaceId;
             }
         }
 

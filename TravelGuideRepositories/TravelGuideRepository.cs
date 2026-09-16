@@ -141,9 +141,10 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     public Dictionary<string, int> GetPlaceIdsByUrlHashCode(int urlHashCode)
     {
         //ინდექსირებული ხეშ-კოდით ამოკრებილი (ჩვეულებრივ 0 ან 1) ჩანაწერი — Url-ის ზუსტ შედარებას გამომძახებელი
-        //აკეთებს; მხოლოდ ორი სვეტი იტვირთება და ენთითები კონტექსტს არ ებმება
-        return _context.Places.Where(w => w.UrlHashCode == urlHashCode).Select(s => new { s.Url, s.PlaceId })
-            .ToDictionary(k => k.Url, v => v.PlaceId, StringComparer.Ordinal);
+        //აკეთებს; მხოლოდ ორი სვეტი იტვირთება და ენთითები კონტექსტს არ ებმება. უმისამართო (ხელით შეყვანილ)
+        //ჩანაწერებს ხეშ-კოდი არ აქვს და ლექსიკონში არ ხვდება
+        return _context.Places.Where(w => w.Url != null && w.UrlHashCode == urlHashCode)
+            .Select(s => new { s.Url, s.PlaceId }).ToDictionary(k => k.Url!, v => v.PlaceId, StringComparer.Ordinal);
     }
 
     public List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed, bool includeDownloadErrors)
@@ -153,6 +154,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         //NotAttraction გვერდები ხელახლა დამუშავებისასაც გამოტოვებულია — ისინი ღირსშესანიშნაობის გვერდები არ არის
         //Duplicate გვერდებიც სამუდამოდ გამოტოვებულია — მათ შიგთავსს კანონიკური მისამართის ჩანაწერი ფარავს
         //DownloadError გვერდები მხოლოდ მაშინ იტვირთება, როცა მომხმარებელმა მათი ხელახლა ცდა მოითხოვა
+        //უმისამართო (ხელით შეყვანილი) ადგილები ჩამოსატვირთი არ არის — ქროულერი მათ სტატუსის მიუხედავად არ ეხება
         //AsSplitQuery: რამდენიმე კოლექციის ერთ SQL-ში ჩატვირთვა მწკრივებს კარტეზიულად ამრავლებს —
         //თითო კოლექცია ცალკე მოთხოვნით იტვირთება (დალაგება PlaceId-ით ცალსახაა, პორციები არ ირევა)
         return
@@ -162,7 +164,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                 .Include(i => i.Distances).ThenInclude(t => t.FromPointNavigation).Include(i => i.Locations)
                 .ThenInclude(t => t.LocationNavigation).Include(i => i.RegionNavigation)
                 .Include(i => i.MunicipalityNavigation).AsSplitQuery().Where(w =>
-                    w.State != EState.NotAttraction && w.State != EState.Duplicate &&
+                    w.Url != null && w.State != EState.NotAttraction && w.State != EState.Duplicate &&
                     (includeAnalysed || w.State != EState.Analysed) &&
                     (includeDownloadErrors || w.State != EState.DownloadError)).OrderBy(o => o.PlaceId)
         ];
@@ -194,7 +196,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         IQueryable<PlaceModel> placesQuery = _context.Places.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(filter))
         {
-            placesQuery = placesQuery.Where(w => w.Name != null && w.Name.Contains(filter) || w.Url.Contains(filter));
+            placesQuery = placesQuery.Where(w =>
+                w.Name != null && w.Name.Contains(filter) || w.Url != null && w.Url.Contains(filter));
         }
 
         return [.. placesQuery.OrderBy(o => o.Name ?? o.Url).ThenBy(o => o.PlaceId).Skip(skip).Take(take)];

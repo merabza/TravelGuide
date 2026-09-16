@@ -101,7 +101,9 @@ public sealed class PlaceAnalyser
     {
         try
         {
-            var pageUri = new Uri(place.Url);
+            //უმისამართო (ხელით შეყვანილ) ადგილს GetPlacesForAnalysis არ აბრუნებს — აქ მოხვედრა პროგრამის შეცდომაა
+            string url = place.Url ?? throw new InvalidOperationException($"Place {place.PlaceId} has no Url");
+            var pageUri = new Uri(url);
             using HttpResponseMessage response =
                 await _httpClient.GetAsync(pageUri, cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)

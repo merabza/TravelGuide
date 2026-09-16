@@ -46,10 +46,11 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
         _startLocation = startLocation;
         _place = place;
         _location = location;
-        //სტატუსის თავში ამ ლოკაციაზე უკვე დაფიქსირებული ვიზიტების რაოდენობა გამოდის; კოორდინატები მძიმით
-        //არის გამოყოფილი, რომ Google Maps-ის ძებნაში პირდაპირ ჩაკოპირება შეიძლებოდეს
+        //სტატუსის თავში ამ ლოკაციაზე უკვე დაფიქსირებული ვიზიტების რაოდენობა გამოდის, შემდეგ მისამართი (თუ აქვს);
+        //კოორდინატები მძიმით არის გამოყოფილი, რომ Google Maps-ის ძებნაში პირდაპირ ჩაკოპირება შეიძლებოდეს
+        string urlPart = place.Url is null ? string.Empty : $"{place.Url} | ";
         _status = string.Create(CultureInfo.InvariantCulture,
-            $"{visitsCount} | {place.Url} | {location.Latitude}, {location.Longitude}");
+            $"{visitsCount} | {urlPart}{location.Latitude}, {location.Longitude}");
         //Google Maps-ის მარშრუტის ბმული: საწყისი წერტილი არჩეული FromPoint-ის ლოკაციაა, საბოლოო — ეს ლოკაცია
         _directionsUrl = string.Create(CultureInfo.InvariantCulture,
             $"https://www.google.com/maps/dir/?api=1&origin={startLocation.Latitude},{startLocation.Longitude}&destination={location.Latitude},{location.Longitude}");
@@ -60,7 +61,7 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
     //ამიტომ მრავალლოკაციიანი ადგილის სახელს ლოკაციის რიგითი ნომერი ემატება
     private static string GetCaptionName(PlaceModel place, LocationModel location)
     {
-        string name = place.Name ?? place.Url;
+        string name = place.GetCaption();
         if (place.Locations.Count <= 1)
         {
             return name;
@@ -84,8 +85,11 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
 
         //არარედაქტირებადი საინფორმაციო პუნქტები. მათი არჩევა არაფერს აკეთებს (EMenuAction.Nothing).
         //არასავალდებულო მონაცემების პუნქტები მხოლოდ მაშინ ემატება, როცა მნიშვნელობა ნამდვილად არსებობს
-        placeSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Title", _place.Name ?? _place.Url));
-        placeSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Url", _place.Url));
+        placeSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Title", _place.GetCaption()));
+        if (_place.Url is not null)
+        {
+            placeSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Url", _place.Url));
+        }
 
         //მხოლოდ ის ლოკაცია, რომელსაც ეს პუნქტი წარმოადგენს — ადგილის სხვა ლოკაციები
         //Recommended Visits სიაში ცალკე პუნქტებად გამოდის

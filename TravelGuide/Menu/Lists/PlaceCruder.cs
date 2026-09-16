@@ -18,9 +18,12 @@ using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Lists;
 
-//ადგილების (Places ცხრილის) რედაქტორი. ჩანაწერის გასაღები მისამართია (Url): ის უნიკალურია, ჩანაწერის
-//შექმნისას ერთხელ იწერება და მერე აღარ იცვლება — ქროულერი ჩანაწერს სწორედ მისამართით (ხეშ-კოდით) ცნობს.
-//fieldKeyFromItem=true — ცალკე Record Name ველი არ სჭირდება; მენიუში პუნქტის სახელად დასახელება გამოდის.
+//ადგილების (Places ცხრილის) რედაქტორი. ჩანაწერის გასაღები წარწერაა (დასახელება, უსახელოსთვის მისამართი,
+//არც-მისამართიანისთვის იდენტიფიკატორი — PlaceModelExtensions.GetCaption), რომელიც პორციის ფარგლებში
+//უნიკალურია (VisitCruder-ის ყაიდაზე). მისამართი არასავალდებულოა: საიტიდან ჩამოტვირთულ ადგილს აქვს და შექმნისას
+//ერთხელ იწერება, მერე აღარ იცვლება — ქროულერი ჩანაწერს სწორედ მისამართით (ხეშ-კოდით) ცნობს; ხელით შეყვანილ
+//ადგილს მისამართი არ აქვს და ქროულერი მას არ ეხება.
+//fieldKeyFromItem=true — ცალკე Record Name ველი არ სჭირდება; მენიუში პუნქტის სახელად წარწერა გამოდის.
 //ცხრილი ათასობით ჩანაწერს შეიცავს, ამიტომ ლექსიკონი მთელ ცხრილს კი არა, სიის ბოლოს ჩატვირთულ პორციას
 //იჭერს (LoadPortion) — ჩანაწერის მენიუ (ველების რედაქტორები, თანმიმდევრობით რედაქტირება, წაშლა) მასზე
 //მუშაობს და დასახელების შეცვლის შემდეგაც იმავე ასლს ხედავს, სანამ სია თავიდან არ ჩაიტვირთება
@@ -28,7 +31,7 @@ public sealed class PlaceCruder : Cruder
 {
     private readonly ITravelGuideRepository _travelGuideRepository;
 
-    //ბოლოს ჩატვირთული პორცია მისამართი-გასაღებებით
+    //ბოლოს ჩატვირთული პორცია წარწერა-გასაღებებით
     private Dictionary<string, ItemData> _portion = new(StringComparer.Ordinal);
 
     public PlaceCruder(ITravelGuideRepository travelGuideRepository) : base("Place", "Places", true)
@@ -46,20 +49,19 @@ public sealed class PlaceCruder : Cruder
         FieldEditors.Add(new PlaceLocationsFieldEditor(nameof(PlaceModel.Locations), travelGuideRepository));
     }
 
-    //სიის მიმდინარე პორციის ჩატვირთვა ფილტრით (დასახელების ან მისამართის ნაწილი). თითო ჩანაწერს მენიუს
-    //პუნქტის სახელი (დასახელება, უსახელოსთვის მისამართი) ერთვის; გამეორებული სახელი რიგითი ნომრით
+    //სიის მიმდინარე პორციის ჩატვირთვა ფილტრით (დასახელების ან მისამართის ნაწილი). თითო ჩანაწერს წარწერა
+    //(მენიუს პუნქტის სახელი და ჩანაწერის გასაღები) ერთვის; გამეორებული წარწერა რიგითი ნომრით
     //განსხვავდება — CliMenuSet.GetMenuItemWithName SingleOrDefault-ს იყენებს და გამეორებული სახელი
     //ბოლო ბრძანების გამეორებისას გამონაკლისს ისვრის
     public List<KeyValuePair<string, PlaceModel>> LoadPortion(string? filter, int skip, int take)
     {
         List<PlaceModel> places = _travelGuideRepository.GetPlacesPortion(filter, skip, take);
-        _portion = places.ToDictionary(k => k.Url, ItemData (v) => v, StringComparer.Ordinal);
 
         var captionCounts = new Dictionary<string, int>(StringComparer.Ordinal);
         List<KeyValuePair<string, PlaceModel>> keyedPlaces = [];
         foreach (PlaceModel place in places)
         {
-            string caption = string.IsNullOrWhiteSpace(place.Name) ? place.Url : place.Name;
+            string caption = place.GetCaption();
             int seenCount = captionCounts.GetValueOrDefault(caption);
             captionCounts[caption] = seenCount + 1;
             if (seenCount > 0)
@@ -70,6 +72,7 @@ public sealed class PlaceCruder : Cruder
             keyedPlaces.Add(new KeyValuePair<string, PlaceModel>(caption, place));
         }
 
+        _portion = keyedPlaces.ToDictionary(k => k.Key, ItemData (v) => v.Value, StringComparer.Ordinal);
         return keyedPlaces;
     }
 
@@ -83,17 +86,18 @@ public sealed class PlaceCruder : Cruder
         return _portion.ContainsKey(recordKey);
     }
 
-    //ახალი ჩანაწერის მისამართი აქვე, სხვა ველებამდე იკითხება: Url ჩანაწერის იდენტობაა და ველების
-    //რედაქტორებში არ შედის — არსებულ ჩანაწერს ის მხოლოდ საჩვენებლად აქვს. ბოლო დახრილი ხაზი იჭრება და
-    //უნიკალურობა ხეშ-კოდით მოწმდება ისევე, როგორც ქროულერის HarvestedUrlPersister-ში
+    //ახალი ჩანაწერის მისამართი აქვე, სხვა ველებამდე იკითხება: Url ქროულერისთვის ჩანაწერის იდენტობაა და ველების
+    //რედაქტორებში არ შედის — არსებულ ჩანაწერს ის მხოლოდ საჩვენებლად აქვს. მისამართი არასავალდებულოა — ცარიელი
+    //Enter საიტზე არარსებულ, ხელით შესაყვან ადგილს ქმნის, რომელსაც ქროულერი არ ეხება. მითითებულ მისამართს ბოლო
+    //დახრილი ხაზი ეჭრება და უნიკალურობა ხეშ-კოდით მოწმდება ისევე, როგორც ქროულერის HarvestedUrlPersister-ში
     protected override ItemData CreateNewItem(string? recordKey, ItemData? defaultItemData)
     {
         while (true)
         {
-            string url = Inputer.InputTextRequired("Url").Trim().TrimEnd('/');
-            if (url.Length == 0)
+            string? url = Inputer.InputText("Url", null)?.Trim().TrimEnd('/');
+            if (string.IsNullOrEmpty(url))
             {
-                continue;
+                return new PlaceModel();
             }
 
             if (url.Length > PlaceModelConfiguration.UrlLength)
@@ -114,18 +118,23 @@ public sealed class PlaceCruder : Cruder
         }
     }
 
-    //ჩანაწერის მენიუში ველების რედაქტორების წინ მისამართი უცვლელი, საინფორმაციო პუნქტად ჩანს
+    //ჩანაწერის მენიუში ველების რედაქტორების წინ მისამართი უცვლელი, საინფორმაციო პუნქტად ჩანს — მხოლოდ მაშინ,
+    //როცა ადგილს მისამართი აქვს
     public override void FillDetailsSubMenu(CliMenuSet itemSubMenuSet, string itemName)
     {
-        itemSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Url", itemName));
+        if (_portion.TryGetValue(itemName, out ItemData? itemData) && itemData is PlaceModel { Url: { } url })
+        {
+            itemSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Url", url));
+        }
+
         base.FillDetailsSubMenu(itemSubMenuSet, itemName);
     }
 
     protected override ValueTask AddRecordWithKey(string recordKey, ItemData newRecord,
         CancellationToken cancellationToken = default)
     {
-        //recordKey აქ შემთხვევითი Guid-ია (fieldKeyFromItem) — ჩანაწერის გასაღები მისამართია, რომელიც
-        //CreateNewItem-მა უკვე შეამოწმა
+        //recordKey აქ შემთხვევითი Guid-ია (fieldKeyFromItem) — ჩანაწერს გასაღები (წარწერა) სიის ჩატვირთვისას
+        //ენიჭება; მისამართი, თუ მითითებულია, CreateNewItem-მა უკვე შეამოწმა
         if (newRecord is not PlaceModel newPlace)
         {
             return ValueTask.CompletedTask;
