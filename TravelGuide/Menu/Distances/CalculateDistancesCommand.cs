@@ -50,18 +50,14 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
             return false;
         }
 
+        //გაშვებისთანავე მომხმარებელი ირჩევს: ყველა წყვილი თავიდან გადაითვალოს და საჭიროებისას ჩასწორდეს (კი),
+        //თუ მხოლოდ ჯერ დაუთვლელები დაითვალოს (არა — ნაგულისხმევი პასუხი)
+        bool reCalculate = Inputer.InputBool("Re-calculate already counted distances?", false, false);
+
         //ამ საწყისი ლოკაციიდან უკვე დათვლილი მარშრუტები საბოლოო ლოკაციის იდენტიფიკატორით: უარყოფითი პასუხისას
         //გამოსატოვებლად, დადებითი პასუხისას — სისწორის შესამოწმებლად და ჩასასწორებლად
         Dictionary<int, RouteDistanceModel> existingByEndLocationId = _travelGuideRepository
             .GetRouteDistancesByStartLocationId(startLocation.LocationId).ToDictionary(k => k.EndLocationId);
-
-        //თუ ბაზაში უკვე დათვლილი მანძილებია, მომხმარებელი ირჩევს: ყველა წყვილი თავიდან გადაითვალოს
-        //და საჭიროებისას ჩასწორდეს, თუ მხოლოდ ჯერ დაუთვლელები დაითვალოს
-        var reCalculate = false;
-        if (existingByEndLocationId.Count > 0)
-        {
-            reCalculate = Inputer.InputBool("Re-calculate already counted distances?", false, false);
-        }
 
         //ბაზიდან იტვირთება ადგილებთან მიბმული ლოკაციები (PlacesByLocations) — თითო ლოკაცია ერთხელ, რამდენი
         //ადგილიც არ უნდა ეზიარებოდეს
@@ -92,6 +88,19 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
 
             LocationModel location = locations[index];
 
+            string progressPrefix = string.Create(CultureInfo.InvariantCulture,
+                $"{index + 1}/{locations.Count} Location {location.LocationId} ({location.Latitude:F6}, {location.Longitude:F6})");
+
+            //საწყისი წერტილის კოორდინატები ადგილის რომელიმე ლოკაციასაც შეიძლება ემთხვეოდეს — ლოკაციები
+            //კოორდინატებით უნიკალურია, ამიტომ ეს ერთი და იგივე ჩანაწერია; ლოკაციიდან საკუთარ თავამდე მარშრუტი
+            //პასუხის მიუხედავად არ ითვლება
+            if (location.LocationId == startLocation.LocationId)
+            {
+                Console.WriteLine($"{progressPrefix}: same coordinates as the start point (skipped)");
+                skippedCount++;
+                continue;
+            }
+
             //სიაში ლოკაცია არ მეორდება და წყვილი განმეორებით ვერ შეგვხვდება;
             //უკვე დათვლილი წყვილი მხოლოდ დადებითი პასუხისას გადაითვლება
             bool pairExists = existingByEndLocationId.TryGetValue(location.LocationId,
@@ -101,9 +110,6 @@ public sealed class CalculateDistancesCommand : CliMenuCommand
                 skippedCount++;
                 continue;
             }
-
-            string progressPrefix = string.Create(CultureInfo.InvariantCulture,
-                $"{index + 1}/{locations.Count} Location {location.LocationId} ({location.Latitude:F6}, {location.Longitude:F6})");
 
             EPairResult pairResult = CountAndPersistPair(startLocation, location, existingRouteDistance, progressPrefix,
                 cancellationToken);
