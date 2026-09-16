@@ -48,7 +48,7 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
         _location = location;
         //სტატუსის თავში ამ ლოკაციაზე უკვე დაფიქსირებული ვიზიტების რაოდენობა გამოდის, შემდეგ მისამართი (თუ აქვს);
         //კოორდინატები მძიმით არის გამოყოფილი, რომ Google Maps-ის ძებნაში პირდაპირ ჩაკოპირება შეიძლებოდეს
-        string urlPart = place.Url is null ? string.Empty : $"{place.Url} | ";
+        string urlPart = place.UrlNavigation is null ? string.Empty : $"{place.UrlNavigation.Url} | ";
         _status = string.Create(CultureInfo.InvariantCulture,
             $"{visitsCount} | {urlPart}{location.Latitude}, {location.Longitude}");
         //Google Maps-ის მარშრუტის ბმული: საწყისი წერტილი არჩეული FromPoint-ის ლოკაციაა, საბოლოო — ეს ლოკაცია
@@ -86,9 +86,9 @@ public sealed class RecommendedPlaceSubMenuCommand : CliMenuCommand
         //არარედაქტირებადი საინფორმაციო პუნქტები. მათი არჩევა არაფერს აკეთებს (EMenuAction.Nothing).
         //არასავალდებულო მონაცემების პუნქტები მხოლოდ მაშინ ემატება, როცა მნიშვნელობა ნამდვილად არსებობს
         placeSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Title", _place.GetCaption()));
-        if (_place.Url is not null)
+        if (_place.UrlNavigation is not null)
         {
-            placeSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Url", _place.Url));
+            placeSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Url", _place.UrlNavigation.Url));
         }
 
         //მხოლოდ ის ლოკაცია, რომელსაც ეს პუნქტი წარმოადგენს — ადგილის სხვა ლოკაციები

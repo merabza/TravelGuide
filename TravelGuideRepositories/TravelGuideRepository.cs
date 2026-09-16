@@ -19,6 +19,7 @@ using TravelGuideCore.Domain.TagModels;
 using TravelGuideCore.Domain.TaskModels;
 using TravelGuideCore.Domain.TaskStartPoints;
 using TravelGuideCore.Domain.UrlGraphNodes;
+using TravelGuideCore.Domain.UrlModels;
 using TravelGuideCore.Domain.VisitImages;
 using TravelGuideCore.Domain.VisitListItems;
 using TravelGuideCore.Domain.VisitModels;
@@ -138,15 +139,6 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return _context.Places.Add(newPlace).Entity;
     }
 
-    public Dictionary<string, int> GetPlaceIdsByUrlHashCode(int urlHashCode)
-    {
-        //ინდექსირებული ხეშ-კოდით ამოკრებილი (ჩვეულებრივ 0 ან 1) ჩანაწერი — Url-ის ზუსტ შედარებას გამომძახებელი
-        //აკეთებს; მხოლოდ ორი სვეტი იტვირთება და ენთითები კონტექსტს არ ებმება. უმისამართო (ხელით შეყვანილ)
-        //ჩანაწერებს ხეშ-კოდი არ აქვს და ლექსიკონში არ ხვდება
-        return _context.Places.Where(w => w.Url != null && w.UrlHashCode == urlHashCode)
-            .Select(s => new { s.Url, s.PlaceId }).ToDictionary(k => k.Url!, v => v.PlaceId, StringComparer.Ordinal);
-    }
-
     public List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed, bool includeDownloadErrors)
     {
         //ThenInclude აუცილებელია: ბმულების სინქრონიზაცია lookup-ობიექტების იგივეობით ადარებს და დაუტვირთავი ნავიგაცია გამონაკლისს ისვრის
@@ -154,7 +146,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         //NotAttraction გვერდები ხელახლა დამუშავებისასაც გამოტოვებულია — ისინი ღირსშესანიშნაობის გვერდები არ არის
         //Duplicate გვერდებიც სამუდამოდ გამოტოვებულია — მათ შიგთავსს კანონიკური მისამართის ჩანაწერი ფარავს
         //DownloadError გვერდები მხოლოდ მაშინ იტვირთება, როცა მომხმარებელმა მათი ხელახლა ცდა მოითხოვა
-        //უმისამართო (ხელით შეყვანილი) ადგილები ჩამოსატვირთი არ არის — ქროულერი მათ სტატუსის მიუხედავად არ ეხება
+        //უმისამართო (ხელით შეყვანილი) ადგილები ჩამოსატვირთი არ არის — ქროულერი მათ სტატუსის მიუხედავად არ ეხება;
+        //მისამართი (UrlNavigation) ჩამოსატვირთი გვერდის მისამართისთვის იტვირთება
         //AsSplitQuery: რამდენიმე კოლექციის ერთ SQL-ში ჩატვირთვა მწკრივებს კარტეზიულად ამრავლებს —
         //თითო კოლექცია ცალკე მოთხოვნით იტვირთება (დალაგება PlaceId-ით ცალსახაა, პორციები არ ირევა)
         return
@@ -163,8 +156,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                 .ThenInclude(t => t.CategoryNavigation).Include(i => i.Tags).ThenInclude(t => t.TagNavigation)
                 .Include(i => i.Distances).ThenInclude(t => t.FromPointNavigation).Include(i => i.Locations)
                 .ThenInclude(t => t.LocationNavigation).Include(i => i.RegionNavigation)
-                .Include(i => i.MunicipalityNavigation).AsSplitQuery().Where(w =>
-                    w.Url != null && w.State != EState.NotAttraction && w.State != EState.Duplicate &&
+                .Include(i => i.MunicipalityNavigation).Include(i => i.UrlNavigation).AsSplitQuery().Where(w =>
+                    w.UrlId != null && w.State != EState.NotAttraction && w.State != EState.Duplicate &&
                     (includeAnalysed || w.State != EState.Analysed) &&
                     (includeDownloadErrors || w.State != EState.DownloadError)).OrderBy(o => o.PlaceId)
         ];
@@ -192,20 +185,25 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         //დასახელებით, უსახელო ჩანაწერებისთვის მისამართით, თანაბრებს PlaceId წყვეტს.
         //მოუბმელი ასლები ბრუნდება: ველების რედაქტორები მათ პირდაპირ ცვლიან და შეყვანის შეწყვეტისას
         //ნახევრად შეცვლილი ჩანაწერი საზიარო კონტექსტში არ უნდა დარჩეს — შენახვისას ბმული ჩანაწერი
-        //GetPlaceById-ით ცალკე მოიძებნება
-        IQueryable<PlaceModel> placesQuery = _context.Places.AsNoTracking();
+        //GetPlaceById-ით ცალკე მოიძებნება. მისამართი (UrlNavigation) ასლებს ერთვის — წარწერასა და სტატუსში ჩანს
+        IQueryable<PlaceModel> placesQuery = _context.Places.AsNoTracking().Include(i => i.UrlNavigation);
         if (!string.IsNullOrWhiteSpace(filter))
         {
             placesQuery = placesQuery.Where(w =>
-                w.Name != null && w.Name.Contains(filter) || w.Url != null && w.Url.Contains(filter));
+                w.Name != null && w.Name.Contains(filter) ||
+                w.UrlNavigation != null && w.UrlNavigation.Url.Contains(filter));
         }
 
-        return [.. placesQuery.OrderBy(o => o.Name ?? o.Url).ThenBy(o => o.PlaceId).Skip(skip).Take(take)];
+        return
+        [
+            .. placesQuery.OrderBy(o => o.Name ?? o.UrlNavigation!.Url).ThenBy(o => o.PlaceId).Skip(skip).Take(take)
+        ];
     }
 
     public PlaceModel? GetPlaceById(int placeId)
     {
-        return _context.Places.SingleOrDefault(w => w.PlaceId == placeId);
+        //მისამართის ჩანაწერიც იტვირთება — ადგილის წაშლისას ის ადგილთან ერთად იშლება
+        return _context.Places.Include(i => i.UrlNavigation).SingleOrDefault(w => w.PlaceId == placeId);
     }
 
     public PlaceModel UpdatePlace(PlaceModel place)
@@ -287,7 +285,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.Distances).ThenInclude(t => t.FromPointNavigation)
             .Include(i => i.PlaceNavigation).ThenInclude(t => t.Locations).Include(i => i.PlaceNavigation)
             .ThenInclude(t => t.RegionNavigation).Include(i => i.PlaceNavigation)
-            .ThenInclude(t => t.MunicipalityNavigation).AsSplitQuery()
+            .ThenInclude(t => t.MunicipalityNavigation).Include(i => i.PlaceNavigation)
+            .ThenInclude(t => t.UrlNavigation).AsSplitQuery()
             .Where(w => w.PlaceNavigation.State != EState.Duplicate);
 
         //მინიმალური გზის დროის მოთხოვნისას რჩება მხოლოდ ის ლოკაციები, რომლებამდეც დათვლილი გზის დრო
@@ -353,6 +352,23 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
 
     #endregion
 
+    #region Url cruder
+
+    public Dictionary<string, int> GetUrlIdsByUrlHashCode(int urlHashCode)
+    {
+        //ინდექსირებული ხეშ-კოდით ამოკრებილი (ჩვეულებრივ 0 ან 1) ჩანაწერი — Url-ის ზუსტ შედარებას გამომძახებელი
+        //აკეთებს; მხოლოდ ორი სვეტი იტვირთება და ენთითები კონტექსტს არ ებმება
+        return _context.Urls.Where(w => w.UrlHashCode == urlHashCode).Select(s => new { s.Url, s.UrlId })
+            .ToDictionary(k => k.Url, v => v.UrlId, StringComparer.Ordinal);
+    }
+
+    public UrlModel DeleteUrl(UrlModel urlForDelete)
+    {
+        return _context.Urls.Remove(urlForDelete).Entity;
+    }
+
+    #endregion
+
     #region UrlGraphNode cruder
 
     public UrlGraphNode AddUrlGraphNode(UrlGraphNode newUrlGraphNode)
@@ -366,13 +382,13 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
         return [.. _context.UrlGraphNodes.AsNoTracking()];
     }
 
-    public void DeleteUrlGraphNodesByPlaceId(int placeId)
+    public void DeleteUrlGraphNodesByUrlId(int urlId)
     {
-        //ადგილის წაშლისას მისი გრაფის წიბოები წინასწარ უნდა წაიშალოს — ორივე FK Restrict-ია და ბაზა
-        //ადგილს კავშირებთან ერთად არ წაშლიდა. ჩანაწერები კონტექსტში იშლება და ადგილთან ერთად, ერთი
+        //მისამართის წაშლისას მისი გრაფის წიბოები წინასწარ უნდა წაიშალოს — ორივე FK Restrict-ია და ბაზა
+        //მისამართს კავშირებთან ერთად არ წაშლიდა. ჩანაწერები კონტექსტში იშლება და მისამართთან ერთად, ერთი
         //SaveChanges-ით ინახება
         _context.UrlGraphNodes.RemoveRange(_context.UrlGraphNodes.Where(w =>
-            w.FromUrlId == placeId || w.GotUrlId == placeId));
+            w.FromUrlId == urlId || w.GotUrlId == urlId));
     }
 
     #endregion
@@ -660,7 +676,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                         VisitDate = s.VisitDate,
                         PlaceName = _context.PlacesByLocations
                             .Where(w => w.LocationId == s.LocationId && w.PlaceNavigation.State != EState.Duplicate)
-                            .OrderBy(o => o.PlaceId).Select(p => p.PlaceNavigation.Name ?? p.PlaceNavigation.Url)
+                            .OrderBy(o => o.PlaceId)
+                            .Select(p => p.PlaceNavigation.Name ?? p.PlaceNavigation.UrlNavigation!.Url)
                             .FirstOrDefault(),
                         Latitude = s.Latitude,
                         Longitude = s.Longitude,

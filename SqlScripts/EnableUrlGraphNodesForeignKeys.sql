@@ -1,21 +1,21 @@
--- UrlGraphNodes-ის ორივე რელაციური კავშირი (FromUrlId→Places, GotUrlId→Places) ბაზაში
+-- UrlGraphNodes-ის ორივე რელაციური კავშირი (FromUrlId→Urls, GotUrlId→Urls) ბაზაში
 -- გამორთულია ან WITH NOCHECK-ით არის შექმნილი ("Check Existing Data On Creation Or Re-Enabling" = No),
 -- ამიტომ ჩანაწერის ჩამატებისას ბაზა იდენტიფიკატორების სისწორეს არ ამოწმებს.
 -- ეს სკრიპტი ორივე კავშირს რთავს არსებული მონაცემების შემოწმებით — შედეგად ჩამატება/განახლება
--- მოწმდება, რომ FromUrlId და GotUrlId ნამდვილად არსებობდეს Places ცხრილში.
+-- მოწმდება, რომ FromUrlId და GotUrlId ნამდვილად არსებობდეს Urls ცხრილში.
 
--- 1. ობოლი ჩანაწერები: მითითებული PlaceId, რომელსაც Places-ში შესატყვისი არ აქვს.
+-- 1. ობოლი ჩანაწერები: მითითებული UrlId, რომელსაც Urls-ში შესატყვისი არ აქვს.
 --    ასეთი რიგების არსებობისას მე-3 ნაბიჯი შეცდომით დასრულდება — ჯერ ისინი უნდა წაიშალოს (მე-2 ნაბიჯი).
 SELECT ugn.*
 FROM dbo.UrlGraphNodes ugn
-WHERE NOT EXISTS (SELECT 1 FROM dbo.Places p WHERE p.PlaceId = ugn.FromUrlId)
-   OR NOT EXISTS (SELECT 1 FROM dbo.Places p WHERE p.PlaceId = ugn.GotUrlId);
+WHERE NOT EXISTS (SELECT 1 FROM dbo.Urls u WHERE u.UrlId = ugn.FromUrlId)
+   OR NOT EXISTS (SELECT 1 FROM dbo.Urls u WHERE u.UrlId = ugn.GotUrlId);
 
 -- 2. მხოლოდ მაშინ გაეშვას, თუ პირველმა ნაბიჯმა რიგები დააბრუნა (ობოლი წიბო გრაფში გამოუსადეგარია):
 --DELETE ugn
 --FROM dbo.UrlGraphNodes ugn
---WHERE NOT EXISTS (SELECT 1 FROM dbo.Places p WHERE p.PlaceId = ugn.FromUrlId)
---   OR NOT EXISTS (SELECT 1 FROM dbo.Places p WHERE p.PlaceId = ugn.GotUrlId);
+--WHERE NOT EXISTS (SELECT 1 FROM dbo.Urls u WHERE u.UrlId = ugn.FromUrlId)
+--   OR NOT EXISTS (SELECT 1 FROM dbo.Urls u WHERE u.UrlId = ugn.GotUrlId);
 
 -- 3. ცხრილის ყველა კავშირის ჩართვა არსებული მონაცემების შემოწმებით (კავშირების სახელებზე არ არის დამოკიდებული).
 ALTER TABLE dbo.UrlGraphNodes WITH CHECK CHECK CONSTRAINT ALL;

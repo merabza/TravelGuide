@@ -76,7 +76,7 @@ public sealed class PlaceAnalyser
 
                 counter++;
                 attemptedIds.Add(place.PlaceId);
-                Console.WriteLine($"({counter}/{places.Count}) {place.Url}");
+                Console.WriteLine($"({counter}/{places.Count}) {place.UrlNavigation?.Url}");
                 if (!await TryAnalysePlaceAsync(place, cancellationToken).ConfigureAwait(false))
                 {
                     //შეჩერების მოთხოვნით გამოწვეული ჩავარდნა შეცდომა არ არის — ჩანაწერი უცვლელი რჩება
@@ -86,7 +86,7 @@ public sealed class PlaceAnalyser
                         return;
                     }
 
-                    StShared.WriteErrorLine($"Failed to analyse {place.Url}", true, null, false);
+                    StShared.WriteErrorLine($"Failed to analyse {place.UrlNavigation?.Url}", true, null, false);
 
                     //ჩავარდნილი გვერდი შეცდომის სტატუსით ინიშნება — ხელახლა ცდა მომდევნო გაშვებისას
                     //მომხმარებლის დასტურზეა დამოკიდებული
@@ -102,14 +102,15 @@ public sealed class PlaceAnalyser
         try
         {
             //უმისამართო (ხელით შეყვანილ) ადგილს GetPlacesForAnalysis არ აბრუნებს — აქ მოხვედრა პროგრამის შეცდომაა
-            string url = place.Url ?? throw new InvalidOperationException($"Place {place.PlaceId} has no Url");
+            string url = place.UrlNavigation?.Url ??
+                         throw new InvalidOperationException($"Place {place.PlaceId} has no Url");
             var pageUri = new Uri(url);
             using HttpResponseMessage response =
                 await _httpClient.GetAsync(pageUri, cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 //წარუმატებელი პასუხისას false ბრუნდება და გამომძახებელი ჩანაწერს შეცდომის სტატუსით მონიშნავს
-                StShared.WriteErrorLine($"Request failed with status {(int)response.StatusCode} for {place.Url}", true,
+                StShared.WriteErrorLine($"Request failed with status {(int)response.StatusCode} for {url}", true,
                     null, false);
                 return false;
             }
@@ -117,17 +118,17 @@ public sealed class PlaceAnalyser
             //ზოგი მისამართი საიტზე მუდმივი გადამისამართებით სხვა (კანონიკურ) მისამართზე გადადის და HttpClient
             //მას ჩუმად მიჰყვება — ორივე მისამართი ერთსა და იმავე გვერდს ცალ-ცალკე ჩანაწერად ინახავდა.
             //საბოლოო მისამართი place-ის შეცვლამდე რიგში ემატება (კანონიკურ გვერდს ამავე გაშვების ციკლი
-            //დაამუშავებს), place.Url წყარო გვერდად გადაეცემა, რომ დუბლიკატი→კანონიკური კავშირი
+            //დაამუშავებს), მისამართი (url) წყარო გვერდად გადაეცემა, რომ დუბლიკატი→კანონიკური კავშირი
             //UrlGraphNodes-შიც ჩაიწეროს, თავად ჩანაწერი კი დუბლიკატად ინიშნება და ანალიზში აღარ ბრუნდება.
             //მხოლოდ ბოლო „/"-ით განსხვავება გადამისამართებად არ ითვლება — ბაზაში მისამართები უიმისოდ ინახება.
             //შიგთავსი განზრახ არ იპარსება: ბმულები კანონიკური გვერდისაა და ძველ მისამართს მიეწერებოდა
             string finalUrl = (response.RequestMessage?.RequestUri ?? pageUri).AbsoluteUri.TrimEnd('/');
             if (!finalUrl.Equals(pageUri.AbsoluteUri.TrimEnd('/'), StringComparison.Ordinal))
             {
-                _urlPersister.PersistNewUrls([finalUrl], place.Url);
+                _urlPersister.PersistNewUrls([finalUrl], url);
                 place.State = EState.Duplicate;
                 _repository.SaveChanges();
-                Console.WriteLine($"Duplicate page (redirected to {finalUrl}): {place.Url}");
+                Console.WriteLine($"Duplicate page (redirected to {finalUrl}): {url}");
                 return true;
             }
 
@@ -136,9 +137,9 @@ public sealed class PlaceAnalyser
                 await new HtmlParser().ParseDocumentAsync(html, cancellationToken).ConfigureAwait(false);
 
             //გვერდზე ნაპოვნი ბმულები place-ის შეცვლამდე ინახება — ღირსშესანიშნაობის გარდა სხვა გვერდებიც
-            //(რეგიონები, სიის გვერდები) ახალი მისამართების წყაროა; place.Url წყარო გვერდად გადაეცემა,
+            //(რეგიონები, სიის გვერდები) ახალი მისამართების წყაროა; მისამართი (url) წყარო გვერდად გადაეცემა,
             //რომ ნაპოვნი კავშირები UrlGraphNodes-შიც ჩაიწეროს
-            _urlPersister.PersistNewUrls(PageLinkExtractor.ExtractLinks(document, pageUri), place.Url);
+            _urlPersister.PersistNewUrls(PageLinkExtractor.ExtractLinks(document, pageUri), url);
 
             PlaceExtractResult extract = PlaceDataExtractor.Extract(document);
 
@@ -148,7 +149,7 @@ public sealed class PlaceAnalyser
             {
                 place.State = EState.NotAttraction;
                 _repository.SaveChanges();
-                Console.WriteLine($"Not a tourist attraction page: {place.Url}");
+                Console.WriteLine($"Not a tourist attraction page: {url}");
                 return true;
             }
 

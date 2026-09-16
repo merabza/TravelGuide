@@ -5,14 +5,16 @@ using SystemTools.SystemToolsShared;
 using TravelGuideCore.Domain;
 using TravelGuideCore.Domain.PlaceModels;
 using TravelGuideCore.Domain.UrlGraphNodes;
+using TravelGuideCore.Domain.UrlModels;
 using TravelGuideDbPart.Db.Configurations;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Runners;
 
-//შეგროვებული მისამართების ბაზაში ჩამოსატვირთი (New) სტატუსით შენახვა — საერთოა Selenium-ით, sitemap-ით
-//და გვერდების გაანალიზებისას ბმულების ამოკრებით შეგროვებისთვის. ინახება მხოლოდ საწყისი წერტილების
-//მსგავსი მისამართები: ზუსტად საწყისი წერტილი ან მისი ქვეგვერდი
+//შეგროვებული მისამართების ბაზაში შენახვა: თითო ახალი მისამართი Urls ცხრილის ჩანაწერია და მასზე მიბმული
+//ჩამოსატვირთი (New) სტატუსის ადგილი — საერთოა Selenium-ით, sitemap-ით და გვერდების გაანალიზებისას ბმულების
+//ამოკრებით შეგროვებისთვის. ინახება მხოლოდ საწყისი წერტილების მსგავსი მისამართები: ზუსტად საწყისი წერტილი
+//ან მისი ქვეგვერდი
 public sealed class HarvestedUrlPersister
 {
     //ბაზაში უკვე არსებული (FromUrlId, GotUrlId) წყვილები — ერთი და იგივე კავშირი მეორედ არ შეინახოს
@@ -26,7 +28,7 @@ public sealed class HarvestedUrlPersister
     //საწყისი წერტილები ბოლო „/"-ის გარეშე და პრეფიქსად გამოსაყენებელი ფორმით
     private readonly List<(string Exact, string Prefix)> _startPointPatterns;
 
-    //მისამართი -> PlaceId, UrlGraphNodes-ის კავშირებისთვის; ბაზაში ნაპოვნი და ახლად შენახული მისამართების
+    //მისამართი -> UrlId, UrlGraphNodes-ის კავშირებისთვის; ბაზაში ნაპოვნი და ახლად შენახული მისამართების
     //იდენტიფიკატორებით თანდათან ივსება, რომ ბაზის განმეორებითი კითხვა არ დაჭირდეს
     private readonly Dictionary<string, int> _urlIds = new(StringComparer.Ordinal);
 
@@ -42,31 +44,32 @@ public sealed class HarvestedUrlPersister
     public int PersistNewUrls(IReadOnlyCollection<string> urlList, string? fromUrl = null)
     {
         var newCount = 0;
-        List<(string Url, PlaceModel Place)> addedPlaces = [];
+        List<(string Url, UrlModel UrlModel)> addedUrls = [];
 
         //ბოლო „/" იჭრება, რომ ერთი და იგივე გვერდი ორი ფორმით არ შეინახოს; HashSet გამეორებებსაც ფილტრავს
         foreach (string url in urlList.Select(s => s.TrimEnd('/')).Where(IsLikeStartPoint).Where(_knownUrls.Add))
         {
-            if (url.Length > PlaceModelConfiguration.UrlLength)
+            if (url.Length > UrlModelConfiguration.UrlLength)
             {
                 StShared.WriteErrorLine($"Url is too long and will be skipped: {url}", true, null, false);
                 continue;
             }
 
-            //Url ბაზაში აღარ ინდექსირდება და უნიკალურობას აპლიკაცია იცავს: შენახვამდე ითვლება მისამართის
-            //ხეშ-კოდი, ბაზიდან ამოიკრიბება იგივე ხეშის მქონე ჩანაწერები და ზუსტი შედარებით მოწმდება,
+            //Url ბაზაში არ ინდექსირდება და უნიკალურობას აპლიკაცია იცავს: შენახვამდე ითვლება მისამართის
+            //ხეშ-კოდი, Urls-იდან ამოიკრიბება იგივე ხეშის მქონე ჩანაწერები და ზუსტი შედარებით მოწმდება,
             //რომ ეს მისამართი უკვე შენახული არ არის
             int urlHashCode = url.GetDeterministicHashCode();
-            if (_repository.GetPlaceIdsByUrlHashCode(urlHashCode).TryGetValue(url, out int existingPlaceId))
+            if (_repository.GetUrlIdsByUrlHashCode(urlHashCode).TryGetValue(url, out int existingUrlId))
             {
-                _urlIds[url] = existingPlaceId;
+                _urlIds[url] = existingUrlId;
                 continue;
             }
 
-            addedPlaces.Add((url, _repository.AddPlace(new PlaceModel
-            {
-                Url = url, UrlHashCode = urlHashCode, State = EState.New
-            })));
+            //ახალი მისამართი და მასზე მიბმული ჩამოსატვირთი ადგილი ერთად იქმნება — Urls-ის ჩანაწერი ადგილის
+            //ნავიგაციით იწერება და შენახვისას UrlId ივსება
+            var newUrl = new UrlModel { Url = url, UrlHashCode = urlHashCode };
+            _repository.AddPlace(new PlaceModel { UrlNavigation = newUrl, State = EState.New });
+            addedUrls.Add((url, newUrl));
             newCount++;
         }
 
@@ -76,9 +79,9 @@ public sealed class HarvestedUrlPersister
             Console.WriteLine($"Checked {urlList.Count} urls, new: {newCount}");
 
             //SaveChanges-ის შემდეგ ახალ ჩანაწერებს იდენტიფიკატორები აქვს მინიჭებული და კავშირებში გამოყენებადია
-            foreach ((string addedUrl, PlaceModel place) in addedPlaces)
+            foreach ((string addedUrl, UrlModel urlModel) in addedUrls)
             {
-                _urlIds[addedUrl] = place.PlaceId;
+                _urlIds[addedUrl] = urlModel.UrlId;
             }
         }
 
@@ -90,11 +93,11 @@ public sealed class HarvestedUrlPersister
         return newCount;
     }
 
-    //რომელ გვერდზე რომელი მისამართი მოიძებნა — გრაფის კავშირების შენახვა. მხოლოდ Places-ში არსებულ
+    //რომელ გვერდზე რომელი მისამართი მოიძებნა — გრაფის კავშირების შენახვა. მხოლოდ Urls-ში არსებულ
     //მისამართებს შორის: ფილტრში ჩაჭრილი ან ზღვარგადაცილებული მისამართები ბაზაში არ არის და კავშირიც არ ჩაიწერება
     private void PersistUrlGraphNodes(string fromUrl, IReadOnlyCollection<string> urlList)
     {
-        if (!TryGetPlaceId(fromUrl.TrimEnd('/'), out int fromUrlId))
+        if (!TryGetUrlId(fromUrl.TrimEnd('/'), out int fromUrlId))
         {
             return;
         }
@@ -121,21 +124,21 @@ public sealed class HarvestedUrlPersister
         }
     }
 
-    //მისამართის PlaceId ჯერ ამ გაშვების ქეშში იძებნება, შემდეგ ბაზაში ხეშ-კოდით — წყარო გვერდი (fromUrl)
+    //მისამართის UrlId ჯერ ამ გაშვების ქეშში იძებნება, შემდეგ ბაზაში ხეშ-კოდით — წყარო გვერდი (fromUrl)
     //წინა გაშვებაში შენახული ჩანაწერიც შეიძლება იყოს, რომელიც ქეშში ჯერ არ მოხვედრილა
-    private bool TryGetPlaceId(string url, out int placeId)
+    private bool TryGetUrlId(string url, out int urlId)
     {
-        if (_urlIds.TryGetValue(url, out placeId))
+        if (_urlIds.TryGetValue(url, out urlId))
         {
             return true;
         }
 
-        if (!_repository.GetPlaceIdsByUrlHashCode(url.GetDeterministicHashCode()).TryGetValue(url, out placeId))
+        if (!_repository.GetUrlIdsByUrlHashCode(url.GetDeterministicHashCode()).TryGetValue(url, out urlId))
         {
             return false;
         }
 
-        _urlIds[url] = placeId;
+        _urlIds[url] = urlId;
         return true;
     }
 

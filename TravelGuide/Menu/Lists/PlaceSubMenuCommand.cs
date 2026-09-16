@@ -15,7 +15,7 @@ public sealed class PlaceSubMenuCommand : CliMenuCommand
         EMenuAction.LoadSubMenu)
     {
         _placeCruder = placeCruder;
-        _status = place.Url is null ? place.State.ToString() : $"{place.State} | {place.Url}";
+        _status = place.UrlNavigation is null ? place.State.ToString() : $"{place.State} | {place.UrlNavigation.Url}";
     }
 
     protected override string GetStatus()

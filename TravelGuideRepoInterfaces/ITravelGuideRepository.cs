@@ -16,6 +16,7 @@ using TravelGuideCore.Domain.TagModels;
 using TravelGuideCore.Domain.TaskModels;
 using TravelGuideCore.Domain.TaskStartPoints;
 using TravelGuideCore.Domain.UrlGraphNodes;
+using TravelGuideCore.Domain.UrlModels;
 using TravelGuideCore.Domain.VisitImages;
 using TravelGuideCore.Domain.VisitListItems;
 using TravelGuideCore.Domain.VisitModels;
@@ -41,7 +42,6 @@ public interface ITravelGuideRepository
     TaskStartPoint DeleteStartPoint(TaskStartPoint startPointForDelete);
 
     PlaceModel AddPlace(PlaceModel newPlace);
-    Dictionary<string, int> GetPlaceIdsByUrlHashCode(int urlHashCode);
     List<PlaceModel> GetPlacesForAnalysis(bool includeAnalysed, bool includeDownloadErrors);
     bool HasAnalysedPlaces();
     bool HasDownloadErrorPlaces();
@@ -61,9 +61,12 @@ public interface ITravelGuideRepository
     PlaceByLocation AddPlaceLocation(int placeId, LocationModel location);
     PlaceByLocation DeletePlaceLocation(PlaceByLocation placeLocationForDelete);
 
+    Dictionary<string, int> GetUrlIdsByUrlHashCode(int urlHashCode);
+    UrlModel DeleteUrl(UrlModel urlForDelete);
+
     UrlGraphNode AddUrlGraphNode(UrlGraphNode newUrlGraphNode);
     List<UrlGraphNode> GetAllUrlGraphNodes();
-    void DeleteUrlGraphNodesByPlaceId(int placeId);
+    void DeleteUrlGraphNodesByUrlId(int urlId);
 
     List<MonthModel> GetMonths();
     MonthModel AddMonth(MonthModel newMonth);

@@ -13,6 +13,7 @@ using SystemTools.SystemToolsShared;
 using TravelGuide.FieldEditors;
 using TravelGuideCore.Domain;
 using TravelGuideCore.Domain.PlaceModels;
+using TravelGuideCore.Domain.UrlModels;
 using TravelGuideDbPart.Db.Configurations;
 using TravelGuideRepoInterfaces;
 
@@ -20,9 +21,9 @@ namespace TravelGuide.Menu.Lists;
 
 //ადგილების (Places ცხრილის) რედაქტორი. ჩანაწერის გასაღები წარწერაა (დასახელება, უსახელოსთვის მისამართი,
 //არც-მისამართიანისთვის იდენტიფიკატორი — PlaceModelExtensions.GetCaption), რომელიც პორციის ფარგლებში
-//უნიკალურია (VisitCruder-ის ყაიდაზე). მისამართი არასავალდებულოა: საიტიდან ჩამოტვირთულ ადგილს აქვს და შექმნისას
-//ერთხელ იწერება, მერე აღარ იცვლება — ქროულერი ჩანაწერს სწორედ მისამართით (ხეშ-კოდით) ცნობს; ხელით შეყვანილ
-//ადგილს მისამართი არ აქვს და ქროულერი მას არ ეხება.
+//უნიკალურია (VisitCruder-ის ყაიდაზე). მისამართი (Urls ცხრილის ჩანაწერი, UrlNavigation) არასავალდებულოა: საიტიდან
+//ჩამოტვირთულ ადგილს აქვს და შექმნისას ერთხელ იწერება, მერე აღარ იცვლება — ქროულერი მისამართს სწორედ ხეშ-კოდით
+//ცნობს; ხელით შეყვანილ ადგილს მისამართი არ აქვს და ქროულერი მას არ ეხება.
 //fieldKeyFromItem=true — ცალკე Record Name ველი არ სჭირდება; მენიუში პუნქტის სახელად წარწერა გამოდის.
 //ცხრილი ათასობით ჩანაწერს შეიცავს, ამიტომ ლექსიკონი მთელ ცხრილს კი არა, სიის ბოლოს ჩატვირთულ პორციას
 //იჭერს (LoadPortion) — ჩანაწერის მენიუ (ველების რედაქტორები, თანმიმდევრობით რედაქტირება, წაშლა) მასზე
@@ -89,7 +90,8 @@ public sealed class PlaceCruder : Cruder
     //ახალი ჩანაწერის მისამართი აქვე, სხვა ველებამდე იკითხება: Url ქროულერისთვის ჩანაწერის იდენტობაა და ველების
     //რედაქტორებში არ შედის — არსებულ ჩანაწერს ის მხოლოდ საჩვენებლად აქვს. მისამართი არასავალდებულოა — ცარიელი
     //Enter საიტზე არარსებულ, ხელით შესაყვან ადგილს ქმნის, რომელსაც ქროულერი არ ეხება. მითითებულ მისამართს ბოლო
-    //დახრილი ხაზი ეჭრება და უნიკალურობა ხეშ-კოდით მოწმდება ისევე, როგორც ქროულერის HarvestedUrlPersister-ში
+    //დახრილი ხაზი ეჭრება და უნიკალურობა Urls ცხრილში ხეშ-კოდით მოწმდება ისევე, როგორც ქროულერის
+    //HarvestedUrlPersister-ში; ახალი Urls-ის ჩანაწერი ადგილთან ერთად, ნავიგაციით ინახება
     protected override ItemData CreateNewItem(string? recordKey, ItemData? defaultItemData)
     {
         while (true)
@@ -100,21 +102,21 @@ public sealed class PlaceCruder : Cruder
                 return new PlaceModel();
             }
 
-            if (url.Length > PlaceModelConfiguration.UrlLength)
+            if (url.Length > UrlModelConfiguration.UrlLength)
             {
-                StShared.WriteErrorLine($"Url is too long (max {PlaceModelConfiguration.UrlLength} characters)", true,
+                StShared.WriteErrorLine($"Url is too long (max {UrlModelConfiguration.UrlLength} characters)", true,
                     null, false);
                 continue;
             }
 
             int urlHashCode = url.GetDeterministicHashCode();
-            if (_travelGuideRepository.GetPlaceIdsByUrlHashCode(urlHashCode).ContainsKey(url))
+            if (_travelGuideRepository.GetUrlIdsByUrlHashCode(urlHashCode).ContainsKey(url))
             {
-                StShared.WriteErrorLine($"Place with Url {url} already exists", true, null, false);
+                StShared.WriteErrorLine($"Url {url} already exists", true, null, false);
                 continue;
             }
 
-            return new PlaceModel { Url = url, UrlHashCode = urlHashCode };
+            return new PlaceModel { UrlNavigation = new UrlModel { Url = url, UrlHashCode = urlHashCode } };
         }
     }
 
@@ -122,7 +124,8 @@ public sealed class PlaceCruder : Cruder
     //როცა ადგილს მისამართი აქვს
     public override void FillDetailsSubMenu(CliMenuSet itemSubMenuSet, string itemName)
     {
-        if (_portion.TryGetValue(itemName, out ItemData? itemData) && itemData is PlaceModel { Url: { } url })
+        if (_portion.TryGetValue(itemName, out ItemData? itemData) &&
+            itemData is PlaceModel { UrlNavigation.Url: { } url })
         {
             itemSubMenuSet.AddMenuItem(new MenuCommandWithStatusCliMenuCommand("Url", url));
         }
@@ -190,9 +193,15 @@ public sealed class PlaceCruder : Cruder
         PlaceModel place = _travelGuideRepository.GetPlaceById(placeCopy.PlaceId) ??
                            throw new InvalidOperationException($"Place with id {placeCopy.PlaceId} not found");
 
-        //ბმულების გრაფის წიბოები Restrict-ით არის მიბმული და ცალკე იშლება; დანარჩენი შვილობილი ჩანაწერები
-        //(ლოკაციები, ტეგები, კატეგორიები, სეზონები, მანძილები) კასკადით მიჰყვება
-        _travelGuideRepository.DeleteUrlGraphNodesByPlaceId(place.PlaceId);
+        //მისამართის ჩანაწერი (Urls) ადგილთან ერთად იშლება, რომ ხელახალი ქროულინგისას მისამართი ისევ ახლად
+        //აღმოჩენილად ჩაითვალოს; ბმულების გრაფის წიბოები Urls-ზე Restrict-ით არის მიბმული და წინასწარ, ცალკე იშლება.
+        //დანარჩენი შვილობილი ჩანაწერები (ლოკაციები, ტეგები, კატეგორიები, სეზონები, მანძილები) კასკადით მიჰყვება
+        if (place.UrlNavigation is not null)
+        {
+            _travelGuideRepository.DeleteUrlGraphNodesByUrlId(place.UrlNavigation.UrlId);
+            _travelGuideRepository.DeleteUrl(place.UrlNavigation);
+        }
+
         _travelGuideRepository.DeletePlace(place);
 
         _travelGuideRepository.SaveChanges();
