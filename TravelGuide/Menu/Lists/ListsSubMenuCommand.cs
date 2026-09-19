@@ -29,8 +29,9 @@ public sealed class ListsSubMenuCommand : CliMenuCommand
             ITravelGuideRepository repository = _travelGuideRepositoryCreatorFactory.GetTravelGuideRepository();
             //მოტოციკლების სიის რედაქტორი
             listsSubMenuSet.AddMenuItem(new CruderListCliMenuCommand(new MotorcycleCruder(repository)));
-            //ადგილების (Places ცხრილის) რედაქტორი — ფილტრით და პორციებად ჩატვირთული სია
-            listsSubMenuSet.AddMenuItem(new PlacesCommand(_travelGuideRepositoryCreatorFactory));
+            //ადგილების (Places ცხრილის) რედაქტორი — ფილტრით და პორციებად ჩატვირთული სია; ჩანაწერის მენიუდან ლოკაცია
+            //დასახელებით იძებნება (Nominatim), ამიტომ მასაც HttpClient-ის ქარხანა სჭირდება
+            listsSubMenuSet.AddMenuItem(new PlacesCommand(_travelGuideRepositoryCreatorFactory, _httpClientFactory));
             //რეგიონებისა და მუნიციპალიტეტების ცნობარების რედაქტორები
             listsSubMenuSet.AddMenuItem(new CruderListCliMenuCommand(new RegionCruder(repository)));
             listsSubMenuSet.AddMenuItem(new CruderListCliMenuCommand(new MunicipalityCruder(repository)));

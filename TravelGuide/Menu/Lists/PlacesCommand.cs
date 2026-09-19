@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using AppCliTools.CliMenu;
@@ -18,6 +19,7 @@ namespace TravelGuide.Menu.Lists;
 //Visits-ის ყაიდაზე ბაზიდან პორციებად იტვირთება (PageUp/PageDown) და შესვლისას ფილტრი იკითხება
 public sealed class PlacesCommand : CliMenuCommand
 {
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ITravelGuideRepositoryCreatorFactory _travelGuideRepositoryCreatorFactory;
 
     //მიმდინარე პორციის ნომერი — გადაფურცვლისას იცვლება და მენიუს გადაწყობებს შორის ინახება
@@ -27,10 +29,12 @@ public sealed class PlacesCommand : CliMenuCommand
     //ფილტრი ქვემენიუში შესვლისას ერთხელ იკითხება და მენიუს გადაწყობებზე ხელახლა აღარ იკითხება
     private string? _filter;
 
-    public PlacesCommand(ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory) : base("Places",
-        EMenuAction.LoadSubMenu)
+    //ადგილის ჩანაწერის მენიუდან ლოკაცია დასახელებით იძებნება (Nominatim), ამიტომ რედაქტორს HttpClient-ის ქარხანა სჭირდება
+    public PlacesCommand(ITravelGuideRepositoryCreatorFactory travelGuideRepositoryCreatorFactory,
+        IHttpClientFactory httpClientFactory) : base("Places", EMenuAction.LoadSubMenu)
     {
         _travelGuideRepositoryCreatorFactory = travelGuideRepositoryCreatorFactory;
+        _httpClientFactory = httpClientFactory;
     }
 
     //სტატუსში ცხრილის ჩანაწერების საერთო რაოდენობა ჩანს (როგორც Motorcycles-ს). სტატუსი მენიუს ხატვისას
@@ -67,7 +71,7 @@ public sealed class PlacesCommand : CliMenuCommand
         try
         {
             ITravelGuideRepository repository = _travelGuideRepositoryCreatorFactory.GetTravelGuideRepository();
-            var placeCruder = new PlaceCruder(repository);
+            var placeCruder = new PlaceCruder(repository, _httpClientFactory);
 
             //ახალი ადგილის ხელით შექმნა (მაგალითად საიტზე არარსებული ადგილისთვის)
             placesMenuSet.AddMenuItem(new NewItemCliMenuCommand(placeCruder, placeCruder.CrudNamePlural,

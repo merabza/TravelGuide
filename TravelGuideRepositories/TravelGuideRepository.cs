@@ -655,9 +655,8 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
     public List<VisitListItem> GetLastVisits(int count)
     {
         //ვიზიტს ნავიგაციები არ აქვს, ამიტომ ლოკაციის კოორდინატები და მოტოციკლის სახელი შეერთებით მოიპოვება.
-        //ადგილის სახელი ლოკაციაზე მიბმული ადგილიდან მოდის (PlacesByLocations): საზიარო ლოკაციისას პირველი ისეთი
-        //ადგილი აიღება, რომლის მისამართიც დუბლიკატად არ არის მონიშნული (უმისამართოს სტატუსი არ აქვს), ხოლო
-        //არცერთ ადგილს რომ არ ებმებოდეს — null.
+        //ადგილის სახელი ლოკაციაზე მიბმული ადგილიდან მოდის (PlacesByLocations): საზიარო ლოკაციისას პირველი
+        //ადგილი აიღება (მისამართის სტატუსი განზრახ არ მოწმდება), ხოლო არცერთ ადგილს რომ არ ებმებოდეს — null.
         //დალაგება და შეზღუდვა შეერთებების შემდეგ კეთდება, რომ ერთი მოწესრიგებული მოთხოვნა შესრულდეს
         return
         [
@@ -677,9 +676,7 @@ public sealed class TravelGuideRepository : ITravelGuideRepository
                     {
                         VisitDate = s.VisitDate,
                         PlaceName = _context.PlacesByLocations
-                            .Where(w => w.LocationId == s.LocationId &&
-                                        (w.PlaceNavigation.UrlNavigation == null ||
-                                         w.PlaceNavigation.UrlNavigation.State != EState.Duplicate))
+                            .Where(w => w.LocationId == s.LocationId)
                             .OrderBy(o => o.PlaceId)
                             .Select(p => p.PlaceNavigation.Name ?? p.PlaceNavigation.UrlNavigation!.Url)
                             .FirstOrDefault(),

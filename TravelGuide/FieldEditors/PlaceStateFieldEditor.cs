@@ -16,8 +16,8 @@ namespace TravelGuide.FieldEditors;
 //რედაქტორი ჩანაწერის (PlaceModel) UrlNavigation-ზე მუშაობს და საბაზისო კლასის რეფლექსიით ველის ძებნას არ იყენებს;
 //უმისამართო (ხელით შეყვანილ) ადგილს სტატუსი არ აქვს — მისთვის ველი არ იკითხება და ცარიელი ჩანს.
 //ასარჩევად მხოლოდ ბაზაში შესანახი სტატუსები გამოდის — შუალედური Opening/Opened/Analysing ბაზაში არასდროს
-//იწერება და რედაქტორითაც არ უნდა ჩაიწეროს. ახალი მისამართის ნაგულისხმევი სტატუსი Analysed-ია, რომ ხელით
-//შექმნილ ადგილს ქროულერი არ შეეხოს
+//იწერება და რედაქტორითაც არ უნდა ჩაიწეროს. ხელით შეყვანილი ახალი მისამართის Analysed სტატუსს (რომ ქროულერი
+//მას არ შეეხოს) PlaceUrlFieldEditor აწერს
 public sealed class PlaceStateFieldEditor : FieldEditor<EState>
 {
     private static readonly List<EState> PersistedStates =
@@ -54,9 +54,7 @@ public sealed class PlaceStateFieldEditor : FieldEditor<EState>
 
     public override void SetDefault(ItemData currentItem)
     {
-        if (currentItem is PlaceModel { UrlNavigation: { } urlModel })
-        {
-            urlModel.State = EState.Analysed;
-        }
+        //საბაზისო SetDefault ჩანაწერში State ველს რეფლექსიით ეძებს, რომელიც PlaceModel-ს არ აქვს; ახალ ადგილს
+        //მისამართი (და მასთან ერთად სტატუსი) შექმნისას არ აქვს — მოგვიანებით მას PlaceUrlFieldEditor Analysed-ით ქმნის
     }
 }

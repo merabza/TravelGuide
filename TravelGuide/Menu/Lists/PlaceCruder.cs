@@ -2,19 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using AppCliTools.CliMenu;
 using AppCliTools.CliParameters.CliMenuCommands;
 using AppCliTools.CliParameters.Cruders;
 using AppCliTools.CliParameters.FieldEditors;
-using AppCliTools.LibDataInput;
 using SystemTools.SystemToolsShared;
 using TravelGuide.FieldEditors;
-using TravelGuideCore.Domain;
 using TravelGuideCore.Domain.PlaceModels;
 using TravelGuideCore.Domain.UrlModels;
-using TravelGuideDbPart.Db.Configurations;
 using TravelGuideRepoInterfaces;
 
 namespace TravelGuide.Menu.Lists;
@@ -22,32 +20,43 @@ namespace TravelGuide.Menu.Lists;
 //ადგილების (Places ცხრილის) რედაქტორი. ჩანაწერის გასაღები წარწერაა (დასახელება, უსახელოსთვის მისამართი,
 //არც-მისამართიანისთვის იდენტიფიკატორი — PlaceModelExtensions.GetCaption), რომელიც პორციის ფარგლებში
 //უნიკალურია (VisitCruder-ის ყაიდაზე). მისამართი (Urls ცხრილის ჩანაწერი, UrlNavigation) არასავალდებულოა: საიტიდან
-//ჩამოტვირთულ ადგილს აქვს და შექმნისას ერთხელ იწერება, მერე აღარ იცვლება — ქროულერი მისამართს სწორედ ხეშ-კოდით
-//ცნობს; ხელით შეყვანილ ადგილს მისამართი არ აქვს და ქროულერი მას არ ეხება.
+//ჩამოტვირთულ ადგილს აქვს, ხელით შეყვანილს კი შექმნისას არ ეკითხება — ის ჩანაწერის მენიუდან, Url ველით ერთხელ
+//იწერება (PlaceUrlFieldEditor) და მერე აღარ იცვლება — ქროულერი მისამართს სწორედ ხეშ-კოდით ცნობს; უმისამართო
+//ადგილს ქროულერი არ ეხება.
 //fieldKeyFromItem=true — ცალკე Record Name ველი არ სჭირდება; მენიუში პუნქტის სახელად წარწერა გამოდის.
 //ცხრილი ათასობით ჩანაწერს შეიცავს, ამიტომ ლექსიკონი მთელ ცხრილს კი არა, სიის ბოლოს ჩატვირთულ პორციას
 //იჭერს (LoadPortion) — ჩანაწერის მენიუ (ველების რედაქტორები, თანმიმდევრობით რედაქტირება, წაშლა) მასზე
-//მუშაობს და დასახელების შეცვლის შემდეგაც იმავე ასლს ხედავს, სანამ სია თავიდან არ ჩაიტვირთება
+//მუშაობს და დასახელების შეცვლის შემდეგაც იმავე ასლს ხედავს, სანამ სია თავიდან არ ჩაიტვირთება.
+//ჩანაწერის მენიუში ველების რედაქტორების შემდეგ Find Location by Name პუნქტია — ლოკაციის დასახელებით ძებნა
+//(Nominatim) და ადგილზე მიბმა, ამიტომ რედაქტორს HttpClient-ის ქარხანა სჭირდება
 public sealed class PlaceCruder : Cruder
 {
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ITravelGuideRepository _travelGuideRepository;
 
     //ბოლოს ჩატვირთული პორცია წარწერა-გასაღებებით
     private Dictionary<string, ItemData> _portion = new(StringComparer.Ordinal);
 
-    public PlaceCruder(ITravelGuideRepository travelGuideRepository) : base("Place", "Places", true)
+    public PlaceCruder(ITravelGuideRepository travelGuideRepository, IHttpClientFactory httpClientFactory) : base(
+        "Place", "Places", true)
     {
         _travelGuideRepository = travelGuideRepository;
+        _httpClientFactory = httpClientFactory;
+        //მისამართი ახალ ადგილს არ ეკითხება (არც შექმნისას, არც თანმიმდევრობით რედაქტირებისას) — ჩანაწერის მენიუდან,
+        //მხოლოდ უმისამართო ადგილს მიეწერება (CheckFieldsEnables); ველების სიაში პირველია, რომ მისამართიანი ადგილის
+        //უცვლელი Url პუნქტის ადგილას გამოჩნდეს
+        FieldEditors.Add(new PlaceUrlFieldEditor(nameof(UrlModel.Url), travelGuideRepository));
         FieldEditors.Add(new OptionalTextFieldEditor(nameof(PlaceModel.Name), true));
         FieldEditors.Add(new DescriptionFieldEditor(nameof(PlaceModel.Description), true));
         //სტატუსი მისამართისაა (UrlModel.State) — რედაქტორი ჩანაწერის UrlNavigation-ზე მუშაობს და უმისამართო
         //ადგილს არ ეკითხება
         FieldEditors.Add(new PlaceStateFieldEditor(nameof(UrlModel.State), true));
+        //რეგიონი და მუნიციპალიტეტი შექმნისას არ იკითხება — შენახვისთანავე დასახელებით ძებნა ავსებს (AddRecordWithKey);
+        //ჩანაწერის მენიუში ველების რედაქტორები რჩება
         FieldEditors.Add(new LookupIdFieldEditor(nameof(PlaceModel.RegionId), "Region",
-            () => travelGuideRepository.GetRegionsList().ToDictionary(k => k.RegionId, v => v.Name), true));
+            () => travelGuideRepository.GetRegionsList().ToDictionary(k => k.RegionId, v => v.Name)));
         FieldEditors.Add(new LookupIdFieldEditor(nameof(PlaceModel.MunicipalityId), "Municipality",
-            () => travelGuideRepository.GetMunicipalitiesList().ToDictionary(k => k.MunicipalityId, v => v.Name),
-            true));
+            () => travelGuideRepository.GetMunicipalitiesList().ToDictionary(k => k.MunicipalityId, v => v.Name)));
         //ლოკაციები ქვერედაქტორით იმართება — შექმნისა და თანმიმდევრობით რედაქტირებისას არ იკითხება
         FieldEditors.Add(new PlaceLocationsFieldEditor(nameof(PlaceModel.Locations), travelGuideRepository));
     }
@@ -89,41 +98,22 @@ public sealed class PlaceCruder : Cruder
         return _portion.ContainsKey(recordKey);
     }
 
-    //ახალი ჩანაწერის მისამართი აქვე, სხვა ველებამდე იკითხება: Url ქროულერისთვის ჩანაწერის იდენტობაა და ველების
-    //რედაქტორებში არ შედის — არსებულ ჩანაწერს ის მხოლოდ საჩვენებლად აქვს. მისამართი არასავალდებულოა — ცარიელი
-    //Enter საიტზე არარსებულ, ხელით შესაყვან ადგილს ქმნის, რომელსაც ქროულერი არ ეხება. მითითებულ მისამართს ბოლო
-    //დახრილი ხაზი ეჭრება და უნიკალურობა Urls ცხრილში ხეშ-კოდით მოწმდება ისევე, როგორც ქროულერის
-    //HarvestedUrlPersister-ში; ახალი Urls-ის ჩანაწერი ადგილთან ერთად, ნავიგაციით ინახება
+    //ახალი ადგილი უმისამართოდ იქმნება — მისამართი არ იკითხება, ის ჩანაწერის მენიუდან, Url ველით მიეწერება
+    //(PlaceUrlFieldEditor); საბაზისო ItemData-ს მაგივრად PlaceModel უნდა დაბრუნდეს
     protected override ItemData CreateNewItem(string? recordKey, ItemData? defaultItemData)
     {
-        while (true)
-        {
-            string? url = Inputer.InputText("Url", null)?.Trim().TrimEnd('/');
-            if (string.IsNullOrEmpty(url))
-            {
-                return new PlaceModel();
-            }
+        return new PlaceModel();
+    }
 
-            if (url.Length > UrlModelConfiguration.UrlLength)
-            {
-                StShared.WriteErrorLine($"Url is too long (max {UrlModelConfiguration.UrlLength} characters)", true,
-                    null, false);
-                continue;
-            }
-
-            int urlHashCode = url.GetDeterministicHashCode();
-            if (_travelGuideRepository.GetUrlIdsByUrlHashCode(urlHashCode).ContainsKey(url))
-            {
-                StShared.WriteErrorLine($"Url {url} already exists", true, null, false);
-                continue;
-            }
-
-            return new PlaceModel { UrlNavigation = new UrlModel { Url = url, UrlHashCode = urlHashCode } };
-        }
+    //Url ველის რედაქტორი მხოლოდ უმისამართო ადგილს აქვს — მიწერილი მისამართი აღარ იცვლება და ჩანაწერის მენიუში
+    //უცვლელ პუნქტად ჩანს (FillDetailsSubMenu)
+    protected override void CheckFieldsEnables(ItemData itemData, string? lastEditedFieldName = null)
+    {
+        EnableFieldByName(nameof(UrlModel.Url), itemData is PlaceModel { UrlNavigation: null });
     }
 
     //ჩანაწერის მენიუში ველების რედაქტორების წინ მისამართი უცვლელი, საინფორმაციო პუნქტად ჩანს — მხოლოდ მაშინ,
-    //როცა ადგილს მისამართი აქვს
+    //როცა ადგილს მისამართი აქვს; უმისამართო ადგილს იმავე ადგილას Url ველის რედაქტორი უჩანს (CheckFieldsEnables)
     public override void FillDetailsSubMenu(CliMenuSet itemSubMenuSet, string itemName)
     {
         if (_portion.TryGetValue(itemName, out ItemData? itemData) &&
@@ -133,22 +123,39 @@ public sealed class PlaceCruder : Cruder
         }
 
         base.FillDetailsSubMenu(itemSubMenuSet, itemName);
+
+        //ველების რედაქტორების შემდეგ ლოკაციის დასახელებით ძებნის პუნქტი. ბრძანებას ადგილის ის ასლი გადაეცემა,
+        //რომელსაც ველების რედაქტორები ცვლიან — დასახელება მასში მიმდინარეა, ხოლო რეგიონისა და მუნიციპალიტეტის
+        //განახლებას ბრძანება მასზე წერს და ამ რედაქტორით (UpdateRecordWithKey) ინახავს
+        if (itemData is PlaceModel place)
+        {
+            itemSubMenuSet.AddMenuItem(new FindLocationByNameCommand(this, _travelGuideRepository, _httpClientFactory,
+                place, itemName));
+        }
     }
 
-    protected override ValueTask AddRecordWithKey(string recordKey, ItemData newRecord,
+    protected override async ValueTask AddRecordWithKey(string recordKey, ItemData newRecord,
         CancellationToken cancellationToken = default)
     {
         //recordKey აქ შემთხვევითი Guid-ია (fieldKeyFromItem) — ჩანაწერს გასაღები (წარწერა) სიის ჩატვირთვისას
-        //ენიჭება; მისამართი, თუ მითითებულია, CreateNewItem-მა უკვე შეამოწმა
+        //ენიჭება; ახალ ადგილს მისამართი არ აქვს (CreateNewItem)
         if (newRecord is not PlaceModel newPlace)
         {
-            return ValueTask.CompletedTask;
+            return;
         }
 
         _travelGuideRepository.AddPlace(newPlace);
 
         _travelGuideRepository.SaveChanges();
-        return ValueTask.CompletedTask;
+
+        //შენახვისთანავე (იდენტიფიკატორი უკვე აქვს) რეგიონი, მუნიციპალიტეტი და ლოკაცია დასახელებით ისაზღვრება — იგივე
+        //ბრძანებით, რაც ჩანაწერის მენიუშია, ოღონდ საძიებო ტექსტის კითხვის გარეშე; Escape-სა და შეცდომებს ბრძანების Run
+        //თავად იჭერს — ადგილი უკვე შენახულია და ლოკაციის გარეშე რჩება. უსახელო ადგილს საძიებო არაფერი აქვს
+        if (!string.IsNullOrWhiteSpace(newPlace.Name))
+        {
+            await new FindLocationByNameCommand(this, _travelGuideRepository, _httpClientFactory, newPlace,
+                newPlace.GetCaption(), false).Run(cancellationToken);
+        }
     }
 
     public override ValueTask UpdateRecordWithKey(string recordKey, ItemData newRecord,
@@ -166,9 +173,20 @@ public sealed class PlaceCruder : Cruder
         place.Description = newPlace.Description;
         place.RegionId = newPlace.RegionId;
         place.MunicipalityId = newPlace.MunicipalityId;
-        //სტატუსი მისამართისაა და მხოლოდ მისამართიან ადგილს აქვს — ბმული მისამართი GetPlaceById-ს აქვს ჩატვირთული
-        if (place.UrlNavigation is not null && newPlace.UrlNavigation is not null)
+        if (place.UrlNavigation is null && newPlace.UrlNavigation is not null)
         {
+            //უმისამართო ადგილს მისამართი Url ველის რედაქტორმა ასლზე მიაწერა (PlaceUrlFieldEditor-მა უკვე შეამოწმა) —
+            //ბმულ ჩანაწერს ახალი Urls-ის ჩანაწერი ებმება და ადგილთან ერთად ინახება
+            place.UrlNavigation = new UrlModel
+            {
+                Url = newPlace.UrlNavigation.Url,
+                UrlHashCode = newPlace.UrlNavigation.UrlHashCode,
+                State = newPlace.UrlNavigation.State
+            };
+        }
+        else if (place.UrlNavigation is not null && newPlace.UrlNavigation is not null)
+        {
+            //სტატუსი მისამართისაა და მხოლოდ მისამართიან ადგილს აქვს — ბმული მისამართი GetPlaceById-ს აქვს ჩატვირთული
             place.UrlNavigation.State = newPlace.UrlNavigation.State;
         }
 
