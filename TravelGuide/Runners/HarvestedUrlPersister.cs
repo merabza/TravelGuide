@@ -41,7 +41,7 @@ public sealed class HarvestedUrlPersister
 
     //fromUrl იმ გვერდის მისამართია, სადაც urlList მოიძებნა — მითითებისას ნაპოვნი კავშირები UrlGraphNodes-შიც ინახება.
     //საწყისი წერტილების ჩარიგებას და sitemap-ს წყარო გვერდი არ აქვს და fromUrl-ს არ გადმოსცემს
-    public int PersistNewUrls(IReadOnlyCollection<string> urlList, string? fromUrl = null)
+    public int PersistNewUrls(IReadOnlyCollection<string> urlList, Uri? fromUrl = null)
     {
         var newCount = 0;
         List<(string Url, UrlModel UrlModel)> addedUrls = [];
@@ -87,7 +87,7 @@ public sealed class HarvestedUrlPersister
 
         if (fromUrl is not null)
         {
-            PersistUrlGraphNodes(fromUrl, urlList);
+            PersistUrlGraphNodes(fromUrl.ToString(), urlList);
         }
 
         return newCount;

@@ -72,12 +72,6 @@ csharp_style_expression_bodied_local_functions = true:error
 # IDE0008: Use explicit type
 dotnet_diagnostic.IDE0008.severity = none
 
-
-# IDE0161: Convert to file-scoped namespace
-dotnet_diagnostic.IDE0161.severity = none
-
-
-
 [*.{cs,vb}]
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 dotnet_style_prefer_simplified_interpolation = true:suggestion
@@ -267,9 +261,6 @@ dotnet_diagnostic.CA1040.severity = none
 # CA1051: Do not declare visible instance fields
 dotnet_diagnostic.CA1051.severity = none
 
-# CA1054: URI-like parameters should not be strings
-dotnet_diagnostic.CA1054.severity = none
-
 # CA1056: URI-like properties should not be strings
 dotnet_diagnostic.CA1056.severity = none
 
@@ -322,6 +313,9 @@ dotnet_diagnostic.CA1848.severity = none
 
 # CA1860: Avoid using 'Enumerable.Any()' extension method
 dotnet_diagnostic.CA1860.severity = none
+
+# CA2000: Dispose objects before losing scope
+dotnet_diagnostic.CA2000.severity = warning
 
 # CA2007: Consider calling ConfigureAwait on the awaited task
 dotnet_diagnostic.CA2007.severity = none

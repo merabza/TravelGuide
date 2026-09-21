@@ -131,7 +131,7 @@ public sealed class PlaceAnalyser
             string finalUrl = (response.RequestMessage?.RequestUri ?? pageUri).AbsoluteUri.TrimEnd('/');
             if (!finalUrl.Equals(pageUri.AbsoluteUri.TrimEnd('/'), StringComparison.Ordinal))
             {
-                _urlPersister.PersistNewUrls([finalUrl], url);
+                _urlPersister.PersistNewUrls([finalUrl], new Uri(url));
                 urlModel.State = EState.Duplicate;
                 _repository.SaveChanges();
                 Console.WriteLine($"Duplicate page (redirected to {finalUrl}): {url}");
@@ -145,7 +145,7 @@ public sealed class PlaceAnalyser
             //გვერდზე ნაპოვნი ბმულები place-ის შეცვლამდე ინახება — ღირსშესანიშნაობის გარდა სხვა გვერდებიც
             //(რეგიონები, სიის გვერდები) ახალი მისამართების წყაროა; მისამართი (url) წყარო გვერდად გადაეცემა,
             //რომ ნაპოვნი კავშირები UrlGraphNodes-შიც ჩაიწეროს
-            _urlPersister.PersistNewUrls(PageLinkExtractor.ExtractLinks(document, pageUri), url);
+            _urlPersister.PersistNewUrls(PageLinkExtractor.ExtractLinks(document, pageUri), new Uri(url));
 
             PlaceExtractResult extract = PlaceDataExtractor.Extract(document);
 
