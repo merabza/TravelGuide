@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using SystemTools.SystemToolsShared;
+using TravelGuide;
 using TravelGuide.DependencyInjection;
 
 ILogger<Program>? logger = null;
@@ -16,15 +17,24 @@ try
 
     const string appName = "Travel Guide";
 
-    var argParser = new ArgumentsParser<TravelGuideParameters>(args, appName);
+    var argumentsAnalyzer = new ArgumentsAnalyzer();
 
-    switch (argParser.Analysis())
+    if (!await argumentsAnalyzer.Analysis(args))
+    {
+        return argumentsAnalyzer.ExitCode;
+    }
+
+    var argParser = new ParametersService<TravelGuideParameters>(appName);
+
+    switch (argParser.Analysis(argumentsAnalyzer.ParametersFileName))
     {
         case EParseResult.Ok:
             break;
-        case EParseResult.Usage:
+        case EParseResult.ShowHelp:
+            argumentsAnalyzer.ShowHelp();
             return 1;
         case EParseResult.ParseError:
+            StShared.WriteErrorLine($"File {argumentsAnalyzer.ParametersFileName} is not valid", true, logger, false);
             return 2;
         default:
             throw new SwitchExpressionException();
