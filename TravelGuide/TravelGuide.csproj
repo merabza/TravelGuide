@@ -7,8 +7,6 @@
         <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliParameters\AppCliTools.CliParameters.csproj" />
         <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliParametersDataEdit\AppCliTools.CliParametersDataEdit.csproj" />
         <ProjectReference Include="..\..\AppCliTools\AppCliTools.CliTools\AppCliTools.CliTools.csproj" />
-        <ProjectReference Include="..\..\SystemTools\SystemTools.SerilogStuff\SystemTools.SerilogStuff.csproj" />
-        <ProjectReference Include="..\..\TravelGuideDbPart\TravelGuideDbPart.Db\TravelGuideDbPart.Db.csproj" />
         <ProjectReference Include="..\TravelGuideRepoInterfaces\TravelGuideRepoInterfaces.csproj" />
         <ProjectReference Include="..\TravelGuideRepositories\TravelGuideRepositories.csproj" />
     </ItemGroup>
@@ -25,6 +23,8 @@
         <PackageReference Include="Selenium.WebDriver" />
         <PackageReference Include="Selenium.WebDriver.ChromeDriver" />
         <PackageReference Include="System.CommandLine" />
+        <PackageReference Include="SystemTools.SerilogStuff" />
+        <PackageReference Include="TravelGuideDbPart.Db" />
     </ItemGroup>
     <ItemGroup>
       <Folder Include="MenuCommands\" />
