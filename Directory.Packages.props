@@ -5,10 +5,10 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="AngleSharp" Version="1.8.4" />
-    <PackageVersion Include="AppCliTools.CliMenu" Version="1.0.9795.20315" />
-    <PackageVersion Include="AppCliTools.CliParameters" Version="1.0.9795.20315" />
-    <PackageVersion Include="AppCliTools.CliParametersDataEdit" Version="1.0.9795.20315" />
-    <PackageVersion Include="AppCliTools.CliTools" Version="1.0.9795.20315" />
+    <PackageVersion Include="AppCliTools.CliMenu" Version="1.0.9795.21231" />
+    <PackageVersion Include="AppCliTools.CliParameters" Version="1.0.9795.21231" />
+    <PackageVersion Include="AppCliTools.CliParametersDataEdit" Version="1.0.9795.21231" />
+    <PackageVersion Include="AppCliTools.CliTools" Version="1.0.9795.21231" />
     <PackageVersion Include="Magick.NET-Q8-AnyCPU" Version="15.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.FileExtensions" Version="10.0.11" />
     <PackageVersion Include="ParametersManagement.LibApiClientParameters" Version="1.0.9795.20216" />
