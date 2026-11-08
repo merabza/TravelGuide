@@ -9,11 +9,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="TravelGuideCore.Application.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\TravelGuideRepoInterfaces\TravelGuideRepoInterfaces.csproj" />
-    <ProjectReference Include="..\..\TravelGuideCore\TravelGuideCore.Application.Abstractions\TravelGuideCore.Application.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>
