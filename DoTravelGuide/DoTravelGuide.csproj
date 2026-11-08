@@ -2,8 +2,8 @@
 
 <Project Sdk="Microsoft.NET.Sdk">
     <ItemGroup>
-      <PackageReference Include="ParametersManagement.LibApiClientParameters" />
-      <PackageReference Include="ParametersManagement.LibDatabaseParameters" />
-      <PackageReference Include="ParametersManagement.LibFileParameters" />
+      <ProjectReference Include="..\..\ParametersManagement\ParametersManagement.LibApiClientParameters\ParametersManagement.LibApiClientParameters.csproj" />
+      <ProjectReference Include="..\..\ParametersManagement\ParametersManagement.LibDatabaseParameters\ParametersManagement.LibDatabaseParameters.csproj" />
+      <ProjectReference Include="..\..\ParametersManagement\ParametersManagement.LibFileParameters\ParametersManagement.LibFileParameters.csproj" />
     </ItemGroup>
 </Project>
