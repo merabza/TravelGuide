@@ -5,15 +5,15 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="AngleSharp" Version="1.10.0" />
-    <PackageVersion Include="AppCliTools.CliMenu" Version="1.0.9808.33666" />
-    <PackageVersion Include="AppCliTools.CliParameters" Version="1.0.9808.33666" />
-    <PackageVersion Include="AppCliTools.CliParametersDataEdit" Version="1.0.9808.33666" />
-    <PackageVersion Include="AppCliTools.CliTools" Version="1.0.9808.33666" />
+    <PackageVersion Include="AppCliTools.CliMenu" Version="1.0.9808.42869" />
+    <PackageVersion Include="AppCliTools.CliParameters" Version="1.0.9808.42869" />
+    <PackageVersion Include="AppCliTools.CliParametersDataEdit" Version="1.0.9808.42869" />
+    <PackageVersion Include="AppCliTools.CliTools" Version="1.0.9808.42869" />
     <PackageVersion Include="Magick.NET-Q8-AnyCPU" Version="15.1.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.FileExtensions" Version="10.0.11" />
-    <PackageVersion Include="ParametersManagement.LibApiClientParameters" Version="1.0.9808.33436" />
-    <PackageVersion Include="ParametersManagement.LibDatabaseParameters" Version="1.0.9808.33436" />
-    <PackageVersion Include="ParametersManagement.LibFileParameters" Version="1.0.9808.33436" />
+    <PackageVersion Include="ParametersManagement.LibApiClientParameters" Version="1.0.9808.42649" />
+    <PackageVersion Include="ParametersManagement.LibDatabaseParameters" Version="1.0.9808.42649" />
+    <PackageVersion Include="ParametersManagement.LibFileParameters" Version="1.0.9808.42649" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.35.0.4138" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
@@ -26,8 +26,8 @@
     <PackageVersion Include="Selenium.WebDriver.ChromeDriver" Version="157.0.8103.3800" />
     <PackageVersion Include="System.CommandLine" Version="2.0.14" />
     <PackageVersion Include="SystemTools.SerilogStuff" Version="1.0.9808.33287" />
-    <PackageVersion Include="TravelGuideCore.Application.Abstractions" Version="0.0.9808.33472" />
-    <PackageVersion Include="TravelGuideCore.Domain" Version="0.0.9808.33472" />
-    <PackageVersion Include="TravelGuideDbPart.Db" Version="0.0.9808.33486" />
+    <PackageVersion Include="TravelGuideCore.Application.Abstractions" Version="0.0.9808.42683" />
+    <PackageVersion Include="TravelGuideCore.Domain" Version="0.0.9808.42683" />
+    <PackageVersion Include="TravelGuideDbPart.Db" Version="0.0.9808.42695" />
   </ItemGroup>
 </Project>
