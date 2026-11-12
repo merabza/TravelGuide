@@ -21,7 +21,7 @@ public sealed class HarvestedUrlPersister
     private readonly HashSet<(int FromUrlId, int GotUrlId)> _knownUrlPairs;
 
     //ამ გაშვებაში უკვე ნანახი მისამართები — თითო მისამართი ბაზაში ხეშ-კოდით მხოლოდ ერთხელ შემოწმდეს
-    private readonly HashSet<string> _knownUrls = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _knownUrls = [with(StringComparer.Ordinal)];
 
     private readonly ITravelGuideRepository _repository;
 

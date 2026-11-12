@@ -26,8 +26,9 @@ public static partial class PlaceDataExtractor
     private const double DuplicateToleranceDegrees = 1e-5;
 
     //აღწერის ტექსტში ამ ელემენტების დახურვისას ახალი ხაზი ჩაისმის, რომ აბზაცები ერთმანეთს არ შეეწებოს
-    private static readonly HashSet<string> BlockTagNames = new(StringComparer.OrdinalIgnoreCase)
-    {
+    private static readonly HashSet<string> BlockTagNames =
+    [
+        with(StringComparer.OrdinalIgnoreCase),
         "p",
         "div",
         "li",
@@ -42,7 +43,7 @@ public static partial class PlaceDataExtractor
         "table",
         "tr",
         "blockquote"
-    };
+    ];
 
     //სერვერი სრულად დარენდერებულ HTML-ს აბრუნებს, ამიტომ ბრაუზერი საჭირო არ არის — საკმარისია მოქაჩული ტექსტის გაპარსვა.
     //დოკუმენტს გამომძახებელი პარსავს, რომ იგივე დოკუმენტი ბმულების ამოკრებასაც მოხმარდეს.
