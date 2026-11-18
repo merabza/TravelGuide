@@ -5,15 +5,15 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="AngleSharp" Version="1.10.0" />
-    <PackageVersion Include="AppCliTools.CliMenu" Version="1.0.9811.42600" />
-    <PackageVersion Include="AppCliTools.CliParameters" Version="1.0.9811.42600" />
-    <PackageVersion Include="AppCliTools.CliParametersDataEdit" Version="1.0.9811.42600" />
-    <PackageVersion Include="AppCliTools.CliTools" Version="1.0.9811.42600" />
+    <PackageVersion Include="AppCliTools.CliMenu" Version="1.0.9818.30780" />
+    <PackageVersion Include="AppCliTools.CliParameters" Version="1.0.9818.30780" />
+    <PackageVersion Include="AppCliTools.CliParametersDataEdit" Version="1.0.9818.30780" />
+    <PackageVersion Include="AppCliTools.CliTools" Version="1.0.9818.30780" />
     <PackageVersion Include="Magick.NET-Q8-AnyCPU" Version="15.1.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.FileExtensions" Version="11.0.0" />
-    <PackageVersion Include="ParametersManagement.LibApiClientParameters" Version="1.0.9811.42457" />
-    <PackageVersion Include="ParametersManagement.LibDatabaseParameters" Version="1.0.9811.42457" />
-    <PackageVersion Include="ParametersManagement.LibFileParameters" Version="1.0.9811.42457" />
+    <PackageVersion Include="ParametersManagement.LibApiClientParameters" Version="1.0.9818.30580" />
+    <PackageVersion Include="ParametersManagement.LibDatabaseParameters" Version="1.0.9818.30580" />
+    <PackageVersion Include="ParametersManagement.LibFileParameters" Version="1.0.9818.30580" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.35.0.4138" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="11.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="11.0.0" />
